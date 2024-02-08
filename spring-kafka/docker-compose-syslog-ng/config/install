@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+install -Dm 644 -o root -g root ./syslog-ng.conf /etc/syslog-ng/syslog-ng.conf

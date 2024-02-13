@@ -1,20 +1,47 @@
 # common appliction properies:
 # https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html
 
-my:
-  datasource:
-    url: local.db.com
-    username: local_user
-    password: local_pw
-    etc:
-      max-connection: 1
-      timeout: 60s
-      options: LOCAL, CACHE
+spring.profiles.active: dev
+
 ---
 spring:
   config:
     activate:
       on-profile: dev
+
+  # h2 db datasource 
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: 'jdbc:h2:mem:h2test'   # h2 mode: in-memory
+    #url: 'jdbc:h2:~/h2test'    # h2 mode: embedded (db file in user home)
+    #url: 'jdbc:h2:tcp://localhost/mem:h2test'
+    username: sa
+    password: 1234
+
+  # h2 console
+  h2:
+    console: # h2 web console ui support (non in-momory mode)
+      enabled: true 
+      path: /h2
+      settings:
+        web-allow-others: true
+
+  # jpa for h2
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: none        # init strategy (none, create, create-drop, update, validate)
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true      # query log format (sorting)
+        show_sql: true        # query log print
+
+  sql.init:
+    mode: always
+    schema-locations: classpath:sql/h2.schema.sql
+    data-locations: classpath:sql/h2.data.sql
+
 my:
   datasource:
     url: dev.db.com
@@ -24,6 +51,7 @@ my:
       max-connection: 10
       timeout: 60s
       options: DEV, CACHE
+
 ---
 spring:
   config:

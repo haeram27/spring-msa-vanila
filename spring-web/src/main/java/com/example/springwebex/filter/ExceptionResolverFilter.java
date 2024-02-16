@@ -43,6 +43,7 @@ public class ExceptionResolverFilter implements Filter {
         try {
             chain.doFilter(request, response);
         } catch (Exception e) {
+            log.error(e.getMessage());
             response.getOutputStream()
                     .write(INTERNAL_ERROR_RESPONSE.getBytes(StandardCharsets.UTF_8));
         }

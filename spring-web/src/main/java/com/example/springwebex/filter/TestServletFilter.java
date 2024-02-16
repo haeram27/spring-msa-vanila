@@ -8,8 +8,6 @@ import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class TestServletFilter implements Filter {
@@ -26,18 +24,18 @@ public class TestServletFilter implements Filter {
         /*-
          * this context run before controller processing
          */
-        if (request instanceof HttpServletRequest) {
-            String url = ((HttpServletRequest) request).getRequestURL().toString();
-            String queryString = ((HttpServletRequest) request).getQueryString();
-            System.out.println("filter::request::url=" + url);
-            System.out.println("filter::request::queryString=" + queryString);
-        }
+        // if (request instanceof HttpServletRequest) {
+        //     String url = ((HttpServletRequest) request).getRequestURL().toString();
+        //     String queryString = ((HttpServletRequest) request).getQueryString();
+        //     System.out.println("filter::request::url=" + url);
+        //     System.out.println("filter::request::queryString=" + queryString);
+        // }
 
-        // "X-TEST-HEADER" will be added by TestServletInterceptor.postHandle()
-        if (response instanceof HttpServletResponse) {
-            System.out.println("filter::response::modified-header="
-                    + ((HttpServletResponse) response).getHeader("X-TEST-HEADER"));
-        }
+        // // "X-TEST-HEADER" will be added by TestServletInterceptor.postHandle()
+        // if (response instanceof HttpServletResponse) {
+        //     System.out.println("filter::response::modified-header="
+        //             + ((HttpServletResponse) response).getHeader("X-TEST-HEADER"));
+        // }
 
         /*-
          * processing next filter chain and spring controller
@@ -47,14 +45,14 @@ public class TestServletFilter implements Filter {
         /*-
         * this context run after controller processing
         */
-        if (response instanceof HttpServletResponse) {
-            int code = ((HttpServletResponse) response).getStatus();
-            System.out.println("filter::response::code=" + code);
+        // if (response instanceof HttpServletResponse) {
+        // int code = ((HttpServletResponse) response).getStatus();
+        // System.out.println("filter::response::code=" + code);
 
-            // "X-TEST-HEADER" should be added by TestServletInterceptor.postHandle()
-            System.out.println("filter::response::modified-header="
-                    + ((HttpServletResponse) response).getHeader("X-TEST-HEADER"));
-        }
+        // // "X-TEST-HEADER" should be added by TestServletInterceptor.postHandle()
+        // System.out.println("filter::response::modified-header="
+        //         + ((HttpServletResponse) response).getHeader("X-TEST-HEADER"));
+        // }
     }
 
     @Override

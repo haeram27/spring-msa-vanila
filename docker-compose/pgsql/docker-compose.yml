@@ -1,0 +1,16 @@
+services:
+  postgres:
+    container_name: test-postgres
+    image: abis.ahnlab.com/postgres:latest
+    environment:
+        #- POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=dvdrental
+    ports:
+      - "5430:5432"
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/test-postgresql/data
+      - ./sampledb:/sampledb
+volumes:
+  pgdata:

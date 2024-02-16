@@ -41,7 +41,7 @@
         <!-- Root(Default) Setting                                               -->
         <!-- =================================================================== -->
         <!-- off, fatal, error, warn, info, debug, trace, all -->
-        <Root level="off" additivity="false">
+        <Root level="error" additivity="false">
             <AppenderRef ref="console"/>
             <AppenderRef ref="file"/>
         </Root>
@@ -67,7 +67,7 @@
         <!-- =================================================================== -->
         <!-- App                                                                 -->
         <!-- =================================================================== -->
-        <Logger name="com.example.springwebex" level="off" additivity="false">
+        <Logger name="com.example.springwebex" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>

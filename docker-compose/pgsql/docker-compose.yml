@@ -11,6 +11,6 @@ services:
     restart: unless-stopped
     volumes:
       - pgdata:/var/lib/test-postgresql/data
-      - ./sampledb:/sampledb
+      - ../init:/init
 volumes:
   pgdata:

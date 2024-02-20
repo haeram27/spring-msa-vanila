@@ -99,7 +99,7 @@ init_pg_db() {
 
     is_postgres_available ${CONTAINER_NAME} ${PG_USER} ${PG_PWD} ${PG_DB}
     if [[ $? -eq 0 ]]; then
-      docker exec ${CONTAINER_NAME} pg_restore -U ${PG_USER} -d ${PG_DB} /sampledb/dvdrental.tar
+      docker exec ${CONTAINER_NAME} pg_restore -U ${PG_USER} -d ${PG_DB} /init/pgsql/sampledb/dvdrental.tar
       if [[ $? -eq 0 ]]; then
       return 0
       fi

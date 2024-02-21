@@ -1,7 +1,8 @@
+version: '3'
 services:
   postgres:
     container_name: test-postgres
-    image: postgres:latest
+    image: abis.ahnlab.com/postgres:latest
     environment:
         #- POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=postgres
@@ -10,7 +11,7 @@ services:
       - "5430:5432"
     restart: unless-stopped
     volumes:
-      - pgdata:/var/lib/test-postgresql/data
+      - pgsdata:/var/lib/postgresql/data
       - ../init:/init
 volumes:
-  pgdata:
+  pgsdata:

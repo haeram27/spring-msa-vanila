@@ -67,7 +67,7 @@
         <!-- =================================================================== -->
         <!-- App                                                                 -->
         <!-- =================================================================== -->
-        <Logger name="com.example.springwebex" level="error" additivity="false">
+        <Logger name="com.example.springwebex" level="debug" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>

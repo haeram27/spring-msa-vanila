@@ -28,7 +28,7 @@ spring:
     activate:
       on-profile: dev
 
-  # db datasource 
+  # db datasource
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/dvdrental
@@ -44,6 +44,9 @@ my:
       max-connection: 10
       timeout: 60s
       options: DEV, CACHE
+
+logging.level.com.zaxxer.hikari.HikariConfig: DEBUG 
+logging.level.com.zaxxer.hikari: TRACE
 
 ---
 spring:

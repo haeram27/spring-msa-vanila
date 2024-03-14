@@ -21,4 +21,4 @@ if(startParameter.offline)
         println "======================"
 }
 
-rootProject.name = 'springlib'
+rootProject.name = 'batch'

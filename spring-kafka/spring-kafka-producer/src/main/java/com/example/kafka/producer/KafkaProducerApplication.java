@@ -27,7 +27,7 @@ public class KafkaProducerApplication {
             public void run() {
                 try {
                     while (true) {
-                        sendMessage("message id: ", String.valueOf(ATOM_INT.incrementAndGet()));
+                        sendMessage("my-topic", String.valueOf(ATOM_INT.incrementAndGet()));
                         Thread.sleep(100);
                     }
                 } catch (Exception e) {
@@ -41,8 +41,7 @@ public class KafkaProducerApplication {
         CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, message);
         future.whenComplete((result, ex) -> {
             if (ex == null) {
-                log.info("Sent message=[" + message + "] with offset=["
-                        + result.getRecordMetadata().offset() + "]");
+                log.info("Sent message=[" + message + "] with offset=[" + result.getRecordMetadata().offset() + "]");
             } else {
                 log.info("Unable to send message=[" + message + "] due to : " + ex.getMessage());
             }

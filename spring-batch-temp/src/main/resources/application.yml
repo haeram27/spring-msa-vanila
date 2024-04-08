@@ -25,7 +25,7 @@ spring:
   # db datasource
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/dvdrental
+    url: jdbc:postgresql://localhost:5430/dvdrental
     username: postgres
     password: postgres
     # https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#application-properties.data.spring.datasource.hikari

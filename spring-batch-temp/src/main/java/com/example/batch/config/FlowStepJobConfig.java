@@ -3,46 +3,37 @@ package com.example.batch.config;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-@EnableBatchProcessing
-public class ExampleJobConfig3 {
-
-    @Autowired
-    public JobBuilderFactory jobBuilderFactory;
-    @Autowired
-    public StepBuilderFactory stepBuilderFactory;
+@RequiredArgsConstructor
+public class FlowStepJobConfig extends DefaultBatchConfiguration {
 
     @Bean
-    public Job FlowStepExampleJob() {
+    public Job flowStepJobConfig(JobRepository jobRepository) {
 
-        Job exampleJob = jobBuilderFactory.get("exampleJob").start(startStep()).on("FAILED") //startStep의 ExitStatus가 FAILED일 경우
-                .to(failOverStep()) //failOver Step을 실행 시킨다.
+        Job exampleJob = JobBuilder("flowStepJob", jobRepository).start(flowStartStep()).on("FAILED") //startStep의 ExitStatus가 FAILED일 경우
+                .to(flowFailOverStep()) //failOver Step을 실행 시킨다.
                 .on("*") //failOver Step의 결과와 상관없이
-                .to(writeStep()) //write Step을 실행 시킨다.
+                .to(flowWriteStep()) //write Step을 실행 시킨다.
                 .on("*") //write Step의 결과와 상관없 이
                 .end() //Flow를 종료시킨다.
 
-                .from(startStep()) //startStep이 FAILED가 아니고
+                .from(flowStartStep()) //startStep이 FAILED가 아니고
                 .on("COMPLETED") //COMPLETED일 경우
-                .to(processStep()) //process Step을 실행 시킨다
+                .to(flowProcessStep()) //process Step을 실행 시킨다
                 .on("*") //process Step의 결과와 상관없이
-                .to(writeStep()) // write Step을 실행 시킨다.
+                .to(flowWriteStep()) // write Step을 실행 시킨다.
                 .on("*") //wrtie Step의 결과와 상관없이
                 .end() //Flow를 종료 시킨다.
 
-                .from(startStep()) //startStep의 결과가 FAILED, COMPLETED가 아닌
+                .from(flowStartStep()) //startStep의 결과가 FAILED, COMPLETED가 아닌
                 .on("*") //모든 경우
-                .to(writeStep()) //write Step을 실행시킨다.
+                .to(flowWriteStep()) //write Step을 실행시킨다.
                 .on("*") //write Step의 결과와 상관없이
                 .end() //Flow를 종료시킨다.
                 .end().build();
@@ -51,8 +42,8 @@ public class ExampleJobConfig3 {
     }
 
     @Bean
-    public Step flowStartStep() {
-        return stepBuilderFactory.get("startStep").tasklet((contribution, chunkContext) -> {
+    public Step flowStartStep(JobRepository jobRepository) {
+        return StepBuilder("flowStartStep", jobRepository).tasklet((contribution, chunkContext) -> {
             log.info("Start Step!");
 
             String result = "COMPLETED";
@@ -72,26 +63,26 @@ public class ExampleJobConfig3 {
     }
 
     @Bean
-    public Step flowFailOverStep() {
-        return stepBuilderFactory.get("nextStep").tasklet((contribution, chunkContext) -> {
-            log.info("FailOver Step!");
+    public Step flowFailOverStep(JobRepository jobRepository) {
+        return StepBuilder("flowFailOverStep", jobRepository).tasklet((contribution, chunkContext) -> {
+            log.info("flowFailOverStep!");
             return RepeatStatus.FINISHED;
         }).build();
     }
 
     @Bean
-    public Step flowProcessStep() {
-        return stepBuilderFactory.get("processStep").tasklet((contribution, chunkContext) -> {
-            log.info("Process Step!");
+    public Step flowProcessStep(JobRepository jobRepository) {
+        return StepBuilder("flowProcessStep", jobRepository).tasklet((contribution, chunkContext) -> {
+            log.info("flowProcessStep!");
             return RepeatStatus.FINISHED;
         }).build();
     }
 
 
     @Bean
-    public Step flowWriteStep() {
-        return stepBuilderFactory.get("writeStep").tasklet((contribution, chunkContext) -> {
-            log.info("Write Step!");
+    public Step flowWriteStep(JobRepository jobRepository) {
+        return StepBuilder("flowWriteStep", jobRepository).tasklet((contribution, chunkContext) -> {
+            log.info("flowWriteStep!");
             return RepeatStatus.FINISHED;
         }).build();
     }

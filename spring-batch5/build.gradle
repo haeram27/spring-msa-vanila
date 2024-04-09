@@ -12,6 +12,9 @@ java {
 }
 
 configurations {
+	all {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
@@ -20,23 +23,16 @@ configurations {
 dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'com.h2database:h2'
 	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
-	implementation ('org.springframework.boot:spring-boot-starter') {
-		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-	}
-
-    // log4j2 RELP supported library
-	// implementation 'com.teragrep:jla_06:1.1.0'
-	// implementation 'com.teragrep:rlp_01:4.0.0'
-	// implementation 'com.cloudbees:syslog-java-client:1.1.7'
-	implementation files('libs/jla_06-1.1.0.jar', 'libs/rlp_01-4.0.0.jar', 'libs/syslog-java-client-1.1.7.jar')
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
 
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	testCompileOnly 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-log4j2'
-	testImplementation ('org.springframework.boot:spring-boot-starter-test') {
-		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-	}
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.batch:spring-batch-test'
 }
 
 // test {

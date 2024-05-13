@@ -4,7 +4,9 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
 import org.quartz.JobListener;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class TestJobListener implements JobListener {
     @Override
     public String getName() {
@@ -19,8 +21,7 @@ public class TestJobListener implements JobListener {
     @Override
     public void jobToBeExecuted(JobExecutionContext jobExecutionContext) {
         JobKey k = jobExecutionContext.getJobDetail().getKey();
-        System.out.println(
-                String.format("[-] jobToBeExecuted()::%s::%s", k.getGroup(), k.getName()));
+        log.debug("[-] jobToBeExecuted()::{}::{}", k.getGroup(), k.getName());
     }
 
     /**
@@ -31,8 +32,7 @@ public class TestJobListener implements JobListener {
     @Override
     public void jobExecutionVetoed(JobExecutionContext jobExecutionContext) {
         JobKey k = jobExecutionContext.getJobDetail().getKey();
-        System.out.println(
-                String.format("[?] jobExecutionVetoed()::%s::%s", k.getGroup(), k.getName()));
+        log.debug("[?] jobExecutionVetoed()::{}::{}", k.getGroup(), k.getName());
     }
 
     /**
@@ -44,7 +44,6 @@ public class TestJobListener implements JobListener {
     @Override
     public void jobWasExecuted(JobExecutionContext jobExecutionContext, JobExecutionException e) {
         JobKey k = jobExecutionContext.getJobDetail().getKey();
-        System.out.println(
-                String.format("[+] jobWasExecuted()::%s::%s", k.getGroup(), k.getName()));
+        log.debug("[+] jobWasExecuted()::{}::{}", k.getGroup(), k.getName());
     }
 }

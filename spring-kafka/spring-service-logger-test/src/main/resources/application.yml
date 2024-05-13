@@ -1,0 +1,6 @@
+spring.profiles.active: dev
+logging.config: classpath:log4j2-${spring.profiles.active}.xml
+
+spring.kafka.bootstrap-servers: localhost:29092
+spring.kafka.consumer.group-id: myGroup
+start.message: "!@#$%^&*()_+_)(*&^%$#@!"

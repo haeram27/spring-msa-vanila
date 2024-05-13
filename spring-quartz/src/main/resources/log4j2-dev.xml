@@ -7,19 +7,20 @@
         <Property name="logFile">Log4J2Test</Property>
         <Property name="logFilePath">${logRoot}/logs/${logFile}</Property>
         <!-- Pattern Layout: https://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout -->
-        <Property name="layoutPattern">[%d{DEFAULT}] %-5level [%pid:%t] %c{1}:%M:%L - %msg%n</Property>
-        <Property name="simpleLayoutPattern">%-5level [%t] %c{1}:%M:%L - %msg%n</Property>
+        <Property name="fullLayoutPattern">%d{DEFAULT} %-5p %pid:%t %c{1}:%M:%L -- %msg%n</Property>
+        <Property name="colorCodeLayoutPattern">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} %t %c{1}:%L -- %highlight{%m}%n</Property>
+        <Property name="colorMsgLayoutPattern">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} -- %m%n</Property>
     </Properties>
 
     <Appenders>
         <!-- Appenders: https://logging.apache.org/log4j/2.x/manual/appenders.html -->
 
         <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="${simpleLayoutPattern}" />
+            <PatternLayout pattern="${colorMsgLayoutPattern}" />
         </Console>
 
         <RollingFile name="file" fileName="${logFilePath}.log" filePattern="${logFilePath}_%d{yyyy-MM-dd}.log">
-            <PatternLayout pattern="${layoutPattern}" />
+            <PatternLayout pattern="${fullLayoutPattern}" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="10MB" />
                 <TimeBasedTriggeringPolicy interval="1" />
@@ -42,7 +43,7 @@
         <!-- Root(Default) Setting                                               -->
         <!-- =================================================================== -->
         <!-- off, fatal, error, warn, info, debug, trace, all -->
-        <Root level="error" additivity="false">
+        <Root level="off">
             <AppenderRef ref="console"/>
             <AppenderRef ref="file"/>
         </Root>
@@ -68,7 +69,7 @@
         <!-- =================================================================== -->
         <!-- App                                                                 -->
         <!-- =================================================================== -->
-        <Logger name="com.example.springwebex" level="error" additivity="false">
+        <Logger name="com.example.quartz" level="all" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>

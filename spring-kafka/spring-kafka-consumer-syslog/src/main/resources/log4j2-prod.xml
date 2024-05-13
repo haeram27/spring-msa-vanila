@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration>
+<Configuration status="error">
     <!-- Configuration layouts: https://logging.apache.org/log4j/2.x/manual/configuration.html -->
 
     <Properties>
@@ -7,53 +7,35 @@
         <Property name="logFile">Log4J2Test</Property>
         <Property name="logFilePath">${logRoot}/logs/${logFile}</Property>
         <!-- Pattern Layout: https://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout -->
-        <Property name="layoutPattern">[%d{DEFAULT_MICROS}] %-5level [%pid:%t] %c{1}:%M:%L - %msg%n</Property>
+        <Property name="fullLayoutPattern">%d{DEFAULT} %-5p %pid:%t %c{1}:%M:%L -- %msg%n</Property>
+        <Property name="colorCodeLayoutPattern">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} %t %c{1}:%L -- %highlight{%m}%n</Property>
+        <Property name="colorMsgLayoutPattern">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} -- %m%n</Property>
     </Properties>
 
     <Appenders>
         <!-- Appenders: https://logging.apache.org/log4j/2.x/manual/appenders.html -->
+
         <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="${layoutPattern}" />
+            <PatternLayout pattern="${colorCodeLayoutPattern}" />
         </Console>
 
-        <!--
         <RollingFile name="file" fileName="${logFilePath}.log" filePattern="${logFilePath}_%d{yyyy-MM-dd}.log">
-            <PatternLayout pattern="${layoutPattern}" />
+            <PatternLayout pattern="${fullLayoutPattern}" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="10MB" />
                 <TimeBasedTriggeringPolicy interval="1" />
             </Policies>
-            <DefaultRolloverStrategy max="30" fileIndex="min" />
+            <DefaultRolloverStrategy max="30" fileIndex="min">
+                <Delete basePath="${logRoot}">
+                    <IfFileName glob="*.log">
+                        <IfAny>
+                            <IfAccumulatedFileCount exceeds="200" />
+                            <IfAccumulatedFileSize exceeds="10GB" />
+                        </IfAny>
+                    </IfFileName>
+                </Delete>
+            </DefaultRolloverStrategy>
         </RollingFile>
-        -->
-
-        <!-- OPTION#1: Use standard syslog and add fields with LoggerFields -->
-        <!-- https://logging.apache.org/log4j/2.x/manual/appenders.html#SyslogAppender -->
-        <Syslog name="syslog" format="RFC5424" host="localhost" port="514"
-            protocol="TCP" appName="kafka" includeMDC="false" mdcId="testlog4j2"
-            facility="LOCAL7" enterpriseNumber="18060" newLine="true"
-            messageId="Audit" id="App">
-            <!-- <LoggerFields>
-                <KeyValuePair key="thread" value="%t"/>
-                <KeyValuePair key="priority" value="%p"/>
-                <KeyValuePair key="category" value="%c"/>
-                <KeyValuePair key="exception" value="%ex"/>
-            </LoggerFields> -->
-        </Syslog>
-
-        <!-- OPTION#2: Use socket with explicit pattern -->
-        <!--
-        <Socket name="syslogsocket" host="localhost" port="514" protocol="TCP">
-            <PatternLayout
-            pattern="&lt;134&gt;%d{MMM dd HH:mm:ss} ${hostName} testlog4j: {
-                &quot;thread&quot;:&quot;%t&quot;,
-                &quot;priority&quot;:&quot;%p&quot;,
-                &quot;category&quot;:&quot;%c{1}&quot;,
-                &quot;exception&quot;:&quot;%exception&quot;
-                }%n"
-            />
-        </Socket>
-        -->
     </Appenders>
 
     <Loggers>
@@ -61,85 +43,91 @@
         <!-- Root(Default) Setting                                               -->
         <!-- =================================================================== -->
         <!-- off, fatal, error, warn, info, debug, trace, all -->
-        <Root level="info" additivity="false">
+        <Root level="off">
+            <AppenderRef ref="console"/>
             <AppenderRef ref="file"/>
-            <AppenderRef ref="console" />
-            <AppenderRef ref="syslog" />
-            <AppenderRef ref="syslogsocket" />
         </Root>
 
         <!-- =================================================================== -->
         <!-- specific Logger setting                                             -->
         <!-- =================================================================== -->
         <!--
-            logger params
+            Logger params
             ==============
-            name : logger name, usually made by package or class name
+            name : Logger name, usually made by package or class name
             level : min log level
             additivity : false - prevent log redundency
         -->
-        <!-- A logger NOT specified here will inherit from Root -->
+        <!-- A Logger NOT specified here will inherit from Root -->
         <!--
-        <logger name="com.example.demo.DemoApplication" level="error" additivity="false">
+        <Logger name="com.example.demo.DemoApplication" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
+        </Logger>
         -->
+
+        <!-- =================================================================== -->
+        <!-- App                                                                 -->
+        <!-- =================================================================== -->
+        <Logger name="com.example.kafka.consumer" level="all" additivity="false">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="file" />
+        </Logger>
 
         <!-- =================================================================== -->
         <!-- SPRING                                                              -->
         <!-- =================================================================== -->
-        <logger name="org.springframework.boot" level="error" additivity="false">
+        <Logger name="org.springframework.boot" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
-        <logger name="org.springframework.core" level="error" additivity="false">
+        </Logger>
+        <Logger name="org.springframework.core" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
-        <logger name="org.springframework.beans" level="error" additivity="false">
+        </Logger>
+        <Logger name="org.springframework.beans" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
-        <logger name="org.springframework.context" level="error" additivity="false">
+        </Logger>
+        <Logger name="org.springframework.context" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
-        <logger name="org.springframework.web" level="error" additivity="false">
+        </Logger>
+        <Logger name="org.springframework.web" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
+        </Logger>
 
         <!-- =================================================================== -->
         <!-- JDBC                                                                -->
         <!-- =================================================================== -->
-        <logger name="org.springframework.jdbc" level="error" additivity="false">
+        <Logger name="org.springframework.jdbc" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
-        <logger name="jdbc.sqltiming" level="error" additivity="false">
+        </Logger>
+        <Logger name="jdbc.sqltiming" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
-        <logger name="jdbc.sqlonly" level="error" additivity="false">
+        </Logger>
+        <Logger name="jdbc.sqlonly" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
-        <logger name="jdbc.connection" level="error" additivity="false">
+        </Logger>
+        <Logger name="jdbc.connection" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
-        <logger name="jdbc.resultset" level="error" additivity="false">
+        </Logger>
+        <Logger name="jdbc.resultset" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
-        <logger name="jdbc.audit" level="error" additivity="false">
+        </Logger>
+        <Logger name="jdbc.audit" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
-        <logger name="jdbc.resultsettable" level="error" additivity="false">
+        </Logger>
+        <Logger name="jdbc.resultsettable" level="error" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
-        </logger>
+        </Logger>
     </Loggers>
 </Configuration>

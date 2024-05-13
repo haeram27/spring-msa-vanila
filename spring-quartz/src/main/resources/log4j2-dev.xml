@@ -8,13 +8,14 @@
         <Property name="logFilePath">${logRoot}/logs/${logFile}</Property>
         <!-- Pattern Layout: https://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout -->
         <Property name="layoutPattern">[%d{DEFAULT}] %-5level [%pid:%t] %c{1}:%M:%L - %msg%n</Property>
+        <Property name="simpleLayoutPattern">%-5level [%t] %c{1}:%M:%L - %msg%n</Property>
     </Properties>
 
     <Appenders>
         <!-- Appenders: https://logging.apache.org/log4j/2.x/manual/appenders.html -->
 
         <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="${layoutPattern}" />
+            <PatternLayout pattern="${simpleLayoutPattern}" />
         </Console>
 
         <RollingFile name="file" fileName="${logFilePath}.log" filePattern="${logFilePath}_%d{yyyy-MM-dd}.log">

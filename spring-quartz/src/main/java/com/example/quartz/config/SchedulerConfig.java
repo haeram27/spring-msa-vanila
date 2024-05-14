@@ -49,9 +49,9 @@ public class SchedulerConfig {
      * add schedule
      */
     @PostConstruct
-    private void jobProgress() throws SchedulerException {
-        simpleScheduler();
-        cronScheduler();
+    private void registAllQuartzSchedule() throws SchedulerException {
+        registSimpleSchedule();
+        registCronSchedule();
     }
 
     /**
@@ -59,7 +59,7 @@ public class SchedulerConfig {
      *
      * @throws SchedulerException
      */
-    private void simpleScheduler() throws SchedulerException {
+    private void registSimpleSchedule() throws SchedulerException {
         // [STEP1] create job
         JobDetail job = JobBuilder.newJob(TestJob.class) // job builder
                 .withIdentity("simpleSchedJob", "testJobGroup") // JobKey(job identifier)'s name and group
@@ -83,7 +83,7 @@ public class SchedulerConfig {
     /**
      * CronScheduler
      */
-    private void cronScheduler() throws SchedulerException {
+    private void registCronSchedule() throws SchedulerException {
 
         // [STEP1] create job
         JobDetail job = JobBuilder.newJob(TestJob.class) // job builder

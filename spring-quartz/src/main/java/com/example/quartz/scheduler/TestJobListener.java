@@ -21,7 +21,7 @@ public class TestJobListener implements JobListener {
     @Override
     public void jobToBeExecuted(JobExecutionContext jobExecutionContext) {
         JobKey k = jobExecutionContext.getJobDetail().getKey();
-        log.debug("[-] jobToBeExecuted()::{}::{}", k.getGroup(), k.getName());
+        log.debug("# start quartz job g={} n={}", k.getGroup(), k.getName());
     }
 
     /**
@@ -32,7 +32,7 @@ public class TestJobListener implements JobListener {
     @Override
     public void jobExecutionVetoed(JobExecutionContext jobExecutionContext) {
         JobKey k = jobExecutionContext.getJobDetail().getKey();
-        log.debug("[?] jobExecutionVetoed()::{}::{}", k.getGroup(), k.getName());
+        log.debug("# vetoed quartz job g={} n={}", k.getGroup(), k.getName());
     }
 
     /**
@@ -44,6 +44,6 @@ public class TestJobListener implements JobListener {
     @Override
     public void jobWasExecuted(JobExecutionContext jobExecutionContext, JobExecutionException e) {
         JobKey k = jobExecutionContext.getJobDetail().getKey();
-        log.debug("[+] jobWasExecuted()::{}::{}", k.getGroup(), k.getName());
+        log.debug("# finish quartz job g={} n={}", k.getGroup(), k.getName());
     }
 }

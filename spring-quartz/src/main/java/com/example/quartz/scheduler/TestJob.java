@@ -11,7 +11,7 @@ public class TestJob implements Job {
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) {
-        log.info("({}) {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH::mm::ss")),
+        log.trace("({}) {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH::mm::ss")),
                 jobExecutionContext.getJobDetail().getDescription());
     }
 }

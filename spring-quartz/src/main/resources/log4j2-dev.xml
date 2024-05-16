@@ -8,8 +8,8 @@
         <Property name="logFilePath">${logRoot}/logs/${logFile}</Property>
         <!-- Pattern Layout: https://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout -->
         <Property name="fullLayoutPattern">%d{DEFAULT} %-5p %pid:%t %c{1}:%M:%L -- %msg%n</Property>
-        <Property name="colorCodeLayoutPattern">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} %t %c{1}:%L -- %highlight{%m}%n</Property>
-        <Property name="colorMsgLayoutPattern">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} -- %m%n</Property>
+        <Property name="colorCodeLayoutPattern">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} %t %c{1}:%M:%L -- %highlight{%m}%n</Property>
+        <Property name="colorMsgLayoutPattern">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} %c{1}:%M:%L -- %m%n</Property>
     </Properties>
 
     <Appenders>

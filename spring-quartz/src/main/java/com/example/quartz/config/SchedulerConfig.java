@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Configuration;
 
 import com.example.quartz.scheduler.TestJob;
 import com.example.quartz.scheduler.TestJobListener;
+import com.example.quartz.scheduler.TestSchedulerListener;
+import com.example.quartz.scheduler.TestTriggerListener;
 
 import jakarta.annotation.PostConstruct;
 
@@ -26,8 +28,9 @@ public class SchedulerConfig {
         this.scheduler = scheduler;
         if (this.scheduler != null) {
             try {
-                TestJobListener testJobListener = new TestJobListener();
-                this.scheduler.getListenerManager().addJobListener(testJobListener);
+                this.scheduler.getListenerManager().addJobListener(new TestJobListener());
+                this.scheduler.getListenerManager().addTriggerListener(new TestTriggerListener());
+                this.scheduler.getListenerManager().addSchedulerListener(new TestSchedulerListener());
             } catch (SchedulerException e) {
                 e.printStackTrace();
             }
@@ -37,8 +40,9 @@ public class SchedulerConfig {
         /*
         try {
             this.scheduler = new StdSchedulerFactory().getScheduler();
-            TestJobListener testJobListener = new TestJobListener();
-            this.scheduler.getListenerManager().addJobListener(testJobListener);
+            this.scheduler.getListenerManager().addJobListener(new TestJobListener());
+            this.scheduler.getListenerManager().addTriggerListener(new TestTriggerListener());
+            this.scheduler.getListenerManager().addSchedulerListener(new TestSchedulerListener());
         } catch (SchedulerException e) {
             e.printStackTrace();
         }
@@ -70,10 +74,10 @@ public class SchedulerConfig {
         Trigger trigger = TriggerBuilder.newTrigger() // trigger builder
                 .withIdentity("simpleSchedTrigger", "testScheduleGroup") // trigger name and group
                 .withDescription("simple trigger desc") // trigger description
-                .startNow()
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule()
                         .withIntervalInSeconds(5) // every 5 sec
-                        .repeatForever())
+                        .repeatForever()) // repeat infinitely
+                .startNow()
                 .build();
 
         // [STEP3] schedule Job and Trigger into scheduler
@@ -95,8 +99,8 @@ public class SchedulerConfig {
         CronTrigger cronTrigger = TriggerBuilder.newTrigger()
                 .withIdentity("cronSchedTrigger", "testScheduleGroup") // trigger name and group
                 .withDescription("cron trigger desc") // trigger description
-                .startNow()
-                .withSchedule(CronScheduleBuilder.cronSchedule("0/10 * * * * ?")).build(); // every 10 sec
+                .withSchedule(CronScheduleBuilder.cronSchedule("0/10 * * * * ?"))
+                .build(); // every 10 sec
 
         // [STEP3] schedule Job and Trigger into scheduler
         scheduler.scheduleJob(job, cronTrigger);

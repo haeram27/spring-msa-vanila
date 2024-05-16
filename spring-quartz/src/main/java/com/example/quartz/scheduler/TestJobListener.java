@@ -4,6 +4,7 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
 import org.quartz.JobListener;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -21,7 +22,7 @@ public class TestJobListener implements JobListener {
     @Override
     public void jobToBeExecuted(JobExecutionContext jobExecutionContext) {
         JobKey k = jobExecutionContext.getJobDetail().getKey();
-        log.debug("# start quartz job g={} n={}", k.getGroup(), k.getName());
+        log.trace("# g={} n={}", k.getGroup(), k.getName());
     }
 
     /**
@@ -32,7 +33,7 @@ public class TestJobListener implements JobListener {
     @Override
     public void jobExecutionVetoed(JobExecutionContext jobExecutionContext) {
         JobKey k = jobExecutionContext.getJobDetail().getKey();
-        log.debug("# vetoed quartz job g={} n={}", k.getGroup(), k.getName());
+        log.trace("# g={} n={}", k.getGroup(), k.getName());
     }
 
     /**
@@ -44,6 +45,6 @@ public class TestJobListener implements JobListener {
     @Override
     public void jobWasExecuted(JobExecutionContext jobExecutionContext, JobExecutionException e) {
         JobKey k = jobExecutionContext.getJobDetail().getKey();
-        log.debug("# finish quartz job g={} n={}", k.getGroup(), k.getName());
+        log.trace("# g={} n={}", k.getGroup(), k.getName());
     }
 }

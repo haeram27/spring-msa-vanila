@@ -56,7 +56,8 @@
             ==============
             name : Logger name, usually made by package or class name
             level : min log level
-            additivity : false - prevent log redundency
+            additivity : whether add AppenderRef from upper Logger or not, default true
+                        if false then it prevents log redundency
         -->
         <!-- A Logger NOT specified here will inherit from Root -->
         <!--
@@ -69,9 +70,8 @@
         <!-- =================================================================== -->
         <!-- App                                                                 -->
         <!-- =================================================================== -->
-        <Logger name="com.example.quartz" level="all" additivity="false">
+        <Logger name="com.example.quartz" level="trace" additivity="false">
             <AppenderRef ref="console" />
-            <AppenderRef ref="file" />
         </Logger>
 
         <!-- =================================================================== -->

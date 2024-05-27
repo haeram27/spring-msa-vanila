@@ -1,10 +1,8 @@
-package com.example.batch.config;
+package com.example.batch.config.quartz;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ThreadPoolExecutor;
-
-import javax.sql.DataSource;
 
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -12,15 +10,18 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.spi.JobFactory;
+import org.quartz.spi.TriggerFiredBundle;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.quartz.QuartzProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
+import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 @EnableBatchProcessing
 @RequiredArgsConstructor
 @Slf4j
-public class QuartzConfig {
-    private final DataSource dataSource;
+public class SchedulerConfig {
+    @Autowired
+    ApplicationContext applicationContext;
 
     @Autowired
     QuartzProperties quartzProperties;
@@ -49,33 +51,33 @@ public class QuartzConfig {
         return threadPoolTaskExecutor;
     }
 
-    // @Bean
-    // public JobFactory jobFactory(AutowireCapableBeanFactory beanFactory) {
-    //     return new SpringBeanJobFactory() {
-    //         @Override
-    //         protected Object createJobInstance(TriggerFiredBundle bundle) throws Exception {
-    //             Object job = super.createJobInstance(bundle);
-
-    //             beanFactory.autowireBean(job);
-
-    //             return job;
-    //         }
-    //     };
-    // }
-
     @Bean
-    public Trigger[] registryTrigger(List<SimpleTriggerFactoryBean> simpleTriggerFactoryBeanList) {
-        return simpleTriggerFactoryBeanList.stream().map(SimpleTriggerFactoryBean::getObject).toArray(Trigger[]::new);
+    public JobFactory jobFactory(AutowireCapableBeanFactory beanFactory) {
+        return new SpringBeanJobFactory() {
+            @Override
+            protected Object createJobInstance(TriggerFiredBundle bundle) throws Exception {
+                Object job = super.createJobInstance(bundle);
+                beanFactory.autowireBean(job);
+                return job;
+            }
+        };
     }
 
     @Bean
-    public SchedulerFactoryBean schedulerFactoryBean(JobFactory jobFactory, Trigger[] registryTrigger) {
+    public SchedulerFactoryBean schedulerFactoryBean(JobFactory jobFactory, Trigger[] triggers, JobDetail[] jobDetails,
+            ThreadPoolTaskExecutor threadPoolTaskExecutor) {
         SchedulerFactoryBean schedulerFactoryBean = new SchedulerFactoryBean();
+
+        // retrieve all quartz JobDetail beans
+        Map<String, JobDetail> jobDetailMap = applicationContext.getBeansOfType(JobDetail.class);
+
+        // retrieve all quartz Trigger beans
+        Map<String, Trigger> triggerMap = applicationContext.getBeansOfType(Trigger.class);
+
+        schedulerFactoryBean.setJobDetails(jobDetailMap.values().toArray(new JobDetail[0]));
+        schedulerFactoryBean.setTriggers(triggerMap.values().toArray(new Trigger[0]));
         schedulerFactoryBean.setJobFactory(jobFactory);
-        schedulerFactoryBean.setTriggers(registryTrigger);
-        schedulerFactoryBean.setTaskExecutor(threadPoolTaskExecutor());
-        schedulerFactoryBean.setWaitForJobsToCompleteOnShutdown(true);
-        schedulerFactoryBean.setDataSource(dataSource);
+        schedulerFactoryBean.setTaskExecutor(threadPoolTaskExecutor);
 
         Properties properties = new Properties();
         properties.putAll(quartzProperties.getProperties());
@@ -87,20 +89,6 @@ public class QuartzConfig {
     public SmartLifecycle gracefulShutdownHookForQuartz(SchedulerFactoryBean schedulerFactoryBean) {
         return new SmartLifecycle() {
             private boolean isRunning = false;
-
-            @Override
-            public boolean isAutoStartup() {
-                return true;
-            }
-
-            @Override
-            public void stop(Runnable callback) {
-                stop();
-
-                log.info("Spring container is shutting down.");
-
-                callback.run();
-            }
 
             @Override
             public void start() {
@@ -128,6 +116,20 @@ public class QuartzConfig {
                         log.error("Unable to shutdown the Quartz scheduler.", ex);
                     }
                 }
+            }
+
+            @Override
+            public void stop(Runnable callback) {
+                stop();
+
+                log.info("Spring container is shutting down.");
+
+                callback.run();
+            }
+
+            @Override
+            public boolean isAutoStartup() {
+                return true;
             }
 
             @Override

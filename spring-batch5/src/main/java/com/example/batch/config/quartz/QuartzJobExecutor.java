@@ -18,10 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 @PersistJobDataAfterExecution // prevent concurrency execution across multiple quartz server instances
 @Slf4j
 public class QuartzJobExecutor extends QuartzJobBean {
-    @Autowired
-    private JobLauncher jobLauncher;
 
     protected Job batchJob;
+
+    @Autowired
+    private JobLauncher jobLauncher;
 
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {

@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import javax.sql.DataSource;
+
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.Scheduler;
@@ -30,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SchedulerConfig {
     private final ApplicationContext applicationContext;
     private final QuartzProperties quartzProperties;
+    private final DataSource dataSource;
 
     @Bean
     public ThreadPoolTaskExecutor threadPoolTaskExecutor() {
@@ -47,6 +50,7 @@ public class SchedulerConfig {
     @Bean
     public JobFactory jobFactory(AutowireCapableBeanFactory beanFactory) {
         return new SpringBeanJobFactory() {
+
             @Override
             protected Object createJobInstance(TriggerFiredBundle bundle) throws Exception {
                 Object job = super.createJobInstance(bundle);
@@ -71,6 +75,10 @@ public class SchedulerConfig {
         schedulerFactoryBean.setTriggers(triggerMap.values().toArray(new Trigger[0]));
         schedulerFactoryBean.setJobFactory(jobFactory);
         schedulerFactoryBean.setTaskExecutor(threadPoolTaskExecutor);
+        schedulerFactoryBean.setGlobalJobListeners(new GlobalJobListener());
+        schedulerFactoryBean.setGlobalTriggerListeners(new GlobalTriggerListener());
+        schedulerFactoryBean.setSchedulerListeners(new GlobalSchedulerListener());
+        // schedulerFactoryBean.setDataSource(dataSource); // when only use jdbc datasource
 
         Properties properties = new Properties();
         properties.putAll(quartzProperties.getProperties());
@@ -81,6 +89,7 @@ public class SchedulerConfig {
     @Bean
     public SmartLifecycle gracefulShutdownHookForQuartz(SchedulerFactoryBean schedulerFactoryBean) {
         return new SmartLifecycle() {
+
             private boolean isRunning = false;
 
             @Override
@@ -103,21 +112,19 @@ public class SchedulerConfig {
                 } catch (SchedulerException e) {
                     try {
                         log.info(
-                                "Error shutting down Quartz: " + e.getMessage(), e);
+                                "error while shutting down quartz: " + e.getMessage(), e);
                         schedulerFactoryBean.getScheduler().shutdown(false);
                     } catch (SchedulerException ex) {
                         log.error("Unable to shutdown the Quartz scheduler.", ex);
                     }
                 }
-                log.info("quartz gracefull shutdown is complited");
+                log.info("quartz gracefull shutdown is completed");
             }
 
             @Override
             public void stop(Runnable callback) {
+                log.info("spring container is shutting down");
                 stop();
-
-                log.info("Spring container is shutting down");
-
                 callback.run();
             }
 
@@ -139,6 +146,7 @@ public class SchedulerConfig {
     }
 
     private void interruptJobs(SchedulerFactoryBean schedulerFactoryBean) throws SchedulerException {
+
         Scheduler scheduler = schedulerFactoryBean.getScheduler();
         for (JobExecutionContext jobExecutionContext : scheduler.getCurrentlyExecutingJobs()) {
             final JobDetail jobDetail = jobExecutionContext.getJobDetail();

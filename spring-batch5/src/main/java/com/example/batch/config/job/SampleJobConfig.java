@@ -40,7 +40,9 @@ public class SampleJobConfig {
      */
     @Bean(QUARTZ_JOB_NAME)
     public JobDetail sampleJobDetail() {
-        return QuartzUtil.buildJobDetail(QUARTZ_JOB_NAME, SampleJob.class);
+        return QuartzUtil.quartzJobBuilder(QUARTZ_JOB_NAME, SampleJob.class)
+                .storeDurably()
+                .build();
     }
 
     @Bean(TRIGGER_NAME)
@@ -50,7 +52,7 @@ public class SampleJobConfig {
                 .repeatForever();
 
         return TriggerBuilder.newTrigger()
-                .forJob(sampleJobDetail())
+                .forJob(sampleJobDetail()) // scheduler will find designated JobDetail Bean from JobStore when it regists Trigger 
                 .withIdentity(TRIGGER_NAME)
                 .withSchedule(scheduleBuilder)
                 .build();

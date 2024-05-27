@@ -7,20 +7,20 @@
         <Property name="logFile">Log4J2Test</Property>
         <Property name="logFilePath">${logRoot}/logs/${logFile}</Property>
         <!-- Pattern Layout: https://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout -->
-        <Property name="fullLayoutPattern">%d{DEFAULT} %-5p %pid:%T %c{1}:%L %M() -- %msg%n</Property>
-        <Property name="colorCodeLayoutPattern">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} %3.3T - %-30.30c{1.2.*} : %highlight{%m}%n</Property>
-        <Property name="colorMsgLayoutPattern">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} %3.3T - %-30.30c{1.2.*} : %m%n</Property>
+        <Property name="fullPatternLayout">%d{DEFAULT} %-5p %pid:%T %c{1}:%L %M() -- %msg%n</Property>
+        <Property name="colorCodePatternLayout">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} %3.3T - %-30.30c{1.2.*} : %highlight{%m}%n</Property>
+        <Property name="colorMsgPatternLayout">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} %12.12t - %-30.30c{1.2.*} : %highlight{%m}%n</Property>
     </Properties>
 
     <Appenders>
         <!-- Appenders: https://logging.apache.org/log4j/2.x/manual/appenders.html -->
 
         <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="${colorCodeLayoutPattern}" />
+            <PatternLayout pattern="${colorMsgPatternLayout}" />
         </Console>
 
         <RollingFile name="file" fileName="${logFilePath}.log" filePattern="${logFilePath}_%d{yyyy-MM-dd}.log">
-            <PatternLayout pattern="${fullLayoutPattern}" />
+            <PatternLayout pattern="${fullPatternLayout}" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="10MB" />
                 <TimeBasedTriggeringPolicy interval="1" />

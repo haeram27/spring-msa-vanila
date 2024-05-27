@@ -11,8 +11,6 @@ import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.spi.JobFactory;
 import org.quartz.spi.TriggerFiredBundle;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.autoconfigure.quartz.QuartzProperties;
 import org.springframework.context.ApplicationContext;
@@ -27,15 +25,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Configuration
-@EnableBatchProcessing
 @RequiredArgsConstructor
 @Slf4j
 public class SchedulerConfig {
-    @Autowired
-    ApplicationContext applicationContext;
-
-    @Autowired
-    QuartzProperties quartzProperties;
+    private final ApplicationContext applicationContext;
+    private final QuartzProperties quartzProperties;
 
     @Bean
     public ThreadPoolTaskExecutor threadPoolTaskExecutor() {
@@ -45,7 +39,6 @@ public class SchedulerConfig {
         threadPoolTaskExecutor.setQueueCapacity(30);
         threadPoolTaskExecutor.setThreadGroupName("batch-job-group-");
         threadPoolTaskExecutor.setThreadNamePrefix("batch-job-");
-        // Queue가 full일 때 처리 정책 추가
         threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
         return threadPoolTaskExecutor;
@@ -92,7 +85,7 @@ public class SchedulerConfig {
 
             @Override
             public void start() {
-                log.info("Quartz Graceful Shutdown Hook started.");
+                log.info("quartz graceful shutdown hook is registered");
 
                 isRunning = true;
             }
@@ -102,7 +95,7 @@ public class SchedulerConfig {
                 isRunning = false;
 
                 try {
-                    log.info("Quartz Graceful Shutdown... ");
+                    log.info("quartz gracefull shutdown is started");
 
                     interruptJobs(schedulerFactoryBean);
 
@@ -116,13 +109,14 @@ public class SchedulerConfig {
                         log.error("Unable to shutdown the Quartz scheduler.", ex);
                     }
                 }
+                log.info("quartz gracefull shutdown is complited");
             }
 
             @Override
             public void stop(Runnable callback) {
                 stop();
 
-                log.info("Spring container is shutting down.");
+                log.info("Spring container is shutting down");
 
                 callback.run();
             }

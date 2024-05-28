@@ -12,183 +12,245 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GlobalSchedulerListener implements SchedulerListener {
 
+    private final boolean jobScheduledLogEnable = true;
+    private final boolean jobUnscheduledLogEnable = true;
+    private final boolean triggerFinalizedLogEnable = true;
+    private final boolean triggerPausedLogEnable = true;
+    private final boolean triggersPausedLogEnable = true;
+    private final boolean triggerResumedLogEnable = true;
+    private final boolean triggersResumedLogEnable = true;
+    private final boolean jobAddedLogEnable = true;
+    private final boolean jobDeletedLogEnable = true;
+    private final boolean jobPausedLogEnable = true;
+    private final boolean jobsPausedLogEnable = true;
+    private final boolean jobResumedLogEnable = true;
+    private final boolean jobsResumedLogEnable = true;
+    private final boolean schedulerErrorLogEnable = true;
+    private final boolean schedulerInStandbyModeLogEnable = true;
+    private final boolean schedulerStartedLogEnable = true;
+    private final boolean schedulerStartingLogEnable = true;
+    private final boolean schedulerShutdownLogEnable = true;
+    private final boolean schedulerShuttingdownLogEnable = true;
+    private final boolean schedulingDataClearedLogEnable = true;
+
     @Override
     public void jobScheduled(Trigger trigger) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (jobScheduledLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void jobUnscheduled(TriggerKey triggerKey) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (jobUnscheduledLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void triggerFinalized(Trigger trigger) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (triggerFinalizedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void triggerPaused(TriggerKey triggerKey) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (triggerPausedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void triggersPaused(String triggerGroup) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (triggersPausedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void triggerResumed(TriggerKey triggerKey) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (triggerResumedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void triggersResumed(String triggerGroup) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (triggersResumedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void jobAdded(JobDetail jobDetail) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (jobAddedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void jobDeleted(JobKey jobKey) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (jobDeletedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void jobPaused(JobKey jobKey) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (jobPausedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void jobsPaused(String jobGroup) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (jobsPausedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void jobResumed(JobKey jobKey) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (jobResumedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void jobsResumed(String jobGroup) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (jobsResumedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void schedulerError(String msg, SchedulerException cause) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (schedulerErrorLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.error("#{} {}", methodName, msg);
+            log.error("{}", cause.getStackTrace().toString());
+        }
     }
 
     @Override
     public void schedulerInStandbyMode() {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (schedulerInStandbyModeLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void schedulerStarted() {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (schedulerStartedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void schedulerStarting() {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (schedulerStartingLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void schedulerShutdown() {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (schedulerShutdownLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void schedulerShuttingdown() {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (schedulerShuttingdownLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 
     @Override
     public void schedulingDataCleared() {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (schedulingDataClearedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}", methodName);
+            log.trace("#{}", methodName);
+        }
     }
 }

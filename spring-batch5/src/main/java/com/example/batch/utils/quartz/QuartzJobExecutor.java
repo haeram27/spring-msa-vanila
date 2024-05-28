@@ -30,7 +30,9 @@ public class QuartzJobExecutor extends QuartzJobBean {
             if (batchJob != null) {
                 jobLauncher.run(
                         batchJob,
-                        new JobParametersBuilder().addLocalDateTime("time", LocalDateTime.now()).toJobParameters());
+                        new JobParametersBuilder()
+                                .addLocalDateTime("time", LocalDateTime.now())
+                                .toJobParameters());
             } else {
                 log.info("batch job is empty");
             }

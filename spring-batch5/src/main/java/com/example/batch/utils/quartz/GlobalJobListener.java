@@ -10,6 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GlobalJobListener implements JobListener {
 
+    private final boolean jobToBeExecutedLogEnable = true;
+    private final boolean jobExecutionVetoedLogEnable = true;
+    private final boolean jobWasExecutedLogEnable = true;
+
     @Override
     public String getName() {
         return "GlobalJobListener";
@@ -22,12 +26,14 @@ public class GlobalJobListener implements JobListener {
      */
     @Override
     public void jobToBeExecuted(JobExecutionContext jobExecutionContext) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
-        JobKey k = jobExecutionContext.getJobDetail().getKey();
+        if (jobToBeExecutedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
+            JobKey k = jobExecutionContext.getJobDetail().getKey();
 
-        log.trace("#{} job:{}.{}", methodName, k.getGroup(), k.getName());
+            log.trace("#{} job:{}.{}", methodName, k.getGroup(), k.getName());
+        }
     }
 
     /**
@@ -38,12 +44,14 @@ public class GlobalJobListener implements JobListener {
      */
     @Override
     public void jobExecutionVetoed(JobExecutionContext jobExecutionContext) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
-        JobKey k = jobExecutionContext.getJobDetail().getKey();
+        if (jobExecutionVetoedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
+            JobKey k = jobExecutionContext.getJobDetail().getKey();
 
-        log.trace("#{} job:{}.{}", methodName, k.getGroup(), k.getName());
+            log.debug("#{} job:{}.{}", methodName, k.getGroup(), k.getName());
+        }
     }
 
     /**
@@ -54,11 +62,13 @@ public class GlobalJobListener implements JobListener {
      */
     @Override
     public void jobWasExecuted(JobExecutionContext jobExecutionContext, JobExecutionException e) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
-        JobKey k = jobExecutionContext.getJobDetail().getKey();
+        if (jobWasExecutedLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
+            JobKey k = jobExecutionContext.getJobDetail().getKey();
 
-        log.trace("#{} job:{}.{}", methodName, k.getGroup(), k.getName());
+            log.trace("#{} job:{}.{}", methodName, k.getGroup(), k.getName());
+        }
     }
 }

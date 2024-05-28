@@ -23,6 +23,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
+import com.example.batch.utils.quartz.GlobalTriggerListener;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,13 +80,13 @@ public class SchedulerConfig {
         schedulerFactoryBean.setJobFactory(jobFactory);
         schedulerFactoryBean.setTaskExecutor(threadPoolTaskExecutor);
 
-        //-- use when only jdbc datasource is required
+        //-- set datasource only jdbc datasource is required
         // schedulerFactoryBean.setDataSource(dataSource);
 
-        //-- use when only scheduler debugging is required
+        //-- set listeners when only scheduler debugging is required
         // schedulerFactoryBean.setSchedulerListeners(new GlobalSchedulerListener());
         // schedulerFactoryBean.setGlobalJobListeners(new GlobalJobListener());
-        // schedulerFactoryBean.setGlobalTriggerListeners(new GlobalTriggerListener());
+        schedulerFactoryBean.setGlobalTriggerListeners(new GlobalTriggerListener());
 
         Properties properties = new Properties();
         properties.putAll(quartzProperties.getProperties());

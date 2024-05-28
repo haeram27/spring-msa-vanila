@@ -11,6 +11,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GlobalTriggerListener implements TriggerListener {
 
+    private final boolean triggerFiredLogEnable = true;
+    private final boolean vetoJobExecutionLogEnable = true;
+    private final boolean triggerMisfiredLogEnable = true;
+    private final boolean triggerCompleteLogEnable = true;
+
     @Override
     public String getName() {
         return "GlobalTriggerListener";
@@ -18,11 +23,13 @@ public class GlobalTriggerListener implements TriggerListener {
 
     @Override
     public void triggerFired(Trigger trigger, JobExecutionContext context) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (triggerFiredLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}\n{}", methodName, trigger.toString());
+            log.trace("#{}\n{}", methodName, trigger.toString());
+        }
     }
 
     /**
@@ -33,33 +40,40 @@ public class GlobalTriggerListener implements TriggerListener {
      */
     @Override
     public boolean vetoJobExecution(Trigger trigger, JobExecutionContext context) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
-        JobKey k = trigger.getJobKey();
-
         boolean isVetoJob = false;
 
-        log.trace("#{}:{} job:{}.{}", methodName, isVetoJob, k.getGroup(), k.getName());
+        if (vetoJobExecutionLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
+            JobKey k = trigger.getJobKey();
+
+            log.trace("#{}:{} job:{}.{}", methodName, isVetoJob, k.getGroup(), k.getName());
+        }
+
         return isVetoJob;
     }
 
     @Override
     public void triggerMisfired(Trigger trigger) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (triggerMisfiredLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}\n{}", methodName, trigger.toString());
+            log.trace("#{}\n{}", methodName, trigger.toString());
+        }
     }
 
     @Override
     public void triggerComplete(Trigger trigger, JobExecutionContext context,
             CompletedExecutionInstruction triggerInstructionCode) {
-        // @formatter:off
-        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
-        // @formatter:on
+        if (triggerCompleteLogEnable) {
+            // @formatter:off
+            String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+            // @formatter:on
 
-        log.trace("#{}\n{}", methodName, trigger.toString());
+            log.trace("#{}\n{}", methodName, trigger.toString());
+        }
     }
 }

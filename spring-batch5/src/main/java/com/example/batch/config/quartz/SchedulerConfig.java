@@ -42,6 +42,8 @@ public class SchedulerConfig {
         threadPoolTaskExecutor.setQueueCapacity(30);
         threadPoolTaskExecutor.setThreadGroupName("batch-job-group-");
         threadPoolTaskExecutor.setThreadNamePrefix("batch-job-");
+        //-- add policy to handle rejected task caused by lack of q capacity or thread number
+        //-- CallerRunsPolicy() runs the rejected task directly in the calling thread of the execute method
         threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
         return threadPoolTaskExecutor;
@@ -79,10 +81,10 @@ public class SchedulerConfig {
         //-- use when only jdbc datasource is required
         // schedulerFactoryBean.setDataSource(dataSource);
 
-        //-- use when only quartz debug is required
+        //-- use when only scheduler debugging is required
+        // schedulerFactoryBean.setSchedulerListeners(new GlobalSchedulerListener());
         // schedulerFactoryBean.setGlobalJobListeners(new GlobalJobListener());
         // schedulerFactoryBean.setGlobalTriggerListeners(new GlobalTriggerListener());
-        // schedulerFactoryBean.setSchedulerListeners(new GlobalSchedulerListener());
 
         Properties properties = new Properties();
         properties.putAll(quartzProperties.getProperties());

@@ -7,7 +7,7 @@ spring.profiles.active: dev
 ########################################
 ### app properties
 ########################################
-# batch-quartz job enabler
+# quartz-batch job enabler
 job.enabler:
   sample: true
 

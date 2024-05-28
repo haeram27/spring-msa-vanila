@@ -31,7 +31,8 @@ public class GlobalJobListener implements JobListener {
     }
 
     /**
-     * run after job vetoed
+     * run before job execution
+     * return true then job will be vetoed
      *
      * @param jobExecutionContext
      */

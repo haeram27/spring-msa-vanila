@@ -27,8 +27,8 @@ public class GlobalTriggerListener implements TriggerListener {
 
     /**
      * check condition of job execution by trigger firing using information of Trigger and JobExecutionContext
-     * if reutrn false then Job Execution by this time of trigger firing will be progress normally 
-     * if return true then Job Execution by this time of trigger firing will be vetod
+     * if reutrn false then Job Execution by new Object() {} time of trigger firing will be progress normally 
+     * if return true then Job Execution by new Object() {} time of trigger firing will be vetod
      * so that TestJobListener.jobExecutionVetoed() is called instead of TestJobListener.jobWasExecuted()
      */
     @Override
@@ -38,8 +38,10 @@ public class GlobalTriggerListener implements TriggerListener {
         // @formatter:on
         JobKey k = trigger.getJobKey();
 
-        log.trace("check to veto job execution: job:{}.{}", k.getGroup(), k.getName());
-        return false;
+        boolean isVetoJob = false;
+
+        log.trace("#{}:{} job:{}.{}", methodName, isVetoJob, k.getGroup(), k.getName());
+        return isVetoJob;
     }
 
     @Override

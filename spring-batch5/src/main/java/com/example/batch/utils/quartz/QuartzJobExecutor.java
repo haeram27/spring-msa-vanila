@@ -25,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 public class QuartzJobExecutor extends QuartzJobBean implements InterruptableJob {
 
     private boolean isJobInterrupted = false;
-
     private Job batchJob;
 
     @Autowired

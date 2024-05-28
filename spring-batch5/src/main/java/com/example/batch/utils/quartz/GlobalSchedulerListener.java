@@ -184,7 +184,7 @@ public class GlobalSchedulerListener implements SchedulerListener {
             // @formatter:on
 
             log.error("#{} {}", methodName, msg);
-            log.error("{}", cause.getStackTrace().toString());
+            log.error(cause.toString(), cause);
         }
     }
 

@@ -1,4 +1,4 @@
-package com.example.batch.config.quartz;
+package com.example.batch.utils.quartz;
 
 import java.time.LocalDateTime;
 
@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @DisallowConcurrentExecution // prevent concurrency execution in a quartz server instances
 @PersistJobDataAfterExecution // prevent concurrency execution across multiple quartz server instances
 @Slf4j
-public class QuartzJobExecutor extends QuartzJobBean {
+public class QuartzBatchJobExecutor extends QuartzJobBean {
 
     protected Job batchJob;
 

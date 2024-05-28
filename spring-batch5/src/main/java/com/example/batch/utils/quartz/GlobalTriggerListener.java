@@ -1,4 +1,4 @@
-package com.example.batch.config.quartz;
+package com.example.batch.utils.quartz;
 
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;

@@ -23,6 +23,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
+import com.example.batch.utils.quartz.GlobalJobListener;
+import com.example.batch.utils.quartz.GlobalSchedulerListener;
+import com.example.batch.utils.quartz.GlobalTriggerListener;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

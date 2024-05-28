@@ -20,8 +20,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import com.example.batch.config.quartz.QuartzJobExecutor;
-import com.example.batch.config.quartz.QuartzUtil;
+import com.example.batch.utils.quartz.QuartzBatchJobExecutor;
+import com.example.batch.utils.quartz.QuartzUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -83,7 +83,7 @@ public class SampleJobConfig {
     /**
     * couple batch and quartz job
     */
-    public class SampleJob extends QuartzJobExecutor {
+    public class SampleJob extends QuartzBatchJobExecutor {
         @Autowired
         private SampleJob(@Qualifier(BATCH_JOB_NAME) Job batchJob) {
             this.batchJob = batchJob;

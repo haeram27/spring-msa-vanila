@@ -13,13 +13,12 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.example.batch.utils.batch.BatchUtil;
 import com.example.batch.utils.quartz.QuartzJobExecutor;
 import com.example.batch.utils.quartz.QuartzUtil;
 
@@ -30,17 +29,18 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SampleJobConfig {
 
-    private final String JOB_PREFIX = "sample";
-    private final String BATCH_JOB_NAME = JOB_PREFIX + "BatchJob";
-    private final String QUARTZ_JOB_NAME = JOB_PREFIX + "QuartzJob";
-    private final String TRIGGER_NAME = QUARTZ_JOB_NAME + "Trigger";
+    private static final String JOB_PREFIX = "sample";
+    private static final String BATCH_JOB_NAME = JOB_PREFIX + "BatchJob";
+    private static final String QUARTZ_JOB_NAME = JOB_PREFIX + "QuartzJob";
+    private static final String TRIGGER_NAME = QUARTZ_JOB_NAME + "Trigger";
 
     /**
      * quartz job configuration
      */
     @Bean(QUARTZ_JOB_NAME)
     public JobDetail sampleJobDetail() {
-        return QuartzUtil.quartzJobBuilder(QUARTZ_JOB_NAME, SampleJob.class)
+        return QuartzUtil.quartzJobBuilder(QUARTZ_JOB_NAME, QuartzJobExecutor.class)
+                .usingJobData(BatchUtil.BATCH_JOB_ID_KEY, BATCH_JOB_NAME) // QuartzJobExecutor find batch job with this name
                 .storeDurably()
                 .build();
     }
@@ -79,15 +79,5 @@ public class SampleJobConfig {
                     }
                     return RepeatStatus.FINISHED;
                 }, transactionManager).build();
-    }
-
-    /**
-    * couple batch and quartz job
-    */
-    public class SampleJob extends QuartzJobExecutor {
-        @Autowired
-        private SampleJob(@Qualifier(BATCH_JOB_NAME) Job batchJob) {
-            this.batchJob = batchJob;
-        }
     }
 }

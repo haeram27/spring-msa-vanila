@@ -1,5 +1,7 @@
 package com.example.batch.utils.quartz;
 
+import java.time.LocalDateTime;
+
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.InterruptableJob;
 import org.quartz.JobExecutionContext;
@@ -7,7 +9,8 @@ import org.quartz.JobExecutionException;
 import org.quartz.PersistJobDataAfterExecution;
 import org.quartz.UnableToInterruptJobException;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.configuration.JobLocator;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.quartz.QuartzJobBean;
@@ -23,28 +26,34 @@ public class QuartzJobExecutor extends QuartzJobBean implements InterruptableJob
 
     private boolean isJobInterrupted = false;
 
-    protected Job batchJob;
+    private Job batchJob;
 
     @Autowired
     private JobLauncher jobLauncher;
 
+    @Autowired
+    private JobLocator jobLocator; // JobRegistry
+
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
         try {
-            if (batchJob != null) {
-                JobParameters jobParameters = BatchUtil.getJobParameters(context);
-                if (isJobInterrupted) {
-                    log.warn("job is interrupted. [name: {}, parameters: {}]",
-                            batchJob.getName(),
-                            jobParameters);
-                    return;
-                }
 
-                jobLauncher.run(batchJob, jobParameters);
-            } else {
-                log.info("batch job is empty");
+            //-- get batch job from batch JobRegistry
+            batchJob = (Job) jobLocator.getJob(BatchUtil.getJobId(context.getMergedJobDataMap()));
+
+            if (isJobInterrupted) {
+                log.warn("job is interrupted. [name: {}, parameters: {}]",
+                        batchJob.getName());
+                return;
             }
+
+            //JobParameters jobParameters = BatchUtil.getJobParameters(context);
+            //jobLauncher.run(batchJob, jobParameters);
+            jobLauncher.run(batchJob, new JobParametersBuilder()
+                    .addLocalDateTime("time", LocalDateTime.now())
+                    .toJobParameters());
         } catch (Exception e) {
+            log.error("exception: {}", e.getMessage());
             throw new JobExecutionException(e);
         }
     }

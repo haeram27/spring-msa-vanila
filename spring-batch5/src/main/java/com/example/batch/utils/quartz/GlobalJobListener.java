@@ -22,8 +22,12 @@ public class GlobalJobListener implements JobListener {
      */
     @Override
     public void jobToBeExecuted(JobExecutionContext jobExecutionContext) {
+        // @formatter:off
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        // @formatter:on
         JobKey k = jobExecutionContext.getJobDetail().getKey();
-        log.trace("# g={} n={}", k.getGroup(), k.getName());
+
+        log.trace("#{} job:{}.{}", methodName, k.getGroup(), k.getName());
     }
 
     /**
@@ -33,8 +37,12 @@ public class GlobalJobListener implements JobListener {
      */
     @Override
     public void jobExecutionVetoed(JobExecutionContext jobExecutionContext) {
+        // @formatter:off
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        // @formatter:on
         JobKey k = jobExecutionContext.getJobDetail().getKey();
-        log.trace("# g={} n={}", k.getGroup(), k.getName());
+
+        log.trace("#{} job:{}.{}", methodName, k.getGroup(), k.getName());
     }
 
     /**
@@ -45,7 +53,11 @@ public class GlobalJobListener implements JobListener {
      */
     @Override
     public void jobWasExecuted(JobExecutionContext jobExecutionContext, JobExecutionException e) {
+        // @formatter:off
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        // @formatter:on
         JobKey k = jobExecutionContext.getJobDetail().getKey();
-        log.trace("# g={} n={}", k.getGroup(), k.getName());
+
+        log.trace("#{} job:{}.{}", methodName, k.getGroup(), k.getName());
     }
 }

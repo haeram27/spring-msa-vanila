@@ -51,8 +51,9 @@ public class SampleJobConfig {
                 .withIntervalInSeconds(2) // Schedule interval
                 .repeatForever();
 
+        //-- by forJob(), scheduler will find designated JobDetail Bean from JobStore when it regists Trigger 
         return TriggerBuilder.newTrigger()
-                .forJob(sampleJobDetail()) // scheduler will find designated JobDetail Bean from JobStore when it regists Trigger 
+                .forJob(sampleJobDetail())
                 .withIdentity(TRIGGER_NAME)
                 .withSchedule(scheduleBuilder)
                 .build();

@@ -18,7 +18,11 @@ public class GlobalTriggerListener implements TriggerListener {
 
     @Override
     public void triggerFired(Trigger trigger, JobExecutionContext context) {
-        log.trace("#\n{}", trigger.toString());
+        // @formatter:off
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        // @formatter:on
+
+        log.trace("#{}\n{}", methodName, trigger.toString());
     }
 
     /**
@@ -29,19 +33,31 @@ public class GlobalTriggerListener implements TriggerListener {
      */
     @Override
     public boolean vetoJobExecution(Trigger trigger, JobExecutionContext context) {
+        // @formatter:off
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        // @formatter:on
         JobKey k = trigger.getJobKey();
-        log.trace("check to veto job execution: group:{} name:{}", k.getGroup(), k.getName());
+
+        log.trace("check to veto job execution: job:{}.{}", k.getGroup(), k.getName());
         return false;
     }
 
     @Override
     public void triggerMisfired(Trigger trigger) {
-        log.trace("#\n{}", trigger.toString());
+        // @formatter:off
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        // @formatter:on
+
+        log.trace("#{}\n{}", methodName, trigger.toString());
     }
 
     @Override
     public void triggerComplete(Trigger trigger, JobExecutionContext context,
             CompletedExecutionInstruction triggerInstructionCode) {
-        log.trace("#\n{}", trigger.toString());
+        // @formatter:off
+        String methodName = new Object() {}.getClass().getEnclosingMethod().getName();
+        // @formatter:on
+
+        log.trace("#{}\n{}", methodName, trigger.toString());
     }
 }

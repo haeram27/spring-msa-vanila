@@ -23,10 +23,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
-import com.example.batch.utils.quartz.GlobalJobListener;
-import com.example.batch.utils.quartz.GlobalSchedulerListener;
-import com.example.batch.utils.quartz.GlobalTriggerListener;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -69,20 +65,24 @@ public class SchedulerConfig {
             ThreadPoolTaskExecutor threadPoolTaskExecutor) {
         SchedulerFactoryBean schedulerFactoryBean = new SchedulerFactoryBean();
 
-        // retrieve all quartz JobDetail beans
+        //-- retrieve all quartz JobDetail beans
         Map<String, JobDetail> jobDetailMap = applicationContext.getBeansOfType(JobDetail.class);
 
-        // retrieve all quartz Trigger beans
+        //-- retrieve all quartz Trigger beans
         Map<String, Trigger> triggerMap = applicationContext.getBeansOfType(Trigger.class);
 
         schedulerFactoryBean.setJobDetails(jobDetailMap.values().toArray(new JobDetail[0]));
         schedulerFactoryBean.setTriggers(triggerMap.values().toArray(new Trigger[0]));
         schedulerFactoryBean.setJobFactory(jobFactory);
         schedulerFactoryBean.setTaskExecutor(threadPoolTaskExecutor);
-        schedulerFactoryBean.setGlobalJobListeners(new GlobalJobListener());
-        schedulerFactoryBean.setGlobalTriggerListeners(new GlobalTriggerListener());
-        schedulerFactoryBean.setSchedulerListeners(new GlobalSchedulerListener());
-        // schedulerFactoryBean.setDataSource(dataSource); // when only use jdbc datasource
+
+        //-- use when only jdbc datasource is required
+        // schedulerFactoryBean.setDataSource(dataSource);
+
+        //-- use when only quartz debug is required
+        // schedulerFactoryBean.setGlobalJobListeners(new GlobalJobListener());
+        // schedulerFactoryBean.setGlobalTriggerListeners(new GlobalTriggerListener());
+        // schedulerFactoryBean.setSchedulerListeners(new GlobalSchedulerListener());
 
         Properties properties = new Properties();
         properties.putAll(quartzProperties.getProperties());

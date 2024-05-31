@@ -42,23 +42,27 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-// test {
-// 	testLogging {
-// 		showStandardStreams = true
-// 		showCauses = true
-// 		showExceptions = true
-// 		showStackTraces = true
-// 		exceptionFormat = 'full'
-// 		events "passed", "skipped", "failed", "standardOut", "standardError"
-// 	}
-// }
-
+// do not archive plain-jar(jar \wo dependency)
 jar {
 	enabled = false
 }
 
-tasks.named('test') {
+/*
+ * # clean a specific test result cache before run test
+ * gradle test --rerun --tests 'Hello*.hello'
+ * # clean all tests result cache before run tests
+ * gradle test --rerun-tasks --tests 'Hello*.hello'
+ */
+test {
 	useJUnitPlatform()
+	testLogging {
+		showStandardStreams = true
+		showCauses = true
+		showExceptions = true
+		showStackTraces = true
+		exceptionFormat = 'full'
+		events "passed", "skipped", "failed", "standardOut", "standardError"
+	}
 }
 
 bootRun {

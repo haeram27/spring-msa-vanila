@@ -8,14 +8,17 @@
 package com.example.springwebex.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.log;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+
 import com.example.springwebex.EvaluatedTimeTests;
 
 @SpringBootTest
@@ -27,7 +30,7 @@ public class GreetingControllerTests extends EvaluatedTimeTests {
 
     @Test
     public void errorTest() throws Exception {
-        this.mockMvc.perform(get("/error")).andDo(print());
+        this.mockMvc.perform(get("/error")).andDo(log());
     }
 
     @Test

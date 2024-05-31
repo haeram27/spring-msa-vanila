@@ -69,9 +69,8 @@
         <!-- =================================================================== -->
         <!-- App                                                                 -->
         <!-- =================================================================== -->
-        <Logger name="com.example.quartz" level="all" additivity="false">
+        <Logger name="com.example.springwebex" level="all" additivity="false">
             <AppenderRef ref="console" />
-            <AppenderRef ref="file" />
         </Logger>
 
         <!-- =================================================================== -->

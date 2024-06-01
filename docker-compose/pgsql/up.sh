@@ -61,14 +61,18 @@ stop_container_force() {
 # CONTAINER SPECIFIC
 # ====================== 
 
-is_postgres_available() {
-  local container=$1
-  local db_user=$2
-  local db_password=$3
-  local db_database=$4
+is_postgres_cont_available() {
+  local container=${POSTGRES_CONTAINER_NAME}
+
+  local postgres_addr=${POSTGRES_ADDRESS:-127.0.0.1}
+  local postgres_port=${POSTGRES_PORT:-5432}
+  local postgres_db=${POSTGRES_DB_NAME:-postgres}
+  local postgres_user=${POSTGRES_USER_NAME:-postgres}
+  local postgres_passwd=${POSTGRES_PASSWORD:-postgres}
+  local postgres_connect_info="-h ${postgres_addr} -p ${postgres_port} -d ${postgres_db} -U ${postgres_user} "
 
   if is_container_running ${container}; then
-    PGPASSWORD=${db_password} docker exec ${container} psql -U ${db_user} -d ${db_database} -c "select 'alive'" &>/dev/null
+    PGPASSWORD=${postgres_passwd} docker exec ${container} psql ${postgres_connect_info} -c "select 'alive'" &>/dev/null
     if [[ $? -ne 0 ]]; then
       echo_failed ${FUNCNAME}
       return 1
@@ -81,10 +85,10 @@ is_postgres_available() {
 # MAIN
 # ====================== 
 
-CONTAINER_NAME="test-postgres"
-PG_USER="postgres"
-PG_PWD="postgres"
-PG_DB="dvdrental"
+POSTGRES_CONTAINER_NAME="test-postgres"
+POSTGRES_DB_NAME="dvdrental"
+POSTGRES_USER_NAME="postgres"
+POSTGRES_PASSWORD="postgres"
 
 init_pg_db() {
   local retry_count=1
@@ -97,9 +101,9 @@ init_pg_db() {
       return 1
     fi
 
-    is_postgres_available ${CONTAINER_NAME} ${PG_USER} ${PG_PWD} ${PG_DB}
+    is_postgres_available
     if [[ $? -eq 0 ]]; then
-      docker exec ${CONTAINER_NAME} pg_restore -U ${PG_USER} -d ${PG_DB} /init/pgsql/sampledb/dvdrental.tar
+      docker exec ${POSTGRES_CONTAINER_NAME} pg_restore -U ${POSTGRES_USER_NAME} -d ${POSTGRES_DB_NAME} /init/pgsql/sampledb/dvdrental.tar
       if [[ $? -eq 0 ]]; then
       return 0
       fi

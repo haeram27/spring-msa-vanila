@@ -57,10 +57,10 @@ public class MongoAgentEventLogTests {
             query.fields().include(field);
         }
 
-        /* 
+        /*
             !!! WARNING:
-            Pageable redefines sort, skip, limit internally
-            so do NOT use Pageable and individual sort/skip/limit simultaneously
+            Query.with(Pageable) sets sort, skip, limit in Query internally
+            so do NOT use Pageable and individual settings sort/skip/limit into Query simultaneously
         */
         boolean usePagination = false;
         if (usePagination) {

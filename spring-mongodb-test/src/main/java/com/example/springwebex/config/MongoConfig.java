@@ -15,7 +15,7 @@ public class MongoConfig {
     @Bean
     public MongoClient mongo() {
         ConnectionString connectionString = new ConnectionString(
-                "mongodb://id:pass@ip-mongod:port/db");
+                "mongodb://mongo:mongo@localhost:27017/db");
 
         MongoClientSettings mongoClientSettings = MongoClientSettings.builder()
                 .applyConnectionString(connectionString)

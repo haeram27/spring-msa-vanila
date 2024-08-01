@@ -11,6 +11,7 @@ import com.mongodb.client.MongoClients;
 
 @Configuration
 public class MongoConfig {
+    // https://www.springcloud.io/post/2022-01/mongodb-mutil-source
 
     @Bean
     public MongoClient mongo() {

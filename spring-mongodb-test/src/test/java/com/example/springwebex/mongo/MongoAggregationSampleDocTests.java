@@ -3,6 +3,7 @@ package com.example.springwebex.mongo;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -70,9 +71,9 @@ public class MongoAggregationSampleDocTests {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
         //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss");
         ObjectId fromObjectId = ObjectIdUtils
-                .getObjectIdFromUTCDateTime(LocalDateTime.parse("2024-08-01T00:00:00", formatter));
+                .getObjectIdFromDate(LocalDateTime.parse("2024-08-01T00:00:00", formatter), ZoneOffset.UTC);
         ObjectId toObjectId = ObjectIdUtils
-                .getObjectIdFromUTCDateTime(LocalDateTime.parse("2024-08-02T00:00:00", formatter));
+                .getObjectIdFromDate(LocalDateTime.parse("2024-08-02T00:00:00", formatter), ZoneOffset.UTC);
 
         MatchOperation matchOperationByObjectId = Aggregation
                 .match(Criteria.where("_id").gte(fromObjectId).lt(toObjectId));

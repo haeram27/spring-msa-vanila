@@ -90,7 +90,7 @@ public class MongoInsertSampleDocTests {
             docs.add(generateSampleDoc(i));
             try {
                 if (i % 1000 == 0) {
-                    System.out.println(i + " docs are inserted, sleep 500 ms");
+                    System.out.println(i + " docs are created, sleep 500 ms");
                     Thread.sleep(500);
                 }
             } catch (Exception e) {

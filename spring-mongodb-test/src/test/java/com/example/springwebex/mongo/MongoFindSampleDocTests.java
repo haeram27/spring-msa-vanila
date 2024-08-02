@@ -88,6 +88,41 @@ public class MongoFindSampleDocTests {
             query.addCriteria(Criteria.where("_id").gt(objectId));
         }
 
+        // criteria: ObjectID($oid) datetime interval(span of time) criteria
+        //           ObjectID includes precision(resolution) in "second"
+        if (false) {
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+            //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss");
+            ObjectId fromObjectId = ObjectIdUtils
+                    .getObjectIdFromDate(LocalDateTime.parse("2024-07-30T23:14:32", formatter), ZoneOffset.UTC);
+            ObjectId toObjectId = ObjectIdUtils
+                    .getObjectIdFromDate(LocalDateTime.parse("2024-07-30T23:14:33", formatter), ZoneOffset.UTC);
+
+            query.addCriteria(Criteria.where("_id").gte(fromObjectId).lt(toObjectId));
+        }
+
+        // criteria: ISODate has precision(resolution) in "milli-second"
+        if (true) {
+            int dateCompareWay = 2;
+            if (dateCompareWay == 0) { // recommended
+                Date fromDate = Date.from(Instant.parse("2024-08-01T04:50:09.511Z"));
+                Date toDate = Date.from(Instant.parse("2024-08-01T04:50:09.513Z"));
+                query.addCriteria(Criteria.where("dateField").gt(fromDate).lt(toDate));
+            } else if (dateCompareWay == 1) { // NOT recommended
+                Date fromDate = Date
+                        .from(LocalDateTime.parse("2024-08-01T04:50:09.511", DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                .atZone(ZoneOffset.UTC).toInstant());
+                Date toDate = Date
+                        .from(LocalDateTime.parse("2024-08-01T04:50:09.513", DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                .atZone(ZoneOffset.UTC).toInstant());
+
+                query.addCriteria(Criteria.where("dateField").gt(fromDate).lt(toDate));
+            } else if (dateCompareWay == 2) {
+                Date targetDate = Date.from(Instant.parse("2024-08-01T04:50:09.512Z"));
+                query.addCriteria(Criteria.where("dateField").is(targetDate));
+            }
+        }
+
         // criteria: value condition
         if (false) {
             Map<String, Object> conditionMap = new HashMap<>();
@@ -128,45 +163,10 @@ public class MongoFindSampleDocTests {
          * PAGENATION
          * pagenation can be accomplished skip and limit with mongoTemplate
          * when using mongoTemplate pagenation of skip and limit way,
-         * it is recommended to use criteria of datetime interval through ObjectId or CreateAt etc.
+         * it is recommended to use criteria of date/time interval through ObjectId or ISODate Object.
          * 
          * If it is needed cursor way for pagenation, low layer api SHOULD be used with collection.find()   
          */
-
-        // criteria: ObjectID($oid) datetime interval(span of time) criteria
-        //           ObjectID only includes "minimum time unit" of "seconds"
-        if (false) {
-            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-            //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss");
-            ObjectId fromObjectId = ObjectIdUtils
-                    .getObjectIdFromUTCDateTime(LocalDateTime.parse("2024-07-30T23:14:32", formatter));
-            ObjectId toObjectId = ObjectIdUtils
-                    .getObjectIdFromUTCDateTime(LocalDateTime.parse("2024-07-30T23:14:33", formatter));
-
-            query.addCriteria(Criteria.where("_id").gte(fromObjectId).lt(toObjectId));
-        }
-
-        // criteria: dateField - ISODate has milliseconds unit of time information
-        if (true) {
-            int dateCompareWay = 2;
-            if (dateCompareWay == 0) { // recommended
-                Date fromDate = Date.from(Instant.parse("2024-08-01T04:50:09.511Z"));
-                Date toDate = Date.from(Instant.parse("2024-08-01T04:50:09.513Z"));
-                query.addCriteria(Criteria.where("dateField").gt(fromDate).lt(toDate));
-            } else if (dateCompareWay == 1) { // NOT recommended
-                Date fromDate = Date
-                        .from(LocalDateTime.parse("2024-08-01T04:50:09.511", DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                .atZone(ZoneOffset.UTC).toInstant());
-                Date toDate = Date
-                        .from(LocalDateTime.parse("2024-08-01T04:50:09.513", DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                .atZone(ZoneOffset.UTC).toInstant());
-
-                query.addCriteria(Criteria.where("dateField").gt(fromDate).lt(toDate));
-            } else if (dateCompareWay == 2) {
-                Date targetDate = Date.from(Instant.parse("2024-08-01T04:50:09.512Z"));
-                query.addCriteria(Criteria.where("dateField").is(targetDate));
-            }
-        }
 
         // PAGENATION, LIMIT, NONE
         String pagenation = "LIMIT";

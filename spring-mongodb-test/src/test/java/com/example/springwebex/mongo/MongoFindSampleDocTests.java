@@ -79,7 +79,6 @@ public class MongoFindSampleDocTests {
         Query query = new Query();
 
         // # match (criteria, document filtering)
-
         // criteria: $oid in 24 hours
         if (false) {
             LocalDateTime twentyFourHoursAgo = LocalDateTime.now().minusHours(24);
@@ -89,7 +88,7 @@ public class MongoFindSampleDocTests {
         }
 
         // criteria: ObjectID($oid) datetime interval(span of time) criteria
-        //           ObjectID includes precision(resolution) in "second"
+        //           ObjectID's time data has precision(resolution) of "second" !!!
         if (false) {
             DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
             //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss");
@@ -101,7 +100,7 @@ public class MongoFindSampleDocTests {
             query.addCriteria(Criteria.where("_id").gte(fromObjectId).lt(toObjectId));
         }
 
-        // criteria: ISODate has precision(resolution) in "milli-second"
+        // criteria: ISODate has precision(resolution) of "milli-second"
         if (true) {
             int dateCompareWay = 2;
             if (dateCompareWay == 0) { // recommended

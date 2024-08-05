@@ -63,7 +63,7 @@ public class MongoFindSampleDocTests {
     }
 
     /*
-     *  # find query configuration and apply order
+     *  # find() query configuration and apply order
      *  criteria (match, sql.where)
      *  project (sql.select)
      * ---- inquery condition END ----
@@ -104,8 +104,8 @@ public class MongoFindSampleDocTests {
         if (true) {
             int dateCompareWay = 2;
             if (dateCompareWay == 0) { // recommended
-                Date fromDate = Date.from(Instant.parse("2024-08-01T04:50:09.511Z"));
-                Date toDate = Date.from(Instant.parse("2024-08-01T04:50:09.513Z"));
+                Date fromDate = Date.from(Instant.parse("2024-08-02T00:38:29.616Z"));
+                Date toDate = Date.from(Instant.parse("2024-08-02T00:38:29.619Z"));
                 query.addCriteria(Criteria.where("dateField").gt(fromDate).lt(toDate));
             } else if (dateCompareWay == 1) { // NOT recommended
                 Date fromDate = Date

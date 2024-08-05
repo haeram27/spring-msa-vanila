@@ -3,8 +3,6 @@ package com.example.springwebex.mongo;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
@@ -28,7 +26,6 @@ import org.springframework.data.mongodb.core.aggregation.SkipOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 
-import com.example.springwebex.util.mongo.ObjectIdUtils;
 import com.jayway.jsonpath.internal.JsonFormatter;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -39,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @SpringBootTest
 //@DataMongoTest  // this annotation support only embedded mongo
 @Slf4j
-public class MongoAggregationSampleDocTests {
+public class MongoAggregationSimpleTests {
     private final String COLLECTION_NAME = "samples";
 
     @Autowired
@@ -67,35 +64,36 @@ public class MongoAggregationSampleDocTests {
     public void aggregationMatchTest() {
 
         /* Definition of operation */
-        // match
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss");
-        ObjectId fromObjectId = ObjectIdUtils
-                .getObjectIdFromDate(LocalDateTime.parse("2024-08-01T00:00:00", formatter), ZoneOffset.UTC);
-        ObjectId toObjectId = ObjectIdUtils
-                .getObjectIdFromDate(LocalDateTime.parse("2024-08-02T00:00:00", formatter), ZoneOffset.UTC);
+        /* match */
+        Date fromDate = Date.from(Instant.parse("2024-08-02T00:38:29.616Z"));
+        Date toDate = Date.from(Instant.parse("2024-08-02T00:38:30.700Z"));
+        MatchOperation matchOperationByDate = Aggregation
+                .match(Criteria.where("dateField").gt(fromDate).lt(toDate));
 
-        MatchOperation matchOperationByObjectId = Aggregation
-                .match(Criteria.where("_id").gte(fromObjectId).lt(toObjectId));
+        MatchOperation matchOperationByBoolean = Aggregation
+                .match(Criteria.where("booleanField").is(true));
 
-        // project
+        MatchOperation matchOperationByRegex = Aggregation
+                .match(Criteria.where("stringField").regex("^Sam.*\\d{4}$"));
+
+        /* project */
         ProjectionOperation projectOperation = Aggregation
-                .project(new String[] { "_id", "createdAt" });
-        // sort
+                .project(new String[] { "_id", "dateField" });
+
+        /* sort */
         SortOperation sortOperation = Aggregation.sort(Sort.Direction.DESC, "_id", "createdAt");
 
-        // # pagenation : skip + limit
+        /* Pagenation */
         int pageSize = 5; // number of docs in a page
         int pageNumber = 0; // page number beggins from zero
 
-        // skip
         SkipOperation skipOperation = Aggregation.skip(pageSize * pageNumber);
-
-        // limit
         LimitOperation limitOperation = Aggregation.limit(pageSize);
 
         Aggregation agg = Aggregation.newAggregation(
-                matchOperationByObjectId,
+                matchOperationByDate,
+                matchOperationByBoolean,
+                matchOperationByRegex,
                 projectOperation,
                 sortOperation,
                 skipOperation,
@@ -110,16 +108,13 @@ public class MongoAggregationSampleDocTests {
         AggregationResults<Document> aggrResults = mongoTemplate.aggregate(agg, COLLECTION_NAME,
                 Document.class);
         List<Document> results = aggrResults.getMappedResults();
-
-        // Handle each document
-        results.forEach(doc -> {
-            System.out.println("----------------------------------------");
-            System.out.println(JsonFormatter.prettyPrint(doc.toJson()));
-        });
         System.out.println("Size of Results: " + results.size());
+        for (var doc : results) {
+            System.out.println(doc);
+        }
     }
 
-    /*  
+    /*
      * default query result
      * order: ASC by ObjectId: _id
      */

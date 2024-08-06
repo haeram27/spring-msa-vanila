@@ -68,7 +68,7 @@ public class MongoAggregationSimpleTests {
         Date fromDate = Date.from(Instant.parse("2024-08-02T00:38:29.616Z"));
         Date toDate = Date.from(Instant.parse("2024-08-02T00:38:30.700Z"));
         MatchOperation matchOperationByDate = Aggregation
-                .match(Criteria.where("dateField").gt(fromDate).lt(toDate));
+                .match(Criteria.where("dateField").gte(fromDate).lt(toDate));
 
         MatchOperation matchOperationByBoolean = Aggregation
                 .match(Criteria.where("booleanField").is(true));

@@ -62,7 +62,7 @@ public class MongoFindSimpleTests {
         // DATE/TIME Range
         Date fromDate = Date.from(Instant.parse("2024-08-01T04:50:09.511Z"));
         Date toDate = Date.from(Instant.parse("2024-08-01T04:50:09.513Z"));
-        query.addCriteria(Criteria.where("dateField").gt(fromDate).lt(toDate));
+        query.addCriteria(Criteria.where("dateField").gte(fromDate).lt(toDate));
 
         // $eq matching
         Map<String, Object> conditionMap = new HashMap<>();

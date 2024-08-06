@@ -27,7 +27,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 import com.example.springwebex.model.mongo.MongoSampleDoc;
-import com.example.springwebex.util.mongo.ObjectIdUtils;
 import com.jayway.jsonpath.internal.JsonFormatter;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -87,17 +86,20 @@ public class MongoFindSampleDocTests {
             query.addCriteria(Criteria.where("_id").gt(objectId));
         }
 
-        // criteria: ObjectID($oid) datetime interval(span of time) criteria
+        // criteria: DATETIME Range criteria by ObjectID($oid)
         //           ObjectID's time data has precision(resolution) of "second" !!!
         if (false) {
-            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-            //DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss");
-            ObjectId fromObjectId = ObjectIdUtils
-                    .getObjectIdFromDate(LocalDateTime.parse("2024-07-30T23:14:32", formatter), ZoneOffset.UTC);
-            ObjectId toObjectId = ObjectIdUtils
-                    .getObjectIdFromDate(LocalDateTime.parse("2024-07-30T23:14:33", formatter), ZoneOffset.UTC);
-
-            query.addCriteria(Criteria.where("_id").gte(fromObjectId).lt(toObjectId));
+            // DATE/TIME Range
+            var zid = "Asia/Seoul";
+            var fromLocalTime = LocalDateTime.parse("2024-07-01T00:00:00");
+            var toLocalTime = LocalDateTime.parse("2024-08-01T00:00:00");
+            var fromInstant = fromLocalTime.toInstant(ZoneId.of(zid).getRules().getOffset(fromLocalTime));
+            var toInstant = toLocalTime.toInstant(ZoneId.of(zid).getRules().getOffset(toLocalTime));
+            var fromId = new ObjectId(Date.from(fromInstant));
+            var toId = new ObjectId(Date.from(toInstant));
+            // ObjectId.isValid(fromId.toHexString());
+            // ObjectId.isValid(toId.toHexString());
+            query.addCriteria(Criteria.where("_id").gte(fromId).lt(toId));
         }
 
         // criteria: ISODate has precision(resolution) of "milli-second"
@@ -106,7 +108,7 @@ public class MongoFindSampleDocTests {
             if (dateCompareWay == 0) { // recommended
                 Date fromDate = Date.from(Instant.parse("2024-08-02T00:38:29.616Z"));
                 Date toDate = Date.from(Instant.parse("2024-08-02T00:38:29.619Z"));
-                query.addCriteria(Criteria.where("dateField").gt(fromDate).lt(toDate));
+                query.addCriteria(Criteria.where("dateField").gte(fromDate).lt(toDate));
             } else if (dateCompareWay == 1) { // NOT recommended
                 Date fromDate = Date
                         .from(LocalDateTime.parse("2024-08-01T04:50:09.511", DateTimeFormatter.ISO_LOCAL_DATE_TIME)
@@ -115,7 +117,7 @@ public class MongoFindSampleDocTests {
                         .from(LocalDateTime.parse("2024-08-01T04:50:09.513", DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                                 .atZone(ZoneOffset.UTC).toInstant());
 
-                query.addCriteria(Criteria.where("dateField").gt(fromDate).lt(toDate));
+                query.addCriteria(Criteria.where("dateField").gte(fromDate).lt(toDate));
             } else if (dateCompareWay == 2) {
                 Date targetDate = Date.from(Instant.parse("2024-08-01T04:50:09.512Z"));
                 query.addCriteria(Criteria.where("dateField").is(targetDate));

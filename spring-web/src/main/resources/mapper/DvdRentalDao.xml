@@ -1,0 +1,18 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springwebex.dao.DvdRentalDao">
+
+    <select id="selectActors">
+		SELECT * FROM actor
+    </select>
+
+    <insert id="insertActor" parameterType="com.example.springwebex.model.rdb.ActorDto">
+		INSERT INTO
+		    actor (
+				first_name
+				, last_name)
+		VALUES (
+		        #{firstName},
+				#{lastName})
+    </insert>
+
+</mapper>

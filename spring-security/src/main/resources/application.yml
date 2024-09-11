@@ -1,0 +1,56 @@
+# common appliction properies:
+# https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html
+
+spring.profiles.active: dev
+
+logging.config: classpath:log4j2-${spring.profiles.active}.xml
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    use-generated-keys: true
+  mapper-locations: classpath:mapper/**/*.xml
+  # DAO(result type) package
+  type-aliases-package: com.example.springsecex.model
+
+---
+logging.level.com.zaxxer.hikari.HikariConfig: DEBUG
+#logging.level.com.zaxxer.hikari: TRACE
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  # db datasource
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/dvdrental
+    username: postgres
+    password: postgres
+    # https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#application-properties.data.spring.datasource.hikari
+
+my:
+  datasource:
+    url: dev.db.com
+    username: dev_user
+    password: dev_pw
+    etc:
+      max-connection: 10
+      timeout: 60s
+      options: DEV, CACHE
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+my:
+  datasource:
+    url: prod.db.com
+    username: prod_user
+    password: prod_pw
+    etc:
+      max-connection: 50
+      timeout: 10s
+      options: PROD, CACHE

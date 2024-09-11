@@ -1,0 +1,49 @@
+########################################
+### profile selector
+########################################
+# please comment when only active profile type is given from run command args method
+spring.profiles.active: dev
+
+########################################
+### app properties
+########################################
+# quartz-batch job enabler
+job.enabler:
+  sample: true
+
+########################################
+### common env properties
+########################################
+# prevent launching batch job when app is started
+spring.batch.job.enabled: false
+
+# log4j2 configuration
+logging.config: classpath:log4j2-${spring.profiles.active}.xml
+
+# mybatis
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+  mapper-locations: classpath:/mapper/**/*.xml
+
+---
+########################################
+### dev profile env properties
+########################################
+spring.config.activate.on-profile: dev
+
+---
+########################################
+### prod profile env properties
+########################################
+spring.config.activate.on-profile: prod
+
+# spring quartz job store type
+spring.quartz:
+  job-store-type: jdbc
+  properties:
+    org:
+      quartz:
+        jobStore:
+          class: org.quartz.impl.jdbcjobstore.JobStoreTX
+          driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate

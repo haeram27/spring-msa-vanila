@@ -1,4 +1,4 @@
-package com.example.springwebex.model.mongo.finder;
+package com.example.springwebex.util.mongo.model;
 
 import java.io.Serializable;
 import java.util.List;
@@ -32,9 +32,12 @@ public class MongoCommonFindReq implements Serializable {
                 "key": "server_time"
             }
         ],
-        "value_criterias": {
+        "equal_criterias": {
             "intField": 0,
             "stringField": "hello"
+        },
+        "in_criterias": {
+            "intField": [0, 1],
         },
         "project_keys": [
             "_id",

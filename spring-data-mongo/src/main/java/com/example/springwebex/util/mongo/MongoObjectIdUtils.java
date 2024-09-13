@@ -9,7 +9,7 @@ import java.util.Date;
 
 import org.bson.types.ObjectId;
 
-public class ObjectIdUtils {
+public class MongoObjectIdUtils {
 
     public static ObjectId getObjectIdFromDate(Instant instant) {
         return new ObjectId(Date.from(instant));

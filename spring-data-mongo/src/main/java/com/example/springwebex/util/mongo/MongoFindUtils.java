@@ -78,11 +78,12 @@ public class MongoFindUtils {
 
 
     /**
+     *  transform Document to Map<String, Object> using ObjectMapper
         example: 
-            var results = MongoFindUtils.find(mongoTemplate, req);
-            var mappedResults = MongoFindUtils.mapDocuments(results, null,
-                new MongoFindUtils.ObjectIdConverter(),
-                new MongoFindUtils.DateTimeConverter(req.getRespTimezoneId()));
+            List<Document> results = MongoFindUtils.find(mongoTemplate, req);
+            List<Map<String, Object>> mappedResults = MongoFindUtils.mapDocuments(results, null,
+                    new MongoFindUtils.ObjectIdConverter(),
+                    new MongoFindUtils.DateTimeConverter(req.getRespTimezoneId()));
      * @param docs
      * @param mode
      * @param idConverter

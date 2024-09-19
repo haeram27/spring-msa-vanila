@@ -15,8 +15,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 
 import com.example.springwebex.model.mongo.MongoSampleDoc;
 import com.example.springwebex.util.mongo.MongoFindUtils;
-import com.example.springwebex.util.mongo.MongoFindUtils.DateTimeConverter;
-import com.example.springwebex.util.mongo.MongoFindUtils.ObjectIdConverter;
 import com.example.springwebex.util.mongo.model.MongoCommonFindReq;
 import com.example.springwebex.util.mongo.model.MongoDateCriteria;
 import com.example.springwebex.util.mongo.model.MongoObjectIdCriteria;
@@ -104,7 +102,7 @@ public class MongoFindTests {
         var mappedResults = MongoFindUtils.mapDocuments(results, null,
                 new MongoFindUtils.ObjectIdConverter(),
                 new MongoFindUtils.DateTimeConverter(req.getRespTimezoneId()));
- 
+
         mappedResults.stream().forEach((map) -> {
             try {
                 System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(map));

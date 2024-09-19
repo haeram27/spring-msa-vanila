@@ -20,15 +20,15 @@ public class MongoCommonFindReq implements Serializable {
     {
         "resp_timezone_id": "Asia/Seoul",
         "id_criteria": {
-            "timezone_id": "Asia/Seoul",
-            "start_date": "2024-01-01T00:00:00",
-            "end_date": "2025-91-01T00:00:00"
+        "timezone_id": "Asia/Seoul",
+        "start_date": "2024-01-01T00:00:00",
+        "end_date": "2025-01-01T00:00:00"
         },
         "date_criterias": [
             {
                 "timezone_id": "Asia/Seoul",
-                "start_date": "2024-01-01T100:00:00.000",
-                "end_date": "2025-01-01T100:00:00.000",
+                "start_date": "2024-01-01T00:00:00.000",
+                "end_date": "2025-01-01T00:00:00.000",
                 "key": "server_time"
             }
         ],
@@ -37,7 +37,7 @@ public class MongoCommonFindReq implements Serializable {
             "stringField": "hello"
         },
         "in_criterias": {
-            "intField": [0, 1],
+            "intField": [0, 1]
         },
         "project_keys": [
             "_id",

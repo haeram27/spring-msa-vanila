@@ -100,7 +100,7 @@ public class MongoFindUtils {
             builder.outputMode(mode);
         else
             builder.outputMode(JsonMode.RELAXED);
- 
+
         if (idConverter != null)
             builder.objectIdConverter(idConverter);
 

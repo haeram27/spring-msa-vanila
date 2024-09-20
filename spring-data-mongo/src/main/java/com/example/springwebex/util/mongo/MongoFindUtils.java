@@ -49,7 +49,7 @@ public class MongoFindUtils {
 
     private static final int MIN_PAGE_NUMBER = 0;
     private static final int MIN_PAGE_SIZE = 1;
-    private static final int MAX_PAGE_SIZE = 1000;
+    private static final int DEFAULT_PAGE_SIZE = 100000;
 
 
     public static class ObjectIdConverter implements Converter<ObjectId> {
@@ -211,10 +211,8 @@ public class MongoFindUtils {
         int pageNumber = Optional.ofNullable(request.getPageNumber()).orElse(0); // zero-based page number, must not be negative.
         int pageSize = Optional.ofNullable(request.getPageSize()).orElse(0); // number of docs per a page to be returned, must be greater than 0.
 
-        if (pageNumber < MIN_PAGE_NUMBER)
-            pageNumber = MIN_PAGE_NUMBER;
-        if (pageSize < MIN_PAGE_SIZE || pageSize > MAX_PAGE_SIZE)
-            pageSize = MAX_PAGE_SIZE;
+        if (pageNumber < MIN_PAGE_NUMBER) pageNumber = MIN_PAGE_NUMBER;
+        if (pageSize < MIN_PAGE_SIZE) pageSize = DEFAULT_PAGE_SIZE;
 
         Pageable pageable = PageRequest.of(pageNumber - MIN_PAGE_NUMBER, pageSize);
         return query.with(pageable);

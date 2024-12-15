@@ -34,8 +34,8 @@ public class kafkaProducerConfig {
         configs.put(ProducerConfig.LINGER_MS_CONFIG, 1);
         configs.put(ProducerConfig.ACKS_CONFIG, "all");
         configs.put(ProducerConfig.RETRIES_CONFIG, 0);
-        configs.put(ProducerConfig.RECONNECT_BACKOFF_MS_CONFIG, 20 * 1000);
-        configs.put(ProducerConfig.RECONNECT_BACKOFF_MAX_MS_CONFIG, 60 * 1000);
+        configs.put(ProducerConfig.RECONNECT_BACKOFF_MS_CONFIG, 20_000);
+        configs.put(ProducerConfig.RECONNECT_BACKOFF_MAX_MS_CONFIG, 60_000);
 
         return configs;
     }

@@ -1,0 +1,23 @@
+pluginManagement {
+    repositories {
+        maven { url privateMavenRepositoryUrl }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        maven { url privateMavenRepositoryUrl }
+        mavenCentral()
+    } 
+}
+
+startParameter.offline=false
+if (startParameter.offline) {
+        println "======================"
+        println "gradle in offline mode"
+        println "======================"
+}
+
+rootProject.name = 'springempty'

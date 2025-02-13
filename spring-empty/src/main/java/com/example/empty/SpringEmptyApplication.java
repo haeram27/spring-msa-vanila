@@ -1,10 +1,10 @@
 package com.example.empty;
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.EventListener;
-
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +33,12 @@ public class SpringEmptyApplication {
 
     public static void main(String[] args) throws Exception {
         log.debug("*** main() ***");
-        new SpringApplication(SpringEmptyApplication.class).run(args);
+        new SpringApplicationBuilder(SpringEmptyApplication.class)
+        .listeners(new ApplicationListener<ApplicationEvent>() {
+            @Override
+            public void onApplicationEvent(@SuppressWarnings("null") ApplicationEvent event) {
+                log.debug("InitializingApplicationEvent: " + event.getClass().getSimpleName());
+            }
+        }).run(args);
     }
 }

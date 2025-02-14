@@ -35,11 +35,12 @@ public class SpringLifecycleTestApplication {
 
     public static void main(String[] args) throws Exception {
         log.debug("*** main() ***");
+
+        // add event listener before SpringApplication.run() to get initializing app events previous ApplicationStartedEvent
         new SpringApplicationBuilder(SpringLifecycleTestApplication.class)
         .listeners(new ApplicationListener<ApplicationEvent>() {
             @Override
             public void onApplicationEvent(@SuppressWarnings("null") ApplicationEvent event) {
-                // to get Initializing Events before creation of beans(@Component)
                 log.debug("InitializingApplicationEvent: " + event.getClass().getSimpleName());
                 /*
                     if (event instanceof ApplicationContextInitializedEvent) {

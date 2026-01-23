@@ -1,0 +1,101 @@
+plugins {
+    id 'java'
+    // https://plugins.gradle.org/plugin/org.springframework.boot
+    id 'org.springframework.boot' version '4.0.2'
+    // https://plugins.gradle.org/plugin/io.spring.dependency-management
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+ext {
+    jacksonVersion = '2.18.2'
+    mybatisVersion = '3.0.3'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '17'
+}
+
+configurations {
+    all {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencies {
+    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
+
+    // ## jackson
+    // jackson suport Java 8 date/time Module (o)
+    // implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
+    // implementation "com.fasterxml.jackson.module:jackson-module-parameter-names:${jacksonVersion}"
+
+    // ## spring
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-json'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.6'
+
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+// do not archive plain-jar(jar \wo dependency)
+jar {
+    enabled = false
+}
+
+/*
+ * # clean a specific test result cache before run test
+ * gradle test --rerun --tests 'Hello*.hello'
+ * # clean all tests result cache before run tests
+ * gradle test --rerun-tasks --tests 'Hello*.hello'
+ */
+test {
+    useJUnitPlatform()
+    testLogging {
+        showStandardStreams = true
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+        exceptionFormat = 'full'
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+}
+
+bootRun {
+    environment 'spring.output.ansi.console-available', true
+}
+
+/*
+    # gradle commands
+    $ gradle tasks
+
+    Application tasks
+    -----------------
+    bootRun - Runs this project as a Spring Boot application.
+    bootTestRun - Runs this project as a Spring Boot application using the test runtime classpath.
+
+    Build tasks
+    -----------
+    assemble - Assembles the outputs of this project.
+    bootBuildImage - Builds an OCI image of the application using the output of the bootJar task
+    bootJar - Assembles an executable jar archive containing the main classes and their dependencies.
+    build - Assembles and tests this project.
+    buildDependents - Assembles and tests this project and all projects that depend on it.
+    buildNeeded - Assembles and tests this project and all projects it depends on.
+    classes - Assembles main classes.
+    clean - Deletes the build directory.
+    jar - Assembles a jar archive containing the classes of the 'main' feature.
+    resolveMainClassName - Resolves the name of the application's main class.
+    resolveTestMainClassName - Resolves the name of the application's test main class.
+    testClasses - Assembles test classes.
+*/

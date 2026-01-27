@@ -89,6 +89,7 @@ bootRun {
 /*
     # gradle commands
     $ gradle tasks
+    $ gradle build --refresh-dependencies
 
     Application tasks
     -----------------

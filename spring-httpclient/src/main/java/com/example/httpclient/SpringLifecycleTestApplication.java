@@ -1,4 +1,4 @@
-package com.example.empty;
+package com.example.httpclient;
 
 import org.springframework.boot.Banner;
 import org.springframework.boot.WebApplicationType;

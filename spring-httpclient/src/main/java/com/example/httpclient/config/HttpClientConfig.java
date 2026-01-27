@@ -1,4 +1,4 @@
-package com.example.empty.config;
+package com.example.httpclient.config;
 
 import java.security.GeneralSecurityException;
 import java.time.Duration;
@@ -10,6 +10,7 @@ import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
@@ -22,6 +23,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 public class HttpClientConfig {
 
     @Bean
+    @Primary
     public JsonMapper restClientObjectMapper(){
 
         return JsonMapper.builder()
@@ -33,6 +35,7 @@ public class HttpClientConfig {
     }
 
     @Bean
+    @Primary
     public RestTemplate trustAllRestTemplate() {
         try {
             var sslContext = SSLContexts.custom()
@@ -75,6 +78,7 @@ public class HttpClientConfig {
     }
 
     @Bean
+    @Primary
     public RestClient trustAllRestClient() {
         try {
             var sslContext = SSLContexts.custom()

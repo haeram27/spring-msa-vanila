@@ -1,4 +1,4 @@
-package com.example.empty.component;
+package com.example.httpclient.component;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;

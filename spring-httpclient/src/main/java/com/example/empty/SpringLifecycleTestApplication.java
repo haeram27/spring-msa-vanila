@@ -1,5 +1,6 @@
 package com.example.empty;
 
+import org.springframework.boot.Banner;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -64,6 +65,8 @@ public class SpringLifecycleTestApplication {
                     }
                 */
             }
-        }).web(WebApplicationType.NONE).run(args);
+        }).web(WebApplicationType.NONE) // Do NOT run as server
+        .bannerMode(Banner.Mode.OFF)    // Do NOT display Spring Banner on LOG when app is started
+        .run(args);
     }
 }

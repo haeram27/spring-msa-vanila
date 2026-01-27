@@ -1,14 +1,15 @@
 plugins {
     id 'java'
     // https://plugins.gradle.org/plugin/org.springframework.boot
-    id 'org.springframework.boot' version '4.0.2'
+    id 'org.springframework.boot' version '3.5.7'
     // https://plugins.gradle.org/plugin/io.spring.dependency-management
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
 ext {
-    jacksonVersion = '2.18.2'
+    jacksonVersion2 = '2.18.5'
     mybatisVersion = '3.0.3'
+    apacheHc5Version = '5.6'
 }
 
 group = 'com.example'
@@ -33,14 +34,15 @@ dependencies {
 
     // ## jackson
     // jackson suport Java 8 date/time Module (o)
-    // implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
-    // implementation "com.fasterxml.jackson.module:jackson-module-parameter-names:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion2}"
+    implementation "com.fasterxml.jackson.module:jackson-module-parameter-names:${jacksonVersion2}"
+
+    // ## apache HttpClient 5
+    implementation "org.apache.httpcomponents.client5:httpclient5:${apacheHc5Version}"
 
     // ## spring
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-json'
     implementation 'org.springframework.boot:spring-boot-starter-log4j2'
-    implementation 'org.apache.httpcomponents.client5:httpclient5:5.6'
 
     testAnnotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
@@ -78,6 +80,7 @@ bootRun {
 /*
     # gradle commands
     $ gradle tasks
+    $ gradle build --refresh-dependencies
 
     Application tasks
     -----------------

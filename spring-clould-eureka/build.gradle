@@ -1,7 +1,9 @@
 plugins{
-	id 'java'
-	id 'org.springframework.boot' version '3.2.2'
-	id 'io.spring.dependency-management' version '1.1.3'
+    id 'java'
+    // https://plugins.gradle.org/plugin/org.springframework.boot
+    id 'org.springframework.boot' version '3.5.7'
+    // https://plugins.gradle.org/plugin/io.spring.dependency-management
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 ext {
@@ -13,9 +15,9 @@ ext {
 }
 
 dependencyManagement {
-	imports { 
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-	}
+    imports { 
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 
 dependencies {
@@ -31,6 +33,8 @@ test{
 /*
     # gradle commands
     $ gradle tasks
+    $ gradle assemble --refresh-dependencies
+    $ gradle assemble == gradle build -x text
     $ gradle build --refresh-dependencies
 
     Application tasks

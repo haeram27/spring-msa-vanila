@@ -1,57 +1,59 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.1.3'
-	id 'io.spring.dependency-management' version '1.1.3'
+    id 'java'
+    // https://plugins.gradle.org/plugin/org.springframework.boot
+    id 'org.springframework.boot' version '3.5.7'
+    // https://plugins.gradle.org/plugin/io.spring.dependency-management
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	sourceCompatibility = '17'
+    sourceCompatibility = '17'
 }
 
 configurations {
-	all {
+    all {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
     }
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 dependencies {
-	annotationProcessor 'org.projectlombok:lombok'
-	compileOnly 'org.projectlombok:lombok'
-	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
-	implementation 'org.springframework.boot:spring-boot-starter'
-	implementation 'org.springframework.kafka:spring-kafka'
+    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.kafka:spring-kafka'
 
     // log4j2 RELP supported library
-	// implementation 'com.teragrep:jla_06:1.1.0'
-	// implementation 'com.teragrep:rlp_01:4.0.0'
-	// implementation 'com.cloudbees:syslog-java-client:1.1.7'
-	implementation files('libs/jla_06-1.1.0.jar', 'libs/rlp_01-4.0.0.jar', 'libs/syslog-java-client-1.1.7.jar')
+    // implementation 'com.teragrep:jla_06:1.1.0'
+    // implementation 'com.teragrep:rlp_01:4.0.0'
+    // implementation 'com.cloudbees:syslog-java-client:1.1.7'
+    implementation files('libs/jla_06-1.1.0.jar', 'libs/rlp_01-4.0.0.jar', 'libs/syslog-java-client-1.1.7.jar')
 
-	testAnnotationProcessor 'org.projectlombok:lombok'
-	testCompileOnly 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-log4j2'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
 }
 
 // test {
-// 	testLogging {
-// 		showStandardStreams = true
-// 		showCauses = true
-// 		showExceptions = true
-// 		showStackTraces = true
-// 		exceptionFormat = 'full'
-// 	}
+//     testLogging {
+//         showStandardStreams = true
+//         showCauses = true
+//         showExceptions = true
+//         showStackTraces = true
+//         exceptionFormat = 'full'
+//     }
 // }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 bootRun {
@@ -61,6 +63,8 @@ bootRun {
 /*
     # gradle commands
     $ gradle tasks
+    $ gradle assemble --refresh-dependencies
+    $ gradle assemble == gradle build -x text
     $ gradle build --refresh-dependencies
 
     Application tasks

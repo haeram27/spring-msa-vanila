@@ -1,9 +1,11 @@
 // https://spring.io/guides/gs/multi-module/
 
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.2.2' apply false
-	id 'io.spring.dependency-management' version '1.1.4'
+    id 'java'
+    // https://plugins.gradle.org/plugin/org.springframework.boot
+    id 'org.springframework.boot' version '3.5.7' apply false
+    // https://plugins.gradle.org/plugin/io.spring.dependency-management
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 dependencyManagement {
@@ -16,28 +18,28 @@ group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	sourceCompatibility = '17'
+    sourceCompatibility = '17'
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot'
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 bootRun {
@@ -47,6 +49,8 @@ bootRun {
 /*
     # gradle commands
     $ gradle tasks
+    $ gradle assemble --refresh-dependencies
+    $ gradle assemble == gradle build -x text
     $ gradle build --refresh-dependencies
 
     Application tasks

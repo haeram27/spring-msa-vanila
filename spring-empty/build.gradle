@@ -1,7 +1,9 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.2.2'
-	id 'io.spring.dependency-management' version '1.1.3'
+    id 'java'
+    // https://plugins.gradle.org/plugin/org.springframework.boot
+    id 'org.springframework.boot' version '3.5.7'
+    // https://plugins.gradle.org/plugin/io.spring.dependency-management
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 ext {
@@ -13,24 +15,24 @@ group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	sourceCompatibility = '17'
+    sourceCompatibility = '17'
 }
 
 configurations {
-	all {
+    all {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
     }
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 dependencies {
-	annotationProcessor 'org.projectlombok:lombok'
-	compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
 
     // ## gson
-	implementation 'com.google.code.gson:gson'
+    implementation 'com.google.code.gson:gson'
 
     // ## jackson
     // jackson base library (m): support ObjectMapper
@@ -48,20 +50,20 @@ dependencies {
     // implementation "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonVersion}"
 
     // ## spring
-	implementation 'org.springframework.boot:spring-boot-starter'
-	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
 
 
-	testAnnotationProcessor 'org.projectlombok:lombok'
-	testCompileOnly 'org.projectlombok:lombok'
-	testImplementation 'com.google.code.gson:gson'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testImplementation 'com.google.code.gson:gson'
     testImplementation 'org.springframework.boot:spring-boot-starter-log4j2'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 // do not archive plain-jar(jar \wo dependency)
 jar {
-	enabled = false
+    enabled = false
 }
 
 /*
@@ -71,15 +73,15 @@ jar {
  * gradle test --rerun-tasks --tests 'Hello*.hello'
  */
 test {
-	useJUnitPlatform()
-	testLogging {
-		showStandardStreams = true
-		showCauses = true
-		showExceptions = true
-		showStackTraces = true
-		exceptionFormat = 'full'
-		events "passed", "skipped", "failed", "standardOut", "standardError"
-	}
+    useJUnitPlatform()
+    testLogging {
+        showStandardStreams = true
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+        exceptionFormat = 'full'
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
 }
 
 bootRun {
@@ -89,6 +91,8 @@ bootRun {
 /*
     # gradle commands
     $ gradle tasks
+    $ gradle assemble --refresh-dependencies
+    $ gradle assemble == gradle build -x text
     $ gradle build --refresh-dependencies
 
     Application tasks

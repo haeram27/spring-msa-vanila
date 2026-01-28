@@ -9,7 +9,9 @@ import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.TimeValue;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
@@ -20,6 +22,12 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+/*
+ * Apache httpclient5 Docs - https://hc.apache.org/httpcomponents-client-5.6.x/index.html
+ * Examples - https://github.com/apache/httpcomponents-client/tree/master/httpclient5/src/test/java/org/apache/hc/client5/http/examples
+ */
+
+@Configuration
 public class HttpClientConfig {
 
     @Bean
@@ -61,7 +69,8 @@ public class HttpClientConfig {
 
             var httpClient = HttpClients.custom()
                 .setConnectionManager(cm)
-                .evictExpiredConnections()
+                .evictExpiredConnections() // Find, close and remove connections that are stored in the connection pool that are past the server-set validity (TTL)
+                .evictIdleConnections(TimeValue.ofSeconds(10)) // evict(remove) connection has no sending request for more than 10 sec
                 .build();
 
             // set timeout setting per request in RestTemplate (Spring driven)
@@ -70,7 +79,14 @@ public class HttpClientConfig {
             rf.setConnectTimeout(Duration.ofSeconds(2)); // time to establish tcp connection
             rf.setReadTimeout(Duration.ofSeconds(5)); // time to wait response against http request from http server
 
-            return new RestTemplate(rf);
+            var template = new RestTemplate(rf);
+
+            /*
+             * RestCient can be made by RestTmeplate
+             */
+            // RestClient client = RestClient.create(template);
+
+            return template;
         } catch (GeneralSecurityException e) {
             throw new org.springframework.beans.factory.BeanCreationException(
                 "trustAllRestTemplate", "Failed to build SSL trust-all RestTemplate", e);
@@ -104,7 +120,8 @@ public class HttpClientConfig {
 
             var httpClient = HttpClients.custom()
                 .setConnectionManager(cm)
-                .evictExpiredConnections()
+                .evictExpiredConnections() // Find, close and remove connections that are stored in the connection pool that are past the server-set validity (TTL)
+                .evictIdleConnections(TimeValue.ofSeconds(10)) // evict(remove) connection has no sending request for more than 10 sec
                 .build();
 
             // set timeout setting per request in RestTemplate (Spring driven)

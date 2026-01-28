@@ -4,15 +4,18 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-// @Order(2)
+@RequiredArgsConstructor
 public class DefaultApplicationRunner implements ApplicationRunner {
+
     @Override
     public void run(ApplicationArguments args) throws Exception {
         log.info("## ApplicationRunner");
+
         var optNames = args.getOptionNames();
         for (var name : optNames) {
             log.info("option: name={}, value={}", name, args.getOptionValues(name));
@@ -27,5 +30,6 @@ public class DefaultApplicationRunner implements ApplicationRunner {
         for (var arg : srcArgs) {
             log.info("source arg: {}", arg);
         }
+
     }
 }

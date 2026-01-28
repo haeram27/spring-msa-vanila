@@ -69,7 +69,7 @@
         <!-- =================================================================== -->
         <!-- App                                                                 -->
         <!-- =================================================================== -->
-        <Logger name="com.example.myservice" level="all" additivity="false">
+        <Logger name="com.example.httpclient" level="all" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>

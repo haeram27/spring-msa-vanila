@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
@@ -18,16 +19,21 @@ public class RestClientSyncTests {
     @Qualifier("trustAllRestClient")
     private RestClient restClient;
 
-    private final String url = "https://jsonplaceholder.typicode.com/posts";
+    private final String serverUrl1 = "https://jsonplaceholder.typicode.com/posts";
+    private final String serverUrl2 = "https://httpbin.org/"; 
 
     @Test
     public void run() {
 
         var future = restClient.post()
-        .uri(url)
+        .uri(serverUrl1)
         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         .retrieve()
-        .toString();
+        .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
+            var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
+            log.info(m);
+        })
+        .body(String.class);
 
         System.out.println(future);
     } 

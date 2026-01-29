@@ -81,7 +81,7 @@ public class HttpClientConfig {
             // use BasicHttpClientConnectionManager for one-time connection
             /*
                 var cm = BasicHttpClientConnectionManager.create()
-                    .setTlsSocketStrategy(tls)   
+                    .setTlsSocketStrategy(tls)
                     .build();
             */
 
@@ -153,7 +153,7 @@ public class HttpClientConfig {
             // use BasicHttpClientConnectionManager for one-time connection
             /*
                 var cm = BasicHttpClientConnectionManager.create()
-                    .setTlsSocketStrategy(tls)   
+                    .setTlsSocketStrategy(tls)
                     .build();
             */
 

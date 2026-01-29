@@ -104,7 +104,7 @@ public class HttpClientConfig {
              */
             var rf = new HttpComponentsClientHttpRequestFactory(httpClient);
             rf.setConnectionRequestTimeout(Duration.ofSeconds(1)); // time to resolve idle http connection from conn pool
-            rf.setConnectTimeout(Duration.ofSeconds(2));           // time to establish tcp connection
+            //rf.setConnectTimeout(Duration.ofSeconds(2));           // time to establish tcp connection
             rf.setReadTimeout(Duration.ofSeconds(5));              // time to wait response against http request from http server
 
             var template = new RestTemplate(rf);
@@ -176,7 +176,7 @@ public class HttpClientConfig {
              */
             var rf = new HttpComponentsClientHttpRequestFactory(httpClient);
             rf.setConnectionRequestTimeout(Duration.ofSeconds(1)); // time to resolve idle http connection from conn pool
-            rf.setConnectTimeout(Duration.ofSeconds(2));           // time to establish tcp connection
+            //rf.setConnectTimeout(Duration.ofSeconds(2));           // time to establish tcp connection
             rf.setReadTimeout(Duration.ofSeconds(5));              // time to wait response against http request from http server
 
             return RestClient.builder()

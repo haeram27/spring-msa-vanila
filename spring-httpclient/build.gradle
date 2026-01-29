@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     // https://plugins.gradle.org/plugin/org.springframework.boot
-    id 'org.springframework.boot' version '3.5.7'
+    id 'org.springframework.boot' version '4.0.2'
     // https://plugins.gradle.org/plugin/io.spring.dependency-management
     id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -10,6 +10,7 @@ plugins {
 // testCompileOnly "org.projectlombok:lombok:${myLombokVersion}"
 ext {
     myLombokVersion = '1.18.42'
+    httpclient5Version = '5.1'
 }
 
 group = 'com.example'
@@ -39,6 +40,7 @@ dependencies {
     implementation "com.fasterxml.jackson.module:jackson-module-parameter-names"
 
     // ## apache HttpClient 5
+    // implementation "org.apache.httpcomponents.client5:httpclient5:${httpclient5Version}"
     implementation 'org.apache.httpcomponents.client5:httpclient5'
 
     // ## spring

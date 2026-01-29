@@ -22,7 +22,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -50,7 +49,8 @@ public class RestTemplateSyncTests {
     private static final String TEST_BEARER_AUTH_TOKEN = "";
 
     public List<Map<String, Object>> send(HttpMethod method, URI uri, HttpEntity<Void> httpEntity) {
-        ResponseEntity<JsonNode> responseEntity;
+        // ResponseEntity<JsonNode> responseEntity;
+        ResponseEntity<String> responseEntity;
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();;
 
         if (Strings.isEmpty(method.name())
@@ -63,7 +63,8 @@ public class RestTemplateSyncTests {
         try {
             log.debug("## request uri : {}", uri);
 
-            responseEntity = restTemplate.exchange(uri, method, httpEntity, JsonNode.class);
+            // responseEntity = restTemplate.exchange(uri, method, httpEntity, JsonNode.class);
+            responseEntity = restTemplate.exchange(uri, method, httpEntity, String.class);
 
             log.debug("Response Body: " + responseEntity.getBody());
             log.debug("Status Code: " + responseEntity.getStatusCode());
@@ -73,18 +74,24 @@ public class RestTemplateSyncTests {
                     HttpStatus.valueOf(responseEntity.getStatusCode().value()).getReasonPhrase());
 
             if (responseEntity.getStatusCode().equals(HttpStatus.OK)) {
-                var responseBody = responseEntity.getBody();
+                var body = responseEntity.getBody();
+                if (body == null) body = "";
 
+                var responseBody = mapper.readTree(body);
                 if (responseBody == null || responseBody.isEmpty()) {
                     log.error("Error: Empty Body");
                 }
 
                 if (responseBody.isObject()) {
+                    log.debug("resonseBody is object body type");
+
                     ObjectNode node = (ObjectNode) responseBody;
                     Map<String, Object> map = mapper.convertValue(node, new com.fasterxml.jackson.core.type.TypeReference<Map<String,Object>>() {});
                     // var map = mapper.treeToValue(node, Map.class);
                     list.add(map);
                 } else if (responseBody.isArray()) {
+                    log.debug("resonseBody is array body type");
+
                     ArrayNode node = (ArrayNode) responseBody;
                     list = mapper.convertValue(node, new com.fasterxml.jackson.core.type.TypeReference<List<Map<String,Object>>>() {});
                 } else {
@@ -146,7 +153,8 @@ public class RestTemplateSyncTests {
                     .encode().build().toUri();
 
         var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        // headers.setContentType(MediaType.APPLICATION_JSON);
 
         if (Strings.isNotEmpty(TEST_BEARER_AUTH_TOKEN))
             headers.setBearerAuth(TEST_BEARER_AUTH_TOKEN);

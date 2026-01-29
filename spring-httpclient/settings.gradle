@@ -1,3 +1,4 @@
+// plugin repositories
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -5,6 +6,7 @@ pluginManagement {
     }
 }
 
+// dependency repositories
 dependencyResolutionManagement {
     repositories {
         mavenCentral()

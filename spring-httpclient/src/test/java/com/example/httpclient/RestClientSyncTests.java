@@ -8,7 +8,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,52 +19,81 @@ public class RestClientSyncTests {
     @Qualifier("trustAllRestClient")
     private RestClient restClient;
 
-    @Autowired
-    @Qualifier("trustAllWebClient")
-    private WebClient webClient;
-
-    private final String serverUrl1 = "https://jsonplaceholder.typicode.com/posts";
+    private final String serverUrl1 = "https://jsonplaceholder.typicode.com/todos";
     private final String serverUrl2 = "https://httpbin.org/"; 
 
     @Test
-    public void sync() {
+    public void get() {
 
-        var future = restClient.post()
+        log.info("uri="+serverUrl1);
+
+        var body = restClient.get()
         .uri(serverUrl1)
-        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
         .retrieve()
         .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
             var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
             log.info(m);
         })
+        .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+            var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
+            log.error(m);
+        })
+        .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
+            var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
+            log.error(m);
+        })
         .body(String.class);
 
-        System.out.println(future);
+        System.out.println(body);
     }
 
     @Test
-    public void async() {
+    public void post() {
 
-        var mono = webClient.post()
-        .uri(serverUrl1)
-        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+        var requestBody = """
+            {
+                title: 'foo',
+                body: 'bar',
+                userId: 1
+            }
+            """;
+
+        var body = restClient.post()
+        .uri("https://jsonplaceholder.typicode.com/posts")
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(requestBody)
         .retrieve()
-        .onStatus(HttpStatusCode::is2xxSuccessful, (response) -> {
-            log.info(String.format("%s, %s", response.statusCode(), response.headers()));
-            return reactor.core.publisher.Mono.empty();
-        }).bodyToMono(String.class);
+        .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
+            log.info("request ===============================================================");
+            log.info(String.format("URI: %s", request.getURI()));
+            log.info(String.format("Method: %s", request.getMethod()));
+            log.info(String.format("Headers: %s", request.getHeaders()));
 
-        // try {
-        //     mono.toFuture().getNow("heelo");
-        // } catch (CancellationException e) {
-        //     // TODO Auto-generated catch block
-        //     e.printStackTrace();
-        // } catch (CompletionException e) {
-        //     // TODO Auto-generated catch block
-        //     e.printStackTrace();
-        // } catch (Exception e) {
-        //     // TODO Auto-generated catch block
-        //     e.printStackTrace();
-        // }
+            log.info("response: ===============================================================");
+            log.info(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
+        })
+        .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+            log.info("request ===============================================================");
+            log.info(String.format("URI: %s", request.getURI()));
+            log.info(String.format("Method: %s", request.getMethod()));
+            log.info(String.format("Headers: %s", request.getHeaders()));
+
+            log.info("response: ===============================================================");
+            log.error(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
+        })
+        .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
+            log.info("request ===============================================================");
+            log.info(String.format("URI: %s", request.getURI()));
+            log.info(String.format("Method: %s", request.getMethod()));
+            log.info(String.format("Headers: %s", request.getHeaders()));
+
+            log.info("response: ===============================================================");
+            log.error(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
+        })
+        .body(String.class);
+
+        System.out.println(body);
     }
 }

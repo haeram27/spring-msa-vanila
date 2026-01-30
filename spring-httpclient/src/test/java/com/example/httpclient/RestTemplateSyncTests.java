@@ -167,7 +167,6 @@ public class RestTemplateSyncTests {
                 log.debug("## response: {}",
                         mapper.writerWithDefaultPrettyPrinter().writeValueAsString(responseBody));
             } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
                 log.error("## invalid response");
             }

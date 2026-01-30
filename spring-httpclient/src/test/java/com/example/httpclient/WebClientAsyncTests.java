@@ -35,6 +35,13 @@ public class WebClientAsyncTests {
         // System.out.println(result);
 
         // mono.subscribe(e -> System.out.println(e));
+
+        // String result = mono.block();
+        // System.out.println(result);
+
+        // StepVerifier.create(mono)
+        //     .expectNextMatches(jsonString -> jsonString.contains("userId")) // 예상되는 결과 검증
+        //     .verifyComplete();
     }
 
     @Test
@@ -46,9 +53,13 @@ public class WebClientAsyncTests {
         // .retrieve()
         // .onStatus(HttpStatusCode::is2xxSuccessful, (response) -> {
         //     log.info(String.format("%s, %s", response.statusCode(), response.headers()));
-        //     return reactor.core.publisher.Mono.empty();
+        //     return reactor.core.publisher.Flux.empty();
         // }).bodyToFlux(String.class);
 
         //flux.subscribe(e -> System.out.println(e));
+
+        // StepVerifier.create(flux)
+        //     .expectNextMatches(jsonString -> jsonString.contains("userId")) // 예상되는 결과 검증
+        //     .verifyComplete();
     }
 }

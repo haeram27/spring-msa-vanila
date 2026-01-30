@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RestClientSyncTests {
 
     @Autowired
-    @Qualifier("trustAllRestClient")
+    @Qualifier("apacheClientTrustAllRestClient")
     private RestClient restClient;
 
     // https://jsonplaceholder.typicode.com/guide/
@@ -73,45 +73,46 @@ public class RestClientSyncTests {
         requestBody.body = "bar";
         requestBody.userId = 1;
 
-        // var requestBody = new LinkedMultiValueMap<String, Object>();
-        // requestBody.add("title", "foo");
-        // requestBody.add("body", "bar");
-        // requestBody.add("userId", Integer.valueOf(1));
+        record RequestBody2(
+            String title,
+            String body,
+            Integer userId) {
+        }
 
         var body = restClient.post()
-        .uri("https://jsonplaceholder.typicode.com/posts")
-        .accept(MediaType.APPLICATION_JSON)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(requestBody)
-        .retrieve()
-        .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
-            log.info("=== request ===============================================================");
-            log.info(String.format("URI: %s", request.getURI()));
-            log.info(String.format("Method: %s", request.getMethod()));
-            log.info(String.format("Headers: %s", request.getHeaders()));
+            .uri("https://jsonplaceholder.typicode.com/posts")
+            .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(new RequestBody2("a", "b", 2))
+            .retrieve()
+            .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
+                log.info("=== request ===============================================================");
+                log.info(String.format("URI: %s", request.getURI()));
+                log.info(String.format("Method: %s", request.getMethod()));
+                log.info(String.format("Headers: %s", request.getHeaders()));
 
-            log.info("=== response ===============================================================");
-            log.info(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
-        })
-        .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-            log.info("=== request ===============================================================");
-            log.info(String.format("URI: %s", request.getURI()));
-            log.info(String.format("Method: %s", request.getMethod()));
-            log.info(String.format("Headers: %s", request.getHeaders()));
+                log.info("=== response ===============================================================");
+                log.info(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
+            })
+            .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                log.info("=== request ===============================================================");
+                log.info(String.format("URI: %s", request.getURI()));
+                log.info(String.format("Method: %s", request.getMethod()));
+                log.info(String.format("Headers: %s", request.getHeaders()));
 
-            log.info("=== response ===============================================================");
-            log.error(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
-        })
-        .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-            log.info("=== request ===============================================================");
-            log.info(String.format("URI: %s", request.getURI()));
-            log.info(String.format("Method: %s", request.getMethod()));
-            log.info(String.format("Headers: %s", request.getHeaders()));
+                log.info("=== response ===============================================================");
+                log.error(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
+            })
+            .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
+                log.info("=== request ===============================================================");
+                log.info(String.format("URI: %s", request.getURI()));
+                log.info(String.format("Method: %s", request.getMethod()));
+                log.info(String.format("Headers: %s", request.getHeaders()));
 
-            log.info("=== response ===============================================================");
-            log.error(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
-        })
-        .body(String.class);
+                log.info("=== response ===============================================================");
+                log.error(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
+            })
+            .body(String.class);
 
         System.out.println(body);
     }

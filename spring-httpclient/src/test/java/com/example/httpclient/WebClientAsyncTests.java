@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WebClientAsyncTests {
 
     @Autowired
-    @Qualifier("trustAllWebClient")
+    @Qualifier("apacheClientTrustAllWebClient")
     private WebClient webClient;
 
     private final String serverUrl1 = "https://jsonplaceholder.typicode.com/todos";

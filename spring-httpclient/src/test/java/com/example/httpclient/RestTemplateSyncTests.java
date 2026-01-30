@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RestTemplateSyncTests {
 
     @Autowired
-    @Qualifier("trustAllRestTemplate")
+    @Qualifier("apacheClientTrustAllRestTemplate")
     private RestTemplate restTemplate;
 
     @Autowired

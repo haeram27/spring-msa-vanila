@@ -55,7 +55,7 @@ public class ApacheHttpClientConfig {
 
     @Bean
     @Primary
-    public RestTemplate trustAllRestTemplate() {
+    public RestTemplate apacheClientTrustAllRestTemplate() {
         try {
             var sslContext = SSLContexts.custom()
                 .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
@@ -127,7 +127,7 @@ public class ApacheHttpClientConfig {
 
     @Bean
     @Primary
-    public RestClient trustAllRestClient() {
+    public RestClient apacheClientTrustAllRestClient() {
         try {
             var sslContext = SSLContexts.custom()
                 .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
@@ -194,7 +194,7 @@ public class ApacheHttpClientConfig {
 
     @Bean
     @Primary
-    public WebClient trustAllWebClient() {
+    public WebClient apacheClientTrustAllWebClient() {
         try {
             var sslContext = SSLContexts.custom()
             .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)

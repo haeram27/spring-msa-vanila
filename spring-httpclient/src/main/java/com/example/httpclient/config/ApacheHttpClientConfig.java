@@ -35,7 +35,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
  */
 
 @Configuration
-public class HttpClientConfig {
+public class ApacheHttpClientConfig {
 
     @Bean
     @Primary
@@ -104,7 +104,7 @@ public class HttpClientConfig {
              */
             var rf = new HttpComponentsClientHttpRequestFactory(httpClient);
             rf.setConnectionRequestTimeout(Duration.ofSeconds(1)); // time to resolve idle http connection from conn pool
-            //rf.setConnectTimeout(Duration.ofSeconds(2));           // time to establish tcp connection
+            // rf.setConnectTimeout(Duration.ofSeconds(2));           // time to establish tcp connection
             rf.setReadTimeout(Duration.ofSeconds(5));              // time to wait response against http request from http server
 
             var template = new RestTemplate(rf);
@@ -144,7 +144,7 @@ public class HttpClientConfig {
                 .setSocketTimeout(Timeout.of(Duration.ofSeconds(5)))   // inactivity timeout of inter-packet
                 .build();
 
-            // use connection pool
+            // sync/blocking method
             var cm = PoolingHttpClientConnectionManagerBuilder.create()
                 .setTlsSocketStrategy(tls)
                 .setDefaultConnectionConfig(cc)
@@ -212,7 +212,7 @@ public class HttpClientConfig {
                 .setSocketTimeout(Timeout.of(Duration.ofSeconds(5)))   // inactivity timeout of inter-packet
                 .build();
 
-            // connection pool: async client method
+            // connection pool: async/non-blocking method
             var cm = PoolingAsyncClientConnectionManagerBuilder.create()
                 .setTlsStrategy(tls)
                 .setDefaultConnectionConfig(cc)

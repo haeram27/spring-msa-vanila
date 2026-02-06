@@ -1,6 +1,5 @@
 pluginManagement {
     repositories {
-        maven { url privateMavenRepositoryUrl }
         gradlePluginPortal()
         mavenCentral()
     }
@@ -8,7 +7,6 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
-        maven { url privateMavenRepositoryUrl }
         mavenCentral()
     } 
 }

@@ -1,3 +1,3 @@
 [submodule "docker-compose/init/mongo"]
-	path = docker-compose/init/mongo
-	url = https://github.com/neelabalan/mongodb-sample-dataset.git
+    path = docker-compose/init/mongo
+    url = https://github.com/neelabalan/mongodb-sample-dataset.git

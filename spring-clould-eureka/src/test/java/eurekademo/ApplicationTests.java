@@ -15,23 +15,23 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 public class ApplicationTests {
-	
-	@Autowired
-	private TestRestTemplate testRestTemplate;
 
-	@Test
-	public void catalogLoads() {
-		@SuppressWarnings("rawtypes")
-		ResponseEntity<Map> entity = testRestTemplate
-				.getForEntity("/eureka/apps", Map.class);
-		assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
-	}
+@Autowired
+private TestRestTemplate testRestTemplate;
 
-	@Test
-	public void adminLoads() {
-		@SuppressWarnings("rawtypes")
-		ResponseEntity<Map> entity = testRestTemplate.getForEntity("/actuator/env", Map.class);
-		assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
-	}
+@Test
+public void catalogLoads() {
+@SuppressWarnings("rawtypes")
+ResponseEntity<Map> entity = testRestTemplate
+.getForEntity("/eureka/apps", Map.class);
+assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
+}
+
+@Test
+public void adminLoads() {
+@SuppressWarnings("rawtypes")
+ResponseEntity<Map> entity = testRestTemplate.getForEntity("/actuator/env", Map.class);
+assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
+}
 
 }

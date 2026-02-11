@@ -19,6 +19,7 @@ public class HttpClientExamService {
     public void sendSyncReq() {
         var future = trustAllRestClient.post()
         .uri(url)
+        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         .retrieve()
         .toEntity(String.class);

@@ -51,7 +51,7 @@ public class RestTemplateSyncTests {
     public List<Map<String, Object>> send(HttpMethod method, URI uri, HttpEntity<Void> httpEntity) {
         // ResponseEntity<JsonNode> responseEntity;
         ResponseEntity<String> responseEntity;
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();;
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
         if (Strings.isEmpty(method.name())
             || uri == null

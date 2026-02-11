@@ -1,13 +1,13 @@
 plugins {
     id 'java'
     // https://plugins.gradle.org/plugin/org.springframework.boot
-    id 'org.springframework.boot' version '3.5.7'
+    id 'org.springframework.boot' version '4.0.2'
     // https://plugins.gradle.org/plugin/io.spring.dependency-management
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
+// variables for gradle script, refer with ${key}
 ext {
-    jacksonVersion = '2.18.2'
     mybatisVersion = '3.0.3'
 }
 
@@ -15,7 +15,7 @@ group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    sourceCompatibility = '17'
+    sourceCompatibility = '21'
 }
 
 configurations {
@@ -35,19 +35,21 @@ dependencies {
     implementation 'com.google.code.gson:gson'
 
     // ## jackson
-    // jackson base library (m): support ObjectMapper
-    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
-    // jackson core library (m)
-    implementation "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
+    // jackson BOM - automate version dependencies
+    implementation platform("com.fasterxml.jackson:jackson-bom:2.20.0")
+    // jackson databind (m)
+    implementation "com.fasterxml.jackson.core:jackson-databind"
     // jackson support annotation (m)
-    implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-annotations"
+    // jackson core library (m)
+    implementation "com.fasterxml.jackson.core:jackson-core"
     // jackson suport Java 8 date/time Module (o)
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
-    implementation "com.fasterxml.jackson.module:jackson-module-parameter-names:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    implementation "com.fasterxml.jackson.module:jackson-module-parameter-names"
     // jackson support YAML Pretty Print (o)
-    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
     // jackson support kotlin (o)
-    // implementation "com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonVersion}"
+    // implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 
     // ## spring
     implementation 'org.springframework.boot:spring-boot-starter'

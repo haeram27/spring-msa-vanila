@@ -190,6 +190,7 @@ public class ApacheHttpClientConfig {
 
     /*
      * WebClient - Async, Non-Blocking HttpClient
+     * WebClient is designed for working on daemon application
      */
 
     @Bean

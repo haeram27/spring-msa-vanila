@@ -17,7 +17,7 @@ public class WebClientAsyncTests {
     private WebClient webClient;
 
     private final String serverUrl1 = "https://jsonplaceholder.typicode.com/todos";
-    private final String serverUrl2 = "https://httpbin.org/"; 
+    private final String serverUrl2 = "https://httpbin.org/";
 
     @Test
     public void getMono() {

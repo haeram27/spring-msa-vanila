@@ -1,4 +1,4 @@
-spring.profiles.active: dev
+spring.profiles.default: dev
 logging.config: classpath:log4j2-${spring.profiles.active}.xml
 
 spring.kafka.bootstrap-servers: localhost:29092

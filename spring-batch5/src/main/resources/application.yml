@@ -2,7 +2,7 @@
 ### profile selector
 ########################################
 # please comment when only active profile type is given from run command args method
-spring.profiles.active: dev
+spring.profiles.default: dev
 
 ########################################
 ### app properties

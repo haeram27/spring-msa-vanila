@@ -1,7 +1,17 @@
 # common appliction properies:
 # https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html
 
-spring.profiles.active: dev
+# profile - https://docs.spring.io/spring-boot/reference/features/profiles.html
+
+spring:
+  profiles:
+    group:
+      production:
+        dev: test
+        prod: common
+
+# spring.profiles.active: dev,hsqldb
+spring.profiles.default: dev
 
 logging.config: classpath:log4j2-${spring.profiles.active}.xml
 
@@ -14,12 +24,11 @@ mybatis:
   type-aliases-package: com.example.springwebex.model
 
 server.port: 8181
----
-spring:
-  config:
-    activate:
-      on-profile: dev
 
+---
+spring.config.activate.on-profile: dev
+
+spring:
   # db datasource
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -42,10 +51,8 @@ my:
 #logging.level.com.zaxxer.hikari: TRACE
 
 ---
-spring:
-  config:
-    activate:
-      on-profile: prod
+spring.config.activate.on-profile: prod
+
 my:
   datasource:
     url: prod.db.com

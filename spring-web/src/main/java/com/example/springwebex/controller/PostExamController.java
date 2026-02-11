@@ -21,7 +21,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping(value = "/api/post", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/post",
+                consumes = MediaType.APPLICATION_JSON_VALUE,  // verify "Accept" Header of Request
+                produces = MediaType.APPLICATION_JSON_VALUE)  // set "Content-Type" Header of Response
 @RequiredArgsConstructor
 @Slf4j
 public class PostExamController {

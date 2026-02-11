@@ -1,4 +1,23 @@
 # common appliction properies:
 # https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html
 
-logging.config: classpath:log4j2-dev.xml
+########################################
+### profile selector
+########################################
+# please comment when only active profile type is given from run command args method
+spring.profiles.default: dev
+
+# log4j2 configuration
+logging.config: classpath:log4j2-${spring.profiles.active}.xml
+
+---
+########################################
+### dev profile env properties
+########################################
+spring.config.activate.on-profile: dev
+
+---
+########################################
+### prod profile env properties
+########################################
+spring.config.activate.on-profile: prod

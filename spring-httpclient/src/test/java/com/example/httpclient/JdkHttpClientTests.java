@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.example.EvaluatedTimeTests;
 
 @SpringBootTest
-public class JdkHttpRequestTests extends EvaluatedTimeTests{
+public class JdkHttpClientTests extends EvaluatedTimeTests{
 
     @Autowired
     @Qualifier("jdkHttpClient")

@@ -100,6 +100,11 @@
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>
+        <!-- CONDITIONS EVALUATION REPORT 로그 비활성화 -->
+        <Logger name="org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLogger" level="off" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="file" />
+        </Logger>
 
         <!-- =================================================================== -->
         <!-- JDBC                                                                -->

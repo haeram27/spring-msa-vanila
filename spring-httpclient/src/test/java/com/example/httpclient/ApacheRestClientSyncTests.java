@@ -38,12 +38,8 @@ public class ApacheRestClientSyncTests extends EvaluatedTimeTests {
         .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
             var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
             log.info(m);
-        })
-        .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-            var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
-            log.error(m);
-        })
-        .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
+        }) 
+        .onStatus(HttpStatusCode::isError, (request, response) -> {
             var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
             log.error(m);
         })
@@ -96,16 +92,7 @@ public class ApacheRestClientSyncTests extends EvaluatedTimeTests {
                 log.info("=== response ===============================================================");
                 log.info(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
             })
-            .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                log.info("=== request ===============================================================");
-                log.info(String.format("URI: %s", request.getURI()));
-                log.info(String.format("Method: %s", request.getMethod()));
-                log.info(String.format("Headers: %s", request.getHeaders()));
-
-                log.info("=== response ===============================================================");
-                log.error(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
-            })
-            .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
+            .onStatus(HttpStatusCode::isError, (request, response) -> {
                 log.info("=== request ===============================================================");
                 log.info(String.format("URI: %s", request.getURI()));
                 log.info(String.format("Method: %s", request.getMethod()));

@@ -16,9 +16,11 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MutablePropertySources;
 
+import com.example.EvaluatedTimeTests;
+
 
 @SpringBootTest
-class PropertyTests {
+class PropertyTests extends EvaluatedTimeTests {
 
     @Autowired
     private Environment env;

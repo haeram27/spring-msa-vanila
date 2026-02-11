@@ -116,6 +116,7 @@ bootRun {
 
     # assemble = build - text
     $ gradle assemble --refresh-dependencies
+    $ gradle build -x test --refresh-dependencies
 
     # build = assemble + test
     $ gradle build --refresh-dependencies

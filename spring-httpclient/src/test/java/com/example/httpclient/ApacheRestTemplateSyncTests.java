@@ -21,6 +21,7 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.example.EvaluatedTimeTests;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -33,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @SpringBootTest
-public class RestTemplateSyncTests {
+public class ApacheRestTemplateSyncTests extends EvaluatedTimeTests {
 
     @Autowired
     @Qualifier("apacheClientTrustAllRestTemplate")

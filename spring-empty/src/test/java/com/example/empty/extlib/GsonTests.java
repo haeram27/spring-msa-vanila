@@ -6,6 +6,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.example.EvaluatedTimeTests;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -15,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @SpringBootTest
 @Slf4j
-class GsonTests {
+class GsonTests extends EvaluatedTimeTests {
     @Test
     public void gsonTest1() {
         Map<String, String> dataMaps = new HashMap<String, String>(5);

@@ -4,12 +4,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import com.example.EvaluatedTimeTests;
 import com.example.empty.di.Formatter;
 import lombok.extern.slf4j.Slf4j;
 
 @SpringBootTest
 @Slf4j
-class DependencyInjectionTests {
+class DependencyInjectionTests extends EvaluatedTimeTests {
 
     @Autowired
     private Formatter primaryFormatter;

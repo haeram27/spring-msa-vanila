@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 
+import com.example.EvaluatedTimeTests;
+
 @SpringBootTest
 public class SpringExApplicationTests extends EvaluatedTimeTests {
     @Autowired

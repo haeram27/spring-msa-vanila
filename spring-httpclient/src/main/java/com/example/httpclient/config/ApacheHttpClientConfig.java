@@ -17,17 +17,11 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.reactive.HttpComponentsClientHttpConnector;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /*
  * Apache httpclient5 Docs - https://hc.apache.org/httpcomponents-client-5.6.x/index.html
@@ -37,24 +31,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @Configuration
 public class ApacheHttpClientConfig {
 
-    @Bean
-    @Primary
-    public JsonMapper restClientObjectMapper(){
-
-        return JsonMapper.builder()
-            .addModule(new JavaTimeModule())
-            .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
-            .enable(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS)
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .build();
-    }
-
     /*
      * RestTemplate - Sync, Blocking HttpClient
      */
 
     @Bean
-    @Primary
     public RestTemplate apacheClientTrustAllRestTemplate() {
         try {
             var sslContext = SSLContexts.custom()
@@ -105,7 +86,7 @@ public class ApacheHttpClientConfig {
             var rf = new HttpComponentsClientHttpRequestFactory(httpClient);
             rf.setConnectionRequestTimeout(Duration.ofSeconds(1)); // time to resolve idle http connection from conn pool
             // rf.setConnectTimeout(Duration.ofSeconds(2));           // time to establish tcp connection
-            rf.setReadTimeout(Duration.ofSeconds(5));              // time to wait response against http request from http server
+            rf.setReadTimeout(Duration.ofSeconds(5));         // time to wait response against http request from http server
 
             var template = new RestTemplate(rf);
 
@@ -126,7 +107,6 @@ public class ApacheHttpClientConfig {
      */
 
     @Bean
-    @Primary
     public RestClient apacheClientTrustAllRestClient() {
         try {
             var sslContext = SSLContexts.custom()
@@ -194,7 +174,6 @@ public class ApacheHttpClientConfig {
      */
 
     @Bean
-    @Primary
     public WebClient apacheClientTrustAllWebClient() {
         try {
             var sslContext = SSLContexts.custom()

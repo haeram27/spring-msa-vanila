@@ -9,12 +9,14 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
+import com.example.EvaluatedTimeTests;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @SpringBootTest
-public class RestClientSyncTests {
+public class ApacheRestClientSyncTests extends EvaluatedTimeTests {
 
     @Autowired
     @Qualifier("apacheClientTrustAllRestClient")

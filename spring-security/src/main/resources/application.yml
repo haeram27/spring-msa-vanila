@@ -2,6 +2,7 @@
 # https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html
 
 spring.profiles.default: dev
+spring.profiles.active: dev
 
 logging.config: classpath:log4j2-${spring.profiles.active}.xml
 

@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     // https://plugins.gradle.org/plugin/org.springframework.boot
-    id 'org.springframework.boot' version '4.0.2'
+    id 'org.springframework.boot' version '3.5.10'
     // https://plugins.gradle.org/plugin/io.spring.dependency-management
     id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -19,6 +19,7 @@ java {
 
 configurations {
     all {
+        // exclude logback
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
     }
     compileOnly {
@@ -37,7 +38,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-log4j2'
     implementation 'org.springframework.boot:spring-boot-starter-web'
 //    implementation 'org.springframework.boot:spring-boot-starter-security'  // enable auth for spring web apis
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'  // aop > aspectj from spring boot 4.0.x
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
@@ -46,7 +47,7 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testImplementation 'com.google.code.gson:gson'
     testImplementation 'org.springframework.boot:spring-boot-starter-log4j2'
-    testImplementation 'org.springframework.boot:spring-boot-starter-aop'
+    testImplementation 'org.springframework.boot:spring-boot-starter-aop' // aop > aspectj from spring boot 4.0.x
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 

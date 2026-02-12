@@ -3,6 +3,7 @@
 ########################################
 # please comment when only active profile type is given from run command args method
 spring.profiles.default: dev
+spring.profiles.active: dev
 
 ########################################
 ### app properties

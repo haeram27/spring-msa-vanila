@@ -1,15 +1,22 @@
 package com.example.httpclient;
 
-import org.apache.hc.core5.http.HttpHeaders;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
 import com.example.EvaluatedTimeTests;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +29,12 @@ public class JdkRestClientSyncTests extends EvaluatedTimeTests {
     @Qualifier("jdkClientTrustAllRestClient")
     private RestClient restClient;
 
+    @Autowired
+    @Qualifier("restClientJsonMapper")
+    private JsonMapper mapper;
+
     // https://jsonplaceholder.typicode.com/guide/
+    private final String urlNotExist = "http://localhost.com";
     private final String urlGetTodoAll = "https://jsonplaceholder.typicode.com/todos";
     private final String urlGetTodoOne = "https://jsonplaceholder.typicode.com/todos/1";
     private final String serverUrl2 = "https://httpbin.org/"; 
@@ -32,25 +44,61 @@ public class JdkRestClientSyncTests extends EvaluatedTimeTests {
 
         log.info("uri="+urlGetTodoOne);
 
-        var body = restClient.get()
-        .uri(urlGetTodoOne)
-        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-        .retrieve()
-        .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
-            var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
-            log.info(m);
-        })
-        .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-            var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
-            log.error(m);
-        })
-        .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-            var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
-            log.error(m);
-        })
-        .body(String.class);
+        String resonseBody = "";
+        try {
+            resonseBody = restClient.get()
+            .uri(urlNotExist)
+            .accept(MediaType.APPLICATION_JSON)
+            .retrieve()
+            .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
+                var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
+                log.info(m);
+            })
+            .onStatus(HttpStatusCode::isError, (request, response) -> {
+                var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
+                log.error(m);
+            })
+            .body(String.class);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return;
+        }
 
-        System.out.println(body);
+        // handle resonseBody string
+        if (!StringUtils.hasText(resonseBody)) {
+            log.error("empty response");
+            return;
+        }
+
+        log.info("response: "+resonseBody);
+
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        try {
+            var jsonNode = mapper.readTree(resonseBody);
+
+            if (jsonNode == null || jsonNode.isEmpty()) {
+                log.error("empty body");
+                return;
+            }
+
+            if (jsonNode.isObject()) {
+                log.debug("resonseBody is object body type");
+
+                ObjectNode node = (ObjectNode) jsonNode;
+                Map<String, Object> map = mapper.convertValue(node, new com.fasterxml.jackson.core.type.TypeReference<Map<String,Object>>() {});
+                // var map = mapper.treeToValue(node, Map.class);
+                list.add(map);
+            } else if (jsonNode.isArray()) {
+                log.debug("resonseBody is array body type");
+
+                ArrayNode node = (ArrayNode) jsonNode;
+                list = mapper.convertValue(node, new com.fasterxml.jackson.core.type.TypeReference<List<Map<String,Object>>>() {});
+            } else {
+                log.error("response content type is NOT applicable");
+            }
+        } catch (Exception e) {
+            log.error("response parsing error", e);
+        }
     }
 
     @Test
@@ -82,32 +130,62 @@ public class JdkRestClientSyncTests extends EvaluatedTimeTests {
             Integer userId) {
         }
 
-        var body = restClient.post()
+        String resonseBody = "";
+        try {
+            resonseBody = restClient.post()
             .uri("https://jsonplaceholder.typicode.com/posts")
             .accept(MediaType.APPLICATION_JSON)
             .contentType(MediaType.APPLICATION_JSON)
             .body(new RequestBody2("a", "b", 2))
             .retrieve()
             .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
-                log.info("=== request ===============================================================");
-                log.info(String.format("URI: %s", request.getURI()));
-                log.info(String.format("Method: %s", request.getMethod()));
-                log.info(String.format("Headers: %s", request.getHeaders()));
-
-                log.info("=== response ===============================================================");
-                log.info(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
+                var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
+                log.info(m);
             })
             .onStatus(HttpStatusCode::isError, (request, response) -> {
-                log.info("=== request ===============================================================");
-                log.info(String.format("URI: %s", request.getURI()));
-                log.info(String.format("Method: %s", request.getMethod()));
-                log.info(String.format("Headers: %s", request.getHeaders()));
-
-                log.info("=== response ===============================================================");
-                log.error(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
+                var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
+                log.error(m);
             })
             .body(String.class);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return;
+        }
 
-        System.out.println(body);
+        // handle resonseBody string
+        if (!StringUtils.hasText(resonseBody)) {
+            log.error("empty response");
+            return;
+        }
+
+        log.info("response: "+resonseBody);
+
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        try {
+            var jsonNode = mapper.readTree(resonseBody);
+
+            if (jsonNode == null || jsonNode.isEmpty()) {
+                log.error("empty body");
+                return;
+            }
+
+            if (jsonNode.isObject()) {
+                log.debug("resonseBody is object body type");
+
+                ObjectNode node = (ObjectNode) jsonNode;
+                Map<String, Object> map = mapper.convertValue(node, new com.fasterxml.jackson.core.type.TypeReference<Map<String,Object>>() {});
+                // var map = mapper.treeToValue(node, Map.class);
+                list.add(map);
+            } else if (jsonNode.isArray()) {
+                log.debug("resonseBody is array body type");
+
+                ArrayNode node = (ArrayNode) jsonNode;
+                list = mapper.convertValue(node, new com.fasterxml.jackson.core.type.TypeReference<List<Map<String,Object>>>() {});
+            } else {
+                log.error("response content type is NOT applicable");
+            }
+        } catch (Exception e) {
+            log.error("response parsing error", e);
+        }
     }
 }

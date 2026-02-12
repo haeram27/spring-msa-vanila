@@ -1,6 +1,5 @@
 package com.example.httpclient.service;
 
-import org.apache.hc.core5.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -19,8 +18,8 @@ public class HttpClientExamService {
     public void sendSyncReq() {
         var future = trustAllRestClient.post()
         .uri(url)
-        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+        .accept(MediaType.APPLICATION_JSON)
+        .contentType(MediaType.APPLICATION_JSON)
         .retrieve()
         .toEntity(String.class);
 

@@ -41,7 +41,7 @@ public class JdkRestTemplateSyncTests extends EvaluatedTimeTests {
     private RestTemplate restTemplate;
 
     @Autowired
-    @Qualifier("restClientObjectMapper")
+    @Qualifier("restClientJsonMapper")
     private JsonMapper mapper;
 
     // https://jsonplaceholder.typicode.com/todos

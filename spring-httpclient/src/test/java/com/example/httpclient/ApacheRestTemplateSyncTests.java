@@ -41,7 +41,7 @@ public class ApacheRestTemplateSyncTests extends EvaluatedTimeTests {
     private RestTemplate restTemplate;
 
     @Autowired
-    @Qualifier("restClientObjectMapper")
+    @Qualifier("restClientJsonMapper")
     private JsonMapper mapper;
 
     // https://jsonplaceholder.typicode.com/todos
@@ -78,22 +78,22 @@ public class ApacheRestTemplateSyncTests extends EvaluatedTimeTests {
                 var body = responseEntity.getBody();
                 if (body == null) body = "";
 
-                var responseBody = mapper.readTree(body);
-                if (responseBody == null || responseBody.isEmpty()) {
+                var jsonNode = mapper.readTree(body);
+                if (jsonNode == null || jsonNode.isEmpty()) {
                     log.error("Error: Empty Body");
                 }
 
-                if (responseBody.isObject()) {
+                if (jsonNode.isObject()) {
                     log.debug("resonseBody is object body type");
 
-                    ObjectNode node = (ObjectNode) responseBody;
+                    ObjectNode node = (ObjectNode) jsonNode;
                     Map<String, Object> map = mapper.convertValue(node, new com.fasterxml.jackson.core.type.TypeReference<Map<String,Object>>() {});
                     // var map = mapper.treeToValue(node, Map.class);
                     list.add(map);
-                } else if (responseBody.isArray()) {
+                } else if (jsonNode.isArray()) {
                     log.debug("resonseBody is array body type");
 
-                    ArrayNode node = (ArrayNode) responseBody;
+                    ArrayNode node = (ArrayNode) jsonNode;
                     list = mapper.convertValue(node, new com.fasterxml.jackson.core.type.TypeReference<List<Map<String,Object>>>() {});
                 } else {
                     log.error("Error: Response content type is NOT applicable");
@@ -155,7 +155,7 @@ public class ApacheRestTemplateSyncTests extends EvaluatedTimeTests {
 
         var headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        // headers.setContentType(MediaType.APPLICATION_JSON);
+        // headers.setContentType(MediaType.APPLICATION_JSON); // if request body is existed
 
         if (Strings.isNotEmpty(TEST_BEARER_AUTH_TOKEN))
             headers.setBearerAuth(TEST_BEARER_AUTH_TOKEN);

@@ -14,13 +14,14 @@ public class JacksonConfig {
 
     @Bean
     @Primary
-    public JsonMapper restClientObjectMapper(){
+    public JsonMapper restClientJsonMapper(){
 
         return JsonMapper.builder()
             .addModule(new JavaTimeModule())
             .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
             .enable(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) // prevent UnknownPropertyException
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .build();
-    }
+        }
 }

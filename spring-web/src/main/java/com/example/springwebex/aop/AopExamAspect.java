@@ -1,4 +1,4 @@
-package com.example.springwebex.aspectj;
+package com.example.springwebex.aop;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;

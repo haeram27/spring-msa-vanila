@@ -7,7 +7,7 @@
         <Property name="logFile">Log4J2Test</Property>
         <Property name="logFilePath">${logRoot}/logs/${logFile}</Property>
         <!-- Pattern Layout: https://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout -->
-        <Property name="fullLayoutPattern">%d{DEFAULT} %-5p %pid:%T %c{1}:%L %M() -- %msg%n</Property>
+        <Property name="fullPatternLayout">%d{DEFAULT} %-5p %pid:%T %c{1}:%L %M() -- %msg%n</Property>
         <Property name="colorPatternLayout">%magenta{%d{HH:mm:ss.SSS}} %highlight{%-5p} %12.12t - %-30.30c{1.2.*} : %highlight{%m}%n</Property>
     </Properties>
 

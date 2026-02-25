@@ -4,6 +4,7 @@ import java.net.http.HttpClient;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.SSLContext;
 
@@ -12,11 +13,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
+
+import lombok.RequiredArgsConstructor;
+
 @Configuration
+@RequiredArgsConstructor
 public class JdkHttpClientConfig {
+
+    private final JsonMapper mapper;
 
     @Bean
     @Primary
@@ -64,7 +73,13 @@ public class JdkHttpClientConfig {
         var rf = new JdkClientHttpRequestFactory(httpClient);
         rf.setReadTimeout(Duration.ofSeconds(5)); // time to wait response against http request from http server
 
-        return new RestTemplate(rf);
+        var template = new RestTemplate(rf);
+        // use converter to map json response as JsonNode of Jackson with user defined JsonMapper(mapper)
+        var converters = template.getMessageConverters().stream().filter(c -> c instanceof MappingJackson2HttpMessageConverter).collect(Collectors.toList());
+        converters.add(new MappingJackson2HttpMessageConverter(mapper));
+        template.setMessageConverters(converters);
+
+        return template;
     }
 
     /**
@@ -79,6 +94,11 @@ public class JdkHttpClientConfig {
 
         return RestClient.builder()
                 .requestFactory(rf)
+                // use converter to map json response as JsonNode of Jackson with user defined JsonMapper(mapper)
+                .messageConverters(converters -> {
+                    converters.removeIf(c -> c instanceof MappingJackson2HttpMessageConverter);
+                    converters.add(new MappingJackson2HttpMessageConverter(mapper));
+                })
                 .build();
     }
 }

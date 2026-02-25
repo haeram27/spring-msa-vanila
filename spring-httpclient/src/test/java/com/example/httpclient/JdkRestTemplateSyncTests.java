@@ -23,6 +23,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.EvaluatedTimeTests;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -49,7 +50,112 @@ public class JdkRestTemplateSyncTests extends EvaluatedTimeTests {
     private static final String API_URL_PATH = "/todos/1";
     private static final String TEST_BEARER_AUTH_TOKEN = "";
 
-    public List<Map<String, Object>> send(HttpMethod method, URI uri, HttpEntity<Void> httpEntity) {
+        public JsonNode sendResponseMapToJsonNode(HttpMethod method, URI uri, HttpEntity<Void> httpEntity) {
+        // ResponseEntity<JsonNode> responseEntity;
+        ResponseEntity<JsonNode> responseEntity;
+        JsonNode responseBody = mapper.createObjectNode();
+
+        if (Strings.isEmpty(method.name())
+            || uri == null
+            || httpEntity == null) {
+            log.error("Error: No content");
+            return responseBody;
+        }
+
+        try {
+            log.debug("## request uri : {}", uri);
+
+            // responseEntity = restTemplate.exchange(uri, method, httpEntity, JsonNode.class);
+            responseEntity = restTemplate.exchange(uri, method, httpEntity, JsonNode.class);
+
+            log.debug("Response Body: " + responseEntity.getBody());
+            log.debug("Status Code: " + responseEntity.getStatusCode());
+            log.debug("Headers: " + responseEntity.getHeaders());
+            log.debug("Response http code: {}, reason: {}",
+                    responseEntity.getStatusCode().value(),
+                    HttpStatus.valueOf(responseEntity.getStatusCode().value()).getReasonPhrase());
+
+            if (responseEntity.getStatusCode().equals(HttpStatus.OK)) {
+                var body = responseEntity.getBody();
+                if (body == null || body.isEmpty()) {
+                    log.error("Error: Response content type is NOT applicable");
+                } else {
+                    responseBody = body;
+                }
+            } else if (responseEntity.getStatusCode().equals(HttpStatus.NO_CONTENT)) {
+                log.error("Error: No content");
+            } else {
+                log.error("Error: Http Server Internal Error");
+            }
+        } catch (RestClientResponseException ex) {
+            log.error("Error: {}", ex.getMessage());
+
+            var status = ex.getStatusCode();
+            log.debug("Status Code: " + status);
+            // log.debug("code value: " + status.value());
+            // log.debug("status text: " + ex.getStatusText());
+            log.debug("Response Body: " + ex.getResponseBodyAsString());
+            log.debug("Headers: " + ex.getResponseHeaders());
+
+            if (status.is4xxClientError()) {
+                log.error("Error: {}", ex.getResponseBodyAsString());
+
+                // if required handle with exact 4XX Error
+                if (status.equals(HttpStatus.BAD_REQUEST)) {
+                    log.error("Error: BAD_REQUEST: {}", ex.getResponseBodyAsString());
+                } else if (status.equals(HttpStatus.UNAUTHORIZED)) {
+                    log.error("Error: UNAUTHORIZED: {}", ex.getResponseBodyAsString());
+                } else if (status.equals(HttpStatus.FORBIDDEN)) {
+                    log.error("Error: FORBIDDEN: {}", ex.getResponseBodyAsString());
+                } else if (status.equals(HttpStatus.NOT_FOUND)) {
+                    log.error("Error: NOT_FOUND: {}", ex.getResponseBodyAsString());
+                } else if (status.equals(HttpStatus.I_AM_A_TEAPOT)) {
+                    log.error("Error: I_AM_A_TEAPOT: {}", ex.getResponseBodyAsString());
+                } else if (status.equals(HttpStatus.TOO_MANY_REQUESTS)) {
+                    log.error("Error: TOO_MANY_REQUESTS: {}", ex.getResponseBodyAsString());
+                }
+            } else if (status.is5xxServerError()) {
+                log.error("Error: {}", ex.getResponseBodyAsString());
+            } else {
+                log.error("Error: {}", ex.getResponseBodyAsString());
+            }
+        } catch (ResourceAccessException ex) {
+            log.error("Error: {}", ex.getMessage());
+        } catch (Exception ex) {
+            log.error("Error: {}", ex.getMessage());
+        }
+
+        return responseBody;
+    }
+
+    @Test
+    public void getTestJsonNode() {
+        var uri = UriComponentsBuilder.newInstance()
+                    .scheme("https")
+                    .host(API_URL_DOMAIN)
+                    .path(API_URL_PATH)
+                    //.query("1")
+                    //.queryParam("key", "value")
+                    .encode().build().toUri();
+
+        var headers = new HttpHeaders();
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        // headers.setContentType(MediaType.APPLICATION_JSON);
+
+        if (Strings.isNotEmpty(TEST_BEARER_AUTH_TOKEN))
+            headers.setBearerAuth(TEST_BEARER_AUTH_TOKEN);
+
+        var httpEntity = new HttpEntity<Void>(headers);
+        var responseBody = sendResponseMapToJsonNode(HttpMethod.GET, uri, httpEntity);
+
+        if (responseBody != null && responseBody.size() > 0) {
+            log.debug("## response: {}", responseBody.toPrettyString());
+        } else {
+            log.error("## empty response");
+        }
+    }
+
+    public List<Map<String, Object>> sendResponseMapToString(HttpMethod method, URI uri, HttpEntity<Void> httpEntity) {
         // ResponseEntity<JsonNode> responseEntity;
         ResponseEntity<String> responseEntity;
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
@@ -145,7 +251,7 @@ public class JdkRestTemplateSyncTests extends EvaluatedTimeTests {
     }
 
     @Test
-    public void getTest() {
+    public void getTestMap() {
         var uri = UriComponentsBuilder.newInstance()
                     .scheme("https")
                     .host(API_URL_DOMAIN)
@@ -162,7 +268,7 @@ public class JdkRestTemplateSyncTests extends EvaluatedTimeTests {
             headers.setBearerAuth(TEST_BEARER_AUTH_TOKEN);
 
         var httpEntity = new HttpEntity<Void>(headers);
-        var responseBody = send(HttpMethod.GET, uri, httpEntity);
+        var responseBody = sendResponseMapToString(HttpMethod.GET, uri, httpEntity);
 
         if (responseBody != null && responseBody.size() > 0) {
             try {

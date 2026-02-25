@@ -2,6 +2,7 @@ package com.example.httpclient.config;
 
 import java.security.GeneralSecurityException;
 import java.time.Duration;
+import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -19,9 +20,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.reactive.HttpComponentsClientHttpConnector;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.fasterxml.jackson.databind.json.JsonMapper;
+
+import lombok.RequiredArgsConstructor;
 
 /*
  * Apache httpclient5 Docs - https://hc.apache.org/httpcomponents-client-5.6.x/index.html
@@ -29,7 +35,9 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 
 @Configuration
+@RequiredArgsConstructor
 public class ApacheHttpClientConfig {
+    private final JsonMapper mapper;
 
     /*
      * RestTemplate - Sync, Blocking HttpClient
@@ -89,6 +97,10 @@ public class ApacheHttpClientConfig {
             rf.setReadTimeout(Duration.ofSeconds(5));         // time to wait response against http request from http server
 
             var template = new RestTemplate(rf);
+            // use converter to map json response as JsonNode of Jackson with user defined JsonMapper(mapper)
+            var converters = template.getMessageConverters().stream().filter(c -> c instanceof MappingJackson2HttpMessageConverter).collect(Collectors.toList());
+            converters.add(new MappingJackson2HttpMessageConverter(mapper));
+            template.setMessageConverters(converters);
 
             /*
              * RestCient can be made by RestTmeplate
@@ -161,6 +173,11 @@ public class ApacheHttpClientConfig {
 
             return RestClient.builder()
                 .requestFactory(rf)
+                // use converter to map json response as JsonNode of Jackson with user defined JsonMapper(mapper)
+                .messageConverters(converters -> {
+                    converters.removeIf(c -> c instanceof MappingJackson2HttpMessageConverter);
+                    converters.add(new MappingJackson2HttpMessageConverter(mapper));
+                })
                 .build();
         } catch (GeneralSecurityException e) {
             throw new org.springframework.beans.factory.BeanCreationException(

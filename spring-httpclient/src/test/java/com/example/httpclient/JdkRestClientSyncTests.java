@@ -22,6 +22,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * RestTemplate Tests
+ *
+ * Response mapping recommendation order
+ * - DTO
+ * - JsonNode
+ * - String (inefficient at memorry)
+ */
+
 @Slf4j
 @SpringBootTest
 public class JdkRestClientSyncTests extends EvaluatedTimeTests {

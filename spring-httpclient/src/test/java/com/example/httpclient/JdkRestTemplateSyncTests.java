@@ -29,8 +29,14 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import lombok.extern.slf4j.Slf4j;
-/*
- * RestAPI Client GET Test
+
+/**
+ * RestTemplate Tests
+ *
+ * Response mapping recommendation order
+ * - DTO
+ * - JsonNode
+ * - String (inefficient at memorry)
  */
 
 @Slf4j

@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @SpringBootApplication
 @Slf4j
-public class SpringLifecycleTestApplication {
+public class SpringApplication {
 
     @EventListener
     public void onMainApplicationEvent(ApplicationEvent event) {
@@ -39,7 +39,7 @@ public class SpringLifecycleTestApplication {
         log.trace("*** main() ***");
 
         // add event listener before SpringApplication.run() to get initializing app events previous ApplicationStartedEvent
-        new SpringApplicationBuilder(SpringLifecycleTestApplication.class)
+        new SpringApplicationBuilder(SpringApplication.class)
         .listeners(new ApplicationListener<ApplicationEvent>() {
             @Override
             public void onApplicationEvent(@SuppressWarnings("null") ApplicationEvent event) {

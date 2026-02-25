@@ -33,7 +33,7 @@ public class JdkHttpClientTests extends EvaluatedTimeTests{
             .GET()
             .build();
 
-        HttpResponse response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
         System.out.println(response.statusCode());
         System.out.println(response.body());
@@ -48,7 +48,7 @@ public class JdkHttpClientTests extends EvaluatedTimeTests{
             .GET()
             .build();
 
-        HttpResponse response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
         System.out.println(response.statusCode());
         System.out.println(response.body());

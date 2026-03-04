@@ -77,23 +77,27 @@
         <!-- =================================================================== -->
         <!-- SPRING                                                              -->
         <!-- =================================================================== -->
-        <Logger name="org.springframework.boot" level="error" additivity="false">
+        <Logger name="org.springframework" level="warn" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>
-        <Logger name="org.springframework.core" level="error" additivity="false">
+        <Logger name="org.springframework.boot" level="warn" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>
-        <Logger name="org.springframework.beans" level="error" additivity="false">
+        <Logger name="org.springframework.core" level="warn" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>
-        <Logger name="org.springframework.context" level="error" additivity="false">
+        <Logger name="org.springframework.beans" level="warn" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>
-        <Logger name="org.springframework.web" level="error" additivity="false">
+        <Logger name="org.springframework.context" level="warn" additivity="false">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="file" />
+        </Logger>
+        <Logger name="org.springframework.web" level="warn" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>

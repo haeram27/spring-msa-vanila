@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
-set -x
+#set -x
 
 PID=0
 JAR_PATH='build/libs/springwebex-0.0.1-SNAPSHOT.jar'
 
-terminate()
-{
+terminate() {
+    echo
+    echo "terminating server pid: ${PID}"
+    ps -ef | grep ${PID}
     if [ ${PID} -ne 0 ]; then
         kill -SIGTERM ${PID}
         wait ${PID}
@@ -14,7 +16,7 @@ terminate()
     exit 143
 }
 
-trap 'terminate' SIGTERM
+trap 'terminate' EXIT
 
 # Java Heap options
 HEAP_OPTS="-Xms64m -Xmx512m"
@@ -24,6 +26,7 @@ java -jar -XX:+UseG1GC ${HEAP_OPTS} ${JAR_PATH} &
 PID=$!
 
 # wait java proc
+echo "starting server pid: ${PID}"
 wait ${PID}
 
 ## kill server

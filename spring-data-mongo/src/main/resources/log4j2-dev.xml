@@ -75,31 +75,27 @@
         <!-- =================================================================== -->
         <!-- SPRING                                                              -->
         <!-- =================================================================== -->
-        <Logger name="org.springframework" level="off" additivity="false">
+        <Logger name="org.springframework" level="warn" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>
-        <Logger name="org.springframework.boot" level="off" additivity="false">
+        <Logger name="org.springframework.boot" level="warn" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>
-        <Logger name="org.springframework.boot.autoconfigure" level="off" additivity="false">
+        <Logger name="org.springframework.core" level="warn" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>
-        <Logger name="org.springframework.core" level="off" additivity="false">
+        <Logger name="org.springframework.beans" level="warn" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>
-        <Logger name="org.springframework.beans" level="off" additivity="false">
+        <Logger name="org.springframework.context" level="warn" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>
-        <Logger name="org.springframework.context" level="off" additivity="false">
-            <AppenderRef ref="console" />
-            <AppenderRef ref="file" />
-        </Logger>
-        <Logger name="org.springframework.web" level="off" additivity="false">
+        <Logger name="org.springframework.web" level="warn" additivity="false">
             <AppenderRef ref="console" />
             <AppenderRef ref="file" />
         </Logger>

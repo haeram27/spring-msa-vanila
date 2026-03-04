@@ -40,8 +40,8 @@ public class PostController {
 
         String clientIp = ServletUtil.getClientIp(httpServletRequest);
         log.info("API - /empty");
-        log.info("client.ip : {}", clientIp);
-        log.info("request :\n{}", requestBody.toPrettyString());
+        log.info("client.ip: {}", clientIp);
+        log.info("request:\n{}", requestBody.toPrettyString());
 
         return mapper.createObjectNode();
     }
@@ -67,11 +67,11 @@ curl 'http://localhost:8181/api/post/echo' \
             @RequestBody(required = false) JsonNode requestBody,
             HttpServletRequest httpServletRequest) {
 
-        log.info("API - /api/post/echo");
+        log.info("api - /api/post/echo");
 
         String clientIp = ServletUtil.getClientIp(httpServletRequest);
-        log.info("client.ip : {}, ", clientIp);
-        log.info("request :\n{}", requestBody.toPrettyString());
+        log.info("client.ip: {}", clientIp);
+        log.info("request.body:\n{}", requestBody.toPrettyString());
 
         String respStr = requestBody.toString();
 
@@ -108,11 +108,11 @@ curl 'http://localhost:8181/api/post/customdto/echo' \
             @RequestBody BasicReqDto requestBody,
             HttpServletRequest httpServletRequest) {
 
-        log.info("API - /api/post/customdto/echo");
+        log.info("api - /api/post/customdto/echo");
 
         String clientIp = ServletUtil.getClientIp(httpServletRequest);
-        log.info("client.ip : {}, ", clientIp);
-        log.info("request :\n{}", mapper.valueToTree(requestBody).toPrettyString());
+        log.info("client.ip: {}", clientIp);
+        log.info("request.body:\n{}", mapper.valueToTree(requestBody).toPrettyString());
 
         return postEchoService.echo(requestBody);
     }
@@ -123,8 +123,8 @@ curl 'http://localhost:8181/api/post/customdto/echo' \
             HttpServletRequest httpServletRequest) {
 
         String clientIp = ServletUtil.getClientIp(httpServletRequest);
-        log.info("client.ip : {}, ", clientIp);
-        log.info("request :\n{}", mapper.valueToTree(requestBody).toPrettyString());
+        log.info("client.ip: {}", clientIp);
+        log.info("request.body:\n{}", mapper.valueToTree(requestBody).toPrettyString());
 
         return mongoCommonFindService.find(requestBody);
     }
@@ -151,8 +151,9 @@ curl 'http://localhost:8181/api/post/resource/file' \
             HttpServletRequest httpServletRequest) {
 
         String clientIp = ServletUtil.getClientIp(httpServletRequest);
-        log.info("API - /file");
-        log.info("client.ip : {}, request : {}", clientIp, requestBody.toPrettyString());
+        log.info("api - /file");
+        log.info("client.ip: {}", clientIp);
+        log.info("request.body:\n{}", requestBody.toPrettyString());
 
         String respStr = "";
         try {

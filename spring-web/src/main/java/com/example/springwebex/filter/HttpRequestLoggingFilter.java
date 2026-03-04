@@ -8,9 +8,12 @@ import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
-public class TestServletFilter implements Filter {
+@Slf4j
+public class HttpRequestLoggingFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -24,12 +27,15 @@ public class TestServletFilter implements Filter {
         /*-
          * this context run before controller processing
          */
-        // if (request instanceof HttpServletRequest) {
-        //     String url = ((HttpServletRequest) request).getRequestURL().toString();
-        //     String queryString = ((HttpServletRequest) request).getQueryString();
-        //     System.out.println("filter::request::url=" + url);
-        //     System.out.println("filter::request::queryString=" + queryString);
-        // }
+        if (request instanceof HttpServletRequest) {
+            log.info("### Incoming request");
+            log.info("Url=" + ((HttpServletRequest) request).getRequestURL().toString());
+            log.info("QueryString=" + ((HttpServletRequest) request).getQueryString());
+            log.info("Attributes=");
+            request.getAttributeNames().asIterator().forEachRemaining(e -> log.info("- "+e+": "+request.getAttribute(e)));
+            log.info("Headers=");
+            ((HttpServletRequest) request).getHeaderNames().asIterator().forEachRemaining(e -> log.info("- "+e+": "+((HttpServletRequest) request).getHeader(e)));
+        }
 
         // // "X-TEST-HEADER" will be added by TestServletInterceptor.postHandle()
         // if (response instanceof HttpServletResponse) {

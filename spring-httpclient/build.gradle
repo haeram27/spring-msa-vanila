@@ -37,6 +37,7 @@ dependencies {
 
     // ## jackson
     // jackson suport Java 8 date/time Module (o)
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
     implementation "com.fasterxml.jackson.module:jackson-module-parameter-names"
 

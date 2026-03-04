@@ -13,6 +13,8 @@ spring:
 # spring.profiles.active: dev,hsqldb
 spring.profiles.default: dev
 spring.profiles.active: dev
+spring.threads.virtual.enabled: true
+server.port: 8181
 
 logging.config: classpath:log4j2-${spring.profiles.active}.xml
 
@@ -23,8 +25,6 @@ mybatis:
   mapper-locations: classpath:mapper/**/*.xml
   # DAO(result type) package
   type-aliases-package: com.example.springwebex.model
-
-server.port: 8181
 
 ---
 spring.config.activate.on-profile: dev
@@ -47,6 +47,7 @@ my:
       max-connection: 10
       timeout: 60s
       options: DEV, CACHE
+
 
 #logging.level.com.zaxxer.hikari.HikariConfig: DEBUG
 #logging.level.com.zaxxer.hikari: TRACE

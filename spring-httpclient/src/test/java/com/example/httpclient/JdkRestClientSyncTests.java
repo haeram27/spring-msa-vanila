@@ -91,27 +91,7 @@ public class JdkRestClientSyncTests extends EvaluatedTimeTests {
     @Test
     public void postResponseMapToJsonNode() {
 
-        // var requestBody = """
-        //     {
-        //         title: 'foo',
-        //         body: 'bar',
-        //         userId: 1
-        //     }
-        //     """;
-
-        @Data
-        class RequestBody {
-            String title;
-            String body;
-            Integer userId;
-        }
-
-        var requestBody = new RequestBody();
-        requestBody.title = "foo";
-        requestBody.body = "bar";
-        requestBody.userId = 1;
-
-        record RequestBody2(
+        record RequestBody(
             String title,
             String body,
             Integer userId) {
@@ -123,7 +103,7 @@ public class JdkRestClientSyncTests extends EvaluatedTimeTests {
             .uri("http://localhost:8181/api/v1/config/CIs/servers")
             .accept(MediaType.APPLICATION_JSON)
             .contentType(MediaType.APPLICATION_JSON)
-            .body(new RequestBody2("a", "b", 2))
+            .body(new RequestBody("a", "b", 2))
             .retrieve()
             .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
                 var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
@@ -157,27 +137,7 @@ public class JdkRestClientSyncTests extends EvaluatedTimeTests {
     @Test
     public void postResponseMapToString() {
 
-        // var requestBody = """
-        //     {
-        //         title: 'foo',
-        //         body: 'bar',
-        //         userId: 1
-        //     }
-        //     """;
-
-        @Data
-        class RequestBody {
-            String title;
-            String body;
-            Integer userId;
-        }
-
-        var requestBody = new RequestBody();
-        requestBody.title = "foo";
-        requestBody.body = "bar";
-        requestBody.userId = 1;
-
-        record RequestBody2(
+        record RequestBody(
             String title,
             String body,
             Integer userId) {
@@ -189,7 +149,7 @@ public class JdkRestClientSyncTests extends EvaluatedTimeTests {
             .uri("https://jsonplaceholder.typicode.com/posts")
             .accept(MediaType.APPLICATION_JSON)
             .contentType(MediaType.APPLICATION_JSON)
-            .body(new RequestBody2("a", "b", 2))
+            .body(new RequestBody("a", "b", 2))
             .retrieve()
             .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
                 var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
@@ -211,7 +171,7 @@ public class JdkRestClientSyncTests extends EvaluatedTimeTests {
             return;
         }
 
-        log.info("response: "+resonseBody);
+        log.info("response: " + resonseBody);
 
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         try {

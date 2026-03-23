@@ -1,7 +1,11 @@
 package com.example.httpclient.service.restclient;
 
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.net.http.HttpConnectTimeoutException;
+import java.net.http.HttpTimeoutException;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatusCode;
@@ -9,11 +13,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,11 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RestClientService {
     private final RestClient restClient;
 
-    @Qualifier("restClientJsonMapper")
     private final JsonMapper jsonMapper;
-
-    @Qualifier("restClientYamlMapper")
-    private final YAMLMapper yamlMapper;
 
     @FunctionalInterface
     public interface RestClientResponseHandler {
@@ -44,6 +44,56 @@ public class RestClientService {
         boolean is2xxSuccessful;
         HttpRequest request;
         ClientHttpResponse response;
+    }
+
+    private static Throwable getRootCause(Throwable throwable) {
+        var current = throwable;
+        while (current.getCause() != null && current.getCause() != current) {
+            current = current.getCause();
+        }
+        return current;
+    }
+
+    private static boolean hasCause(Throwable throwable, Class<? extends Throwable> type) {
+        var current = throwable;
+        while (current != null) {
+            if (type.isInstance(current)) {
+                return true;
+            }
+            if (current.getCause() == current) {
+                break;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private void logResourceAccessException(HttpMethod method, String url, ResourceAccessException e) {
+        var rootCause = getRootCause(e);
+        var errorType = rootCause.getClass().getSimpleName();
+        var errorMessage = StringUtils.hasText(rootCause.getMessage()) ? rootCause.getMessage() : "no message";
+
+        if (hasCause(e, HttpConnectTimeoutException.class)) {
+            log.error("restapi connect timeout error: method={}, url={}, type={}, message={}", method, url, errorType, errorMessage, e);
+            return;
+        }
+
+        if (hasCause(e, ConnectException.class)) {
+            log.error("restapi connection error: method={}, url={}, type={}, message={}", method, url, errorType, errorMessage, e);
+            return;
+        }
+
+        if (hasCause(e, HttpTimeoutException.class) || hasCause(e, SocketTimeoutException.class)) {
+            log.error("restapi timeout error: method={}, url={}, type={}, message={}", method, url, errorType, errorMessage, e);
+            return;
+        }
+
+        if (hasCause(e, UnknownHostException.class)) {
+            log.error("restapi dns error: method={}, url={}, type={}, message={}", method, url, errorType, errorMessage, e);
+            return;
+        }
+
+        log.error("restapi io error: method={}, url={}, type={}, message={}", method, url, errorType, errorMessage, e);
     }
 
     public RestClientResponseDetail send(HttpMethod method, String url, String apikey, Object body) {
@@ -72,18 +122,24 @@ public class RestClientService {
 
             if (StringUtils.hasText(apikey)) {
                 // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
-                reqSpec.header("Authorization", "Bearer " + apikey);
+                reqSpec.header("Authorization", apikey);
             }
 
             log.debug("send restapi request:\nurl: {}\nbody: {}", url,
                     (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
 
             reqSpec.retrieve()
+                    .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
+                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                    })
                     .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
                         log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
                         httpResponse.is2xxSuccessful = true;
                         httpResponse.request = request;
                         httpResponse.response = response;
+                    })
+                    .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
+                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
                     })
                     .onStatus(HttpStatusCode::isError, (request, response) -> {
                         log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
@@ -92,6 +148,9 @@ public class RestClientService {
                         httpResponse.response = response;
                     })
                     .toBodilessEntity();
+
+        } catch (ResourceAccessException e) {
+            logResourceAccessException(method, url, e);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -123,25 +182,32 @@ public class RestClientService {
 
             if (StringUtils.hasText(apikey)) {
                 // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
-                reqSpec.header("Authorization", "Bearer " + apikey);
+                reqSpec.header("Authorization", apikey);
             }
 
             log.debug("send restapi request:\nurl: {}\nbody: {}", url,
                     (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
 
             reqSpec.retrieve()
+                    .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
+                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                    })
                     .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(),
-                                response.getHeaders()));
+                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
                         var respBody = jsonMapper.readValue(response.getBody().readAllBytes(), JsonNode.class);
                         handle.onReceived(true, respBody);
                     })
+                    .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
+                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                    })
                     .onStatus(HttpStatusCode::isError, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(),
-                                response.getHeaders()));
+                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
                         handle.onReceived(false, null);
                     })
                     .toBodilessEntity();
+        } catch (ResourceAccessException e) {
+            logResourceAccessException(method, url, e);
+            handle.onReceived(false, null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -172,26 +238,31 @@ public class RestClientService {
 
             if (StringUtils.hasText(apikey)) {
                 // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
-                reqSpec.header("Authorization", "Bearer " + apikey);
+                reqSpec.header("Authorization", apikey);
             }
 
             log.debug("send restapi request:\nurl: {}\nbody: {}", url,
                     (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
 
-            Thread.startVirtualThread(() -> {
-                reqSpec.retrieve()
-                        .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(),
-                                    response.getHeaders()));
-                            handle.onReceived(true, request, response);
-                        })
-                        .onStatus(HttpStatusCode::isError, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(),
-                                    response.getHeaders()));
-                            handle.onReceived(false, request, response);
-                        })
-                        .toBodilessEntity();
-            });
+            reqSpec.retrieve()
+                    .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
+                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                    })
+                    .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
+                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        handle.onReceived(true, request, response);
+                    })
+                    .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
+                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                    })
+                    .onStatus(HttpStatusCode::isError, (request, response) -> {
+                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        handle.onReceived(false, request, response);
+                    })
+                    .toBodilessEntity();
+        } catch (ResourceAccessException e) {
+            logResourceAccessException(method, url, e);
+            handle.onReceived(false, null, null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -221,27 +292,41 @@ public class RestClientService {
 
             if (StringUtils.hasText(apikey)) {
                 // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
-                reqSpec.header("Authorization", "Bearer " + apikey);
+                reqSpec.header("Authorization", apikey);
             }
 
             log.debug("send restapi request:\nurl: {}\nbody: {}", url,
                     (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
 
-            Thread.startVirtualThread(() -> {
-                reqSpec.retrieve()
+            new Thread(() -> {
+                try {
+                    reqSpec.retrieve()
+                        .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
+                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        })
                         .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(),
-                                    response.getHeaders()));
+                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
                             var respBody = jsonMapper.readValue(response.getBody().readAllBytes(), JsonNode.class);
                             handle.onReceived(true, respBody);
                         })
+                        .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
+                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        })
                         .onStatus(HttpStatusCode::isError, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(),
-                                    response.getHeaders()));
+                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
                             handle.onReceived(false, null);
                         })
                         .toBodilessEntity();
-            });
+                } catch (ResourceAccessException e) {
+                    logResourceAccessException(method, url, e);
+                    handle.onReceived(false, null);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+            }).start();
+        } catch (ResourceAccessException e) {
+            logResourceAccessException(method, url, e);
+            handle.onReceived(false, null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -272,30 +357,46 @@ public class RestClientService {
 
             if (StringUtils.hasText(apikey)) {
                 // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
-                reqSpec.header("Authorization", "Bearer " + apikey);
+                reqSpec.header("Authorization", apikey);
             }
 
             log.debug("send restapi request:\nurl: {}\nbody: {}", url,
                     (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
 
-            Thread.startVirtualThread(() -> {
-                reqSpec.retrieve()
+            new Thread(() -> {
+                try {
+                    reqSpec.retrieve()
+                        .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
+                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        })
                         .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(),
-                                    response.getHeaders()));
+                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
                             handle.onReceived(true, request, response);
                         })
+                        .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
+                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        })
                         .onStatus(HttpStatusCode::isError, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(),
-                                    response.getHeaders()));
+                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
                             handle.onReceived(false, request, response);
                         })
                         .toBodilessEntity();
-            });
+                } catch (ResourceAccessException e) {
+                    logResourceAccessException(method, url, e);
+                    handle.onReceived(false, null, null);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+            }).start();
+        } catch (ResourceAccessException e) {
+            logResourceAccessException(method, url, e);
+            handle.onReceived(false, null, null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
     }
+}
+
 
 /*
     ## Body Object
@@ -353,4 +454,4 @@ public class RestClientService {
         });
     }
 */
-}
+

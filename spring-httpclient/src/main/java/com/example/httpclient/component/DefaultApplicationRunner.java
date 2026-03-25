@@ -36,8 +36,6 @@ public class DefaultApplicationRunner implements ApplicationRunner {
             log.info("source arg: {}", arg);
         }
 
-        restClienTestService.postEchoTest();
-
         // var p = fileReadService.getExecutableFilePath();
         // log.info("executable file path: {}", p);
 

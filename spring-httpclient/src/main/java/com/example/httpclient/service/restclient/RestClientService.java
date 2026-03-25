@@ -298,7 +298,7 @@ public class RestClientService {
             log.debug("send restapi request:\nurl: {}\nbody: {}", url,
                     (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
 
-            new Thread(() -> {
+            Thread.startVirtualThread(() -> {
                 try {
                     reqSpec.retrieve()
                         .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
@@ -323,10 +323,7 @@ public class RestClientService {
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
-            }).start();
-        } catch (ResourceAccessException e) {
-            logResourceAccessException(method, url, e);
-            handle.onReceived(false, null);
+            });
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -363,7 +360,7 @@ public class RestClientService {
             log.debug("send restapi request:\nurl: {}\nbody: {}", url,
                     (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
 
-            new Thread(() -> {
+            Thread.startVirtualThread(() -> {
                 try {
                     reqSpec.retrieve()
                         .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
@@ -387,17 +384,12 @@ public class RestClientService {
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
-            }).start();
-        } catch (ResourceAccessException e) {
-            logResourceAccessException(method, url, e);
-            handle.onReceived(false, null, null);
+            });
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
     }
 }
-
-
 /*
     ## Body Object
     public void postEchoTest() {
@@ -417,20 +409,25 @@ public class RestClientService {
                 Integer userId) {
         }
 
-        restClientService.sendAsync(HttpMethod.POST, "http://localhost:8181/api/post/echo", "passw@rd", new RequestBody("foo", "bar", 1), (ok, body) -> {
-            if (ok) {
-                log.info("success");
-                if (body != null) {
-                    try {
-                        log.info(jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
-                    } catch (Exception e) {
-                        log.error(e.getMessage(), e);
+        restClientService.sendAsync(HttpMethod.POST,
+            "http://localhost:8181/api/post/echo",
+            "passw@rd",
+            new RequestBody("foo", "bar", 1),
+            (ok, body) -> {
+                if (ok) {
+                    log.info("success");
+                    if (body != null) {
+                        try {
+                            log.info(jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
+                        } catch (Exception e) {
+                            log.error(e.getMessage(), e);
+                        }
                     }
+                } else {
+                    log.info("failed");
                 }
-            } else {
-                log.info("failed");
             }
-        });
+        );
     }
 */
 

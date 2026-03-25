@@ -1,0 +1,90 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.10)
+
+[35m16:33:21.359[m [32mINFO [m main SpringExApplication:53 -- [32mStarting SpringExApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 882042 (/home/swvm/src/spring-msa-vanila/spring-web/build/libs/springwebex-0.0.1-SNAPSHOT.jar started by swvm in /home/swvm/src/spring-msa-vanila/spring-web)[m
+[35m16:33:21.371[m [36mDEBUG[m main SpringExApplication:54 -- [36mRunning with Spring Boot v3.5.10, Spring v6.2.15[m
+[35m16:33:21.373[m [32mINFO [m main SpringExApplication:658 -- [32mThe following 1 profile is active: "dev"[m
+[35m16:33:24.623[m [36mDEBUG[m main SpringLifeCycleEventListener:48 -- [36mPostConstruct called[m
+[35m16:33:24.623[m [36mDEBUG[m main SpringLifeCycleEventListener:60 -- [36m InitializingBean.afterPropertiesSet()[m
+[35m16:33:28.429[m [36mDEBUG[m main SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: ServletWebServerInitializedEvent[m
+[35m16:33:28.430[m [36mDEBUG[m main SpringLifeCycleEventListener:80 -- [36m: onEventListener: ServletWebServerInitializedEvent[m
+[35m16:33:28.439[m [36mDEBUG[m main SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: ContextRefreshedEvent[m
+[35m16:33:28.442[m [36mDEBUG[m main SpringLifeCycleEventListener:80 -- [36m: onEventListener: ContextRefreshedEvent[m
+[35m16:33:28.443[m [32mINFO [m main SpringExApplication:59 -- [32mStarted SpringExApplication in 8.028 seconds (process running for 9.2)[m
+[35m16:33:28.443[m [36mDEBUG[m main SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: ApplicationStartedEvent[m
+[35m16:33:28.444[m [36mDEBUG[m main SpringLifeCycleEventListener:80 -- [36m: onEventListener: ApplicationStartedEvent[m
+[35m16:33:28.444[m [36mDEBUG[m main SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: AvailabilityChangeEvent[m
+[35m16:33:28.445[m [36mDEBUG[m main SpringLifeCycleEventListener:80 -- [36m: onEventListener: AvailabilityChangeEvent[m
+[35m16:33:28.448[m [32mINFO [m main DefaultApplicationRunner:43 -- [32m=== profiles ===================================[m
+[35m16:33:28.448[m [32mINFO [m main DefaultApplicationRunner:44 -- [32mActive profiles : [dev][m
+[35m16:33:28.449[m [32mINFO [m main DefaultApplicationRunner:45 -- [32mDatasource driver : org.postgresql.Driver[m
+[35m16:33:28.449[m [32mINFO [m main DefaultApplicationRunner:46 -- [32mDatasource url : jdbc:postgresql://localhost:5432/dvdrental[m
+[35m16:33:28.450[m [32mINFO [m main DefaultApplicationRunner:47 -- [32mDatasource username : postgres[m
+[35m16:33:28.450[m [32mINFO [m main DefaultApplicationRunner:48 -- [32mDatasource password : postgres[m
+[35m16:33:28.450[m [32mINFO [m main DefaultApplicationRunner:49 -- [32mServer Port : 8181[m
+[35m16:33:28.450[m [32mINFO [m main DefaultApplicationRunner:50 -- [32mDefault Property : null[m
+[35m16:33:28.451[m [32mINFO [m main DefaultApplicationRunner:51 -- [32mCommon Property : null[m
+[35m16:33:28.451[m [36mDEBUG[m main SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: ApplicationReadyEvent[m
+[35m16:33:28.452[m [36mDEBUG[m main SpringLifeCycleEventListener:80 -- [36m: onEventListener: ApplicationReadyEvent[m
+[35m16:33:28.452[m [36mDEBUG[m main SpringLifeCycleEventListener:74 -- [36m onApplicationReadyEvent()[m
+[35m16:33:28.453[m [36mDEBUG[m main SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: AvailabilityChangeEvent[m
+[35m16:33:28.453[m [36mDEBUG[m main SpringLifeCycleEventListener:80 -- [36m: onEventListener: AvailabilityChangeEvent[m
+[35m16:33:28.453[m [32mINFO [m main SpringExApplication:14 -- [32m***** main() *****[m
+[35m16:33:28.959[m [36mDEBUG[m SpringApplicationShutdownHook SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: AvailabilityChangeEvent[m
+[35m16:33:28.960[m [36mDEBUG[m SpringApplicationShutdownHook SpringLifeCycleEventListener:80 -- [36m: onEventListener: AvailabilityChangeEvent[m
+[35m16:33:28.961[m [36mDEBUG[m SpringApplicationShutdownHook SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: ContextClosedEvent[m
+[35m16:33:28.961[m [36mDEBUG[m SpringApplicationShutdownHook SpringLifeCycleEventListener:80 -- [36m: onEventListener: ContextClosedEvent[m
+[35m16:33:28.978[m [36mDEBUG[m SpringApplicationShutdownHook SpringLifeCycleEventListener:54 -- [36mPreDestroy called[m
+[35m16:33:28.978[m [36mDEBUG[m SpringApplicationShutdownHook SpringLifeCycleEventListener:66 -- [36m DisposableBean.destroy()[m
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.5.10)
+
+[35m16:37:09.185[m [32mINFO [m main SpringExApplication:53 -- [32mStarting SpringExApplication v0.0.1-SNAPSHOT using Java 21.0.2 with PID 890138 (/home/swvm/src/spring-msa-vanila/spring-web/build/libs/springwebex-0.0.1-SNAPSHOT.jar started by swvm in /home/swvm/src/spring-msa-vanila/spring-web)[m
+[35m16:37:09.196[m [36mDEBUG[m main SpringExApplication:54 -- [36mRunning with Spring Boot v3.5.10, Spring v6.2.15[m
+[35m16:37:09.198[m [32mINFO [m main SpringExApplication:658 -- [32mThe following 1 profile is active: "dev"[m
+[35m16:37:12.426[m [36mDEBUG[m main SpringLifeCycleEventListener:48 -- [36mPostConstruct called[m
+[35m16:37:12.427[m [36mDEBUG[m main SpringLifeCycleEventListener:60 -- [36m InitializingBean.afterPropertiesSet()[m
+[35m16:37:16.051[m [36mDEBUG[m main SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: ServletWebServerInitializedEvent[m
+[35m16:37:16.053[m [36mDEBUG[m main SpringLifeCycleEventListener:80 -- [36m: onEventListener: ServletWebServerInitializedEvent[m
+[35m16:37:16.065[m [36mDEBUG[m main SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: ContextRefreshedEvent[m
+[35m16:37:16.068[m [36mDEBUG[m main SpringLifeCycleEventListener:80 -- [36m: onEventListener: ContextRefreshedEvent[m
+[35m16:37:16.070[m [32mINFO [m main SpringExApplication:59 -- [32mStarted SpringExApplication in 7.863 seconds (process running for 8.911)[m
+[35m16:37:16.070[m [36mDEBUG[m main SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: ApplicationStartedEvent[m
+[35m16:37:16.071[m [36mDEBUG[m main SpringLifeCycleEventListener:80 -- [36m: onEventListener: ApplicationStartedEvent[m
+[35m16:37:16.071[m [36mDEBUG[m main SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: AvailabilityChangeEvent[m
+[35m16:37:16.071[m [36mDEBUG[m SpringApplicationShutdownHook SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: AvailabilityChangeEvent[m
+[35m16:37:16.072[m [36mDEBUG[m main SpringLifeCycleEventListener:80 -- [36m: onEventListener: AvailabilityChangeEvent[m
+[35m16:37:16.072[m [36mDEBUG[m SpringApplicationShutdownHook SpringLifeCycleEventListener:80 -- [36m: onEventListener: AvailabilityChangeEvent[m
+[35m16:37:16.074[m [36mDEBUG[m SpringApplicationShutdownHook SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: ContextClosedEvent[m
+[35m16:37:16.074[m [36mDEBUG[m SpringApplicationShutdownHook SpringLifeCycleEventListener:80 -- [36m: onEventListener: ContextClosedEvent[m
+[35m16:37:16.076[m [32mINFO [m main DefaultApplicationRunner:43 -- [32m=== profiles ===================================[m
+[35m16:37:16.077[m [32mINFO [m main DefaultApplicationRunner:44 -- [32mActive profiles : [dev][m
+[35m16:37:16.078[m [32mINFO [m main DefaultApplicationRunner:45 -- [32mDatasource driver : org.postgresql.Driver[m
+[35m16:37:16.078[m [32mINFO [m main DefaultApplicationRunner:46 -- [32mDatasource url : jdbc:postgresql://localhost:5432/dvdrental[m
+[35m16:37:16.078[m [32mINFO [m main DefaultApplicationRunner:47 -- [32mDatasource username : postgres[m
+[35m16:37:16.079[m [32mINFO [m main DefaultApplicationRunner:48 -- [32mDatasource password : postgres[m
+[35m16:37:16.079[m [32mINFO [m main DefaultApplicationRunner:49 -- [32mServer Port : 8181[m
+[35m16:37:16.080[m [32mINFO [m main DefaultApplicationRunner:50 -- [32mDefault Property : null[m
+[35m16:37:16.080[m [32mINFO [m main DefaultApplicationRunner:51 -- [32mCommon Property : null[m
+[35m16:37:16.081[m [36mDEBUG[m main SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: ApplicationReadyEvent[m
+[35m16:37:16.081[m [36mDEBUG[m main SpringLifeCycleEventListener:80 -- [36m: onEventListener: ApplicationReadyEvent[m
+[35m16:37:16.081[m [36mDEBUG[m main SpringLifeCycleEventListener:74 -- [36m onApplicationReadyEvent()[m
+[35m16:37:16.082[m [36mDEBUG[m main SpringLifeCycleEventListener:91 -- [36m: onApplicationEvent: AvailabilityChangeEvent[m
+[35m16:37:16.082[m [36mDEBUG[m main SpringLifeCycleEventListener:80 -- [36m: onEventListener: AvailabilityChangeEvent[m
+[35m16:37:16.082[m [32mINFO [m main SpringExApplication:14 -- [32m***** main() *****[m
+[35m16:37:16.094[m [36mDEBUG[m SpringApplicationShutdownHook SpringLifeCycleEventListener:54 -- [36mPreDestroy called[m
+[35m16:37:16.095[m [36mDEBUG[m SpringApplicationShutdownHook SpringLifeCycleEventListener:66 -- [36m DisposableBean.destroy()[m

@@ -22,7 +22,7 @@ trap 'terminate' EXIT
 HEAP_OPTS="-Xms64m -Xmx512m"
 
 # run jar as background
-java -jar -XX:+UseG1GC ${HEAP_OPTS} ${JAR_PATH} &
+nohup java -jar -XX:+UseG1GC ${HEAP_OPTS} ${JAR_PATH} &
 PID=$!
 
 # wait java proc

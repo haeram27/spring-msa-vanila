@@ -23,6 +23,8 @@ public class JdkHttpClientTests extends EvaluatedTimeTests{
     // https://jsonplaceholder.typicode.com/guide/
     private final String urlGetTodoAll = "https://jsonplaceholder.typicode.com/todos";
     private final String urlGetTodoOne = "https://jsonplaceholder.typicode.com/todos/1";
+    private final String urlPostJsonPlaceHolder = "https://jsonplaceholder.typicode.com/posts";
+
 
     @Test
     public void get() throws Exception {
@@ -40,12 +42,19 @@ public class JdkHttpClientTests extends EvaluatedTimeTests{
     }
 
     @Test
-    public void build() throws Exception {
+    public void post() throws Exception {
 
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(urlGetTodoOne))
+            .uri(URI.create(urlPostJsonPlaceHolder))
             .timeout(Duration.ofSeconds(5))  // response timeout
-            .GET()
+            .POST(HttpRequest.BodyPublishers.ofString("""
+                {
+                    "userId": 10,
+                    "id": 101,
+                    "title": "foo",
+                    "body": "bar"
+                }
+                """))
             .build();
 
         var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());

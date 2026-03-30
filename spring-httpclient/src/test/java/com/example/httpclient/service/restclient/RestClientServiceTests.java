@@ -1,4 +1,4 @@
-package com.example.httpclient;
+package com.example.httpclient.service.restclient;
 
 import java.util.List;
 

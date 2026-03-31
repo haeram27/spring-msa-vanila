@@ -1,24 +1,32 @@
 package com.example.httpclient.restclient;
 
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.net.http.HttpClient;
+import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public enum JdkRestClient {
     INSTANCE;
 
-    private static final int DEFAULT_TIMEOUT_SECONDS = 20;
+    private static final int DEFAULT_CONNECT_TIMEOUT_SECONDS = 3; // 1~5
+    private static final int DEFAULT_READ_TIMEOUT_SECONDS = 20; // 10~30
     private HttpClient defaultHttpClient = createTrustAllHttpClient();
     private HttpClient httpClient = defaultHttpClient;
 
@@ -68,13 +76,13 @@ public enum JdkRestClient {
 
             return HttpClient.newBuilder()
                 .sslContext(sslContext)
-                .connectTimeout(Duration.ofSeconds(2)) // connection timeout
+                .connectTimeout(Duration.ofSeconds(DEFAULT_CONNECT_TIMEOUT_SECONDS)) // connection timeout
                 .build();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             log.warn("failed to create SSLContext that trusts all certificates, fallback to default HttpClient without custom SSLContext");
             return HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(2)) // connection timeout
+                .connectTimeout(Duration.ofSeconds(DEFAULT_CONNECT_TIMEOUT_SECONDS)) // connection timeout
                 .build();
         }
     }
@@ -89,6 +97,57 @@ public enum JdkRestClient {
 
     private boolean hasText(String str) {
         return str != null && !str.isBlank();
+    }
+
+    private static Throwable getRootCause(Throwable throwable) {
+        var current = throwable;
+        while (current.getCause() != null && current.getCause() != current) {
+            current = current.getCause();
+        }
+        return current;
+    }
+
+    private static boolean hasCause(Throwable throwable, Class<? extends Throwable> type) {
+        var current = throwable;
+        while (current != null) {
+            if (type.isInstance(current)) {
+                return true;
+            }
+            if (current.getCause() == current) {
+                break;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private void logResourceAccessException(String url, IOException e) {
+        var rootCause = getRootCause(e);
+        var errorType = rootCause.getClass().getSimpleName();
+        var errorMessage = hasText(rootCause.getMessage()) ? rootCause.getMessage() : "no message";
+
+        if (hasCause(e, HttpConnectTimeoutException.class)) {
+            log.error("connect timeout error: url={}, type={}, message={}", url, errorType, errorMessage, e);
+            return;
+        }
+
+        // can NOT reach to server
+        if (hasCause(e, ConnectException.class)) {
+            log.error("connection error: url={}, type={}, message={}", url, errorType, errorMessage, e);
+            return;
+        }
+
+        if (hasCause(e, HttpTimeoutException.class) || hasCause(e, SocketTimeoutException.class)) {
+            log.error("timeout error: url={}, type={}, message={}", url, errorType, errorMessage, e);
+            return;
+        }
+
+        if (hasCause(e, UnknownHostException.class)) {
+            log.error("dns error: url={}, type={}, message={}", url, errorType, errorMessage, e);
+            return;
+        }
+
+        log.error("io error: url={}, type={}, message={}", url, errorType, errorMessage, e);
     }
 
     /**
@@ -112,7 +171,7 @@ public enum JdkRestClient {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .HEAD()
-            .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS))
+            .timeout(Duration.ofSeconds(DEFAULT_READ_TIMEOUT_SECONDS))
             .header("Content-Type", "application/json");
 
         if (hasText(apikey)) {
@@ -134,7 +193,8 @@ public enum JdkRestClient {
                 httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
                 log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
             } catch (java.io.IOException e) {
-                log.error("network error: {}", e.getMessage(), e);
+                log.error("network error:");
+                logResourceAccessException(url, e);
             } catch (InterruptedException e) {
                 log.warn("request interrupted: " + e.getMessage());
                 Thread.currentThread().interrupt();
@@ -175,7 +235,7 @@ public enum JdkRestClient {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .HEAD()
-            .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS))
+            .timeout(Duration.ofSeconds(DEFAULT_READ_TIMEOUT_SECONDS))
             .header("Content-Type", "application/json");
 
         if (hasText(apikey)) {
@@ -198,7 +258,8 @@ public enum JdkRestClient {
                 httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
                 log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
             } catch (java.io.IOException e) {
-                log.error("network error: {}", e.getMessage(), e);
+                log.error("network error:");
+                logResourceAccessException(url, e);
             } catch (InterruptedException e) {
                 log.warn("request interrupted: " + e.getMessage());
                 Thread.currentThread().interrupt();
@@ -239,7 +300,7 @@ public enum JdkRestClient {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .HEAD()
-            .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS))
+            .timeout(Duration.ofSeconds(DEFAULT_READ_TIMEOUT_SECONDS))
             .header("Content-Type", "application/json");
 
         if (hasText(apikey)) {
@@ -268,7 +329,8 @@ public enum JdkRestClient {
                             handler.onReceived(false, new byte[0]);
                         }
                     } catch (java.io.IOException e) {
-                        log.error("network error: {}", e.getMessage(), e);
+                        log.error("network error:");
+                        logResourceAccessException(url, e);
                         handler.onReceived(false, new byte[0]);
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
@@ -309,7 +371,7 @@ public enum JdkRestClient {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .HEAD()
-            .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS))
+            .timeout(Duration.ofSeconds(DEFAULT_READ_TIMEOUT_SECONDS))
             .header("Content-Type", "application/json");
 
         if (hasText(apikey)) {
@@ -338,7 +400,8 @@ public enum JdkRestClient {
                             handler.onReceived(false, httpRequest, httpResponse);
                         }
                     } catch (java.io.IOException e) {
-                        log.error("network error: {}", e.getMessage(), e);
+                        log.error("network error:");
+                        logResourceAccessException(url, e);
                         handler.onReceived(false, httpRequest, httpResponse == null ? null : httpResponse);
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
@@ -378,7 +441,7 @@ public enum JdkRestClient {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .GET()
-            .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS))
+            .timeout(Duration.ofSeconds(DEFAULT_READ_TIMEOUT_SECONDS))
             .header("Content-Type", "application/json");
 
         if (hasText(apikey)) {
@@ -400,7 +463,8 @@ public enum JdkRestClient {
                 httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
                 log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
             } catch (java.io.IOException e) {
-                log.error("network error: {}", e.getMessage(), e);
+                log.error("network error:");
+                logResourceAccessException(url, e);
             } catch (InterruptedException e) {
                 log.warn("request interrupted: " + e.getMessage());
                 Thread.currentThread().interrupt();
@@ -440,7 +504,7 @@ public enum JdkRestClient {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .GET()
-            .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS))
+            .timeout(Duration.ofSeconds(DEFAULT_READ_TIMEOUT_SECONDS))
             .header("Content-Type", "application/json");
 
         if (hasText(apikey)) {
@@ -463,7 +527,8 @@ public enum JdkRestClient {
                 httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
                 log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
             } catch (java.io.IOException e) {
-                log.error("network error: {}", e.getMessage(), e);
+                log.error("network error:");
+                logResourceAccessException(url, e);
             } catch (InterruptedException e) {
                 log.warn("request interrupted: " + e.getMessage());
                 Thread.currentThread().interrupt();
@@ -503,7 +568,7 @@ public enum JdkRestClient {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .GET()
-            .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS))
+            .timeout(Duration.ofSeconds(DEFAULT_READ_TIMEOUT_SECONDS))
             .header("Content-Type", "application/json");
 
         if (hasText(apikey)) {
@@ -532,7 +597,8 @@ public enum JdkRestClient {
                             handler.onReceived(false, new byte[0]);
                         }
                     } catch (java.io.IOException e) {
-                        log.error("network error: {}", e.getMessage(), e);
+                        log.error("network error:");
+                        logResourceAccessException(url, e);
                         handler.onReceived(false, new byte[0]);
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
@@ -572,7 +638,7 @@ public enum JdkRestClient {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .GET()
-            .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS))
+            .timeout(Duration.ofSeconds(DEFAULT_READ_TIMEOUT_SECONDS))
             .header("Content-Type", "application/json");
 
         if (hasText(apikey)) {
@@ -601,7 +667,8 @@ public enum JdkRestClient {
                             handler.onReceived(false, httpRequest, httpResponse);
                         }
                     } catch (java.io.IOException e) {
-                        log.error("network error: {}", e.getMessage(), e);
+                        log.error("network error:");
+                        logResourceAccessException(url, e);
                         handler.onReceived(false, httpRequest, httpResponse);
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
@@ -642,7 +709,7 @@ public enum JdkRestClient {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .POST(BodyPublishers.noBody())
-            .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS))
+            .timeout(Duration.ofSeconds(DEFAULT_READ_TIMEOUT_SECONDS))
             .header("Content-Type", "application/json");
 
         if (hasText(body)) {
@@ -668,7 +735,8 @@ public enum JdkRestClient {
                 httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
                 log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
             } catch (java.io.IOException e) {
-                log.error("network error: {}", e.getMessage(), e);
+                log.error("network error:");
+                logResourceAccessException(url, e);
             } catch (InterruptedException e) {
                 log.warn("request interrupted: " + e.getMessage());
                 Thread.currentThread().interrupt();
@@ -709,7 +777,7 @@ public enum JdkRestClient {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .POST(BodyPublishers.noBody())
-            .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS))
+            .timeout(Duration.ofSeconds(DEFAULT_READ_TIMEOUT_SECONDS))
             .header("Content-Type", "application/json");
 
         if (hasText(body)) {
@@ -736,7 +804,8 @@ public enum JdkRestClient {
                 httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
                 log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
             } catch (java.io.IOException e) {
-                log.error("network error: {}", e.getMessage(), e);
+                log.error("network error:");
+                logResourceAccessException(url, e);
             } catch (InterruptedException e) {
                 log.warn("request interrupted: " + e.getMessage());
                 Thread.currentThread().interrupt();
@@ -778,7 +847,7 @@ public enum JdkRestClient {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .POST(BodyPublishers.noBody())
-            .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS))
+            .timeout(Duration.ofSeconds(DEFAULT_READ_TIMEOUT_SECONDS))
             .header("Content-Type", "application/json");
 
         if (hasText(body)) {
@@ -811,7 +880,8 @@ public enum JdkRestClient {
                             handler.onReceived(false, new byte[0]);
                         }
                     } catch (java.io.IOException e) {
-                        log.error("network error: {}", e.getMessage(), e);
+                        log.error("network error:");
+                        logResourceAccessException(url, e);
                         handler.onReceived(false, new byte[0]);
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
@@ -853,7 +923,7 @@ public enum JdkRestClient {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(uri)
             .POST(BodyPublishers.noBody())
-            .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS))
+            .timeout(Duration.ofSeconds(DEFAULT_READ_TIMEOUT_SECONDS))
             .header("Content-Type", "application/json");
 
         if (hasText(body)) {
@@ -886,7 +956,8 @@ public enum JdkRestClient {
                             handler.onReceived(false, httpRequest, httpResponse);
                         }
                     } catch (java.io.IOException e) {
-                        log.error("network error: {}", e.getMessage(), e);
+                        log.error("network error:");
+                        logResourceAccessException(url, e);
                         handler.onReceived(false, httpRequest, httpResponse);
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());

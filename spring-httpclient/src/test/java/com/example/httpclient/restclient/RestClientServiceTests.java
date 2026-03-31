@@ -1,6 +1,4 @@
-package com.example.httpclient.service.restclient;
-
-import java.util.List;
+package com.example.httpclient.restclient;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +6,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 
 import com.example.EvaluatedTimeTests;
-import com.example.httpclient.service.restclient.RestClientService;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import lombok.extern.slf4j.Slf4j;

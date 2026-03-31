@@ -4,9 +4,6 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
-import com.example.httpclient.service.FileReadService;
-import com.example.httpclient.service.RestClientTestService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,8 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 public class DefaultApplicationRunner implements ApplicationRunner {
-    private final FileReadService fileReadService;
-    private final RestClientTestService restClienTestService;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -35,9 +30,5 @@ public class DefaultApplicationRunner implements ApplicationRunner {
         for (var arg : srcArgs) {
             log.info("source arg: {}", arg);
         }
-
-        // var p = fileReadService.getExecutableFilePath();
-        // log.info("executable file path: {}", p);
-
     }
 }

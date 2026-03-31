@@ -1,4 +1,4 @@
-package com.example.httpclient.service.restclient;
+package com.example.httpclient.restclient;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -15,37 +15,37 @@ import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public enum HttpClientRestRequest {
+public enum JdkRestClient {
     INSTANCE;
 
-    private static final int DEFAULT_TIMEOUT_SECONDS = 5;
+    private static final int DEFAULT_TIMEOUT_SECONDS = 20;
     private HttpClient defaultHttpClient = createTrustAllHttpClient();
     private HttpClient httpClient = defaultHttpClient;
 
     @FunctionalInterface
     public interface ResponseHandler {
-        public void onReceived(boolean isHttpSuccessful, String body);
+        public void onReceived(boolean isHttpSuccessful, byte[] body);
     }
 
     @FunctionalInterface
     public interface ResponseDetailHandler {
-        void onReceived(boolean is2xxSuccessful, HttpRequest request, HttpResponse<String> response);
+        void onReceived(boolean is2xxSuccessful, HttpRequest request, HttpResponse<byte[]> response);
     }
 
     public static class Response {
         public Response() {
             this.is2xxSuccessful = false;
-            this.body = "";
+            this.body = new byte[0];
         }
 
         boolean is2xxSuccessful;
-        String body;
+        byte[] body;
     }
 
     public static class ResponseDetail {
         boolean is2xxSuccessful;
         HttpRequest request;
-        HttpResponse<String> response;
+        HttpResponse<byte[]> response;
     }
 
     private HttpClient createTrustAllHttpClient() {
@@ -128,11 +128,11 @@ public enum HttpClientRestRequest {
                 IOException         network error, connection failed, response timeout etc
                 InterruptedException thread interrupted while waiting for response
             */
-            HttpResponse<String> httpResponse = null;
+            HttpResponse<byte[]> httpResponse = null;
             try {
-                log.info("send http request\\nurl={}", httpRequest.uri());
-                httpResponse = httpClient.send(httpRequest, BodyHandlers.ofString());
-                log.info("response.statusCode(): {}", httpResponse.statusCode());
+                log.info("http.request url={}", httpRequest.uri());
+                httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
             } catch (java.io.IOException e) {
                 log.error("network error: {}", e.getMessage(), e);
             } catch (InterruptedException e) {
@@ -144,7 +144,7 @@ public enum HttpClientRestRequest {
             }
 
             if (httpResponse != null) {
-                response.body = httpResponse.body() == null ? "" : httpResponse.body();
+                response.body = httpResponse.body() == null ? new byte[0] : httpResponse.body();
                 if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) response.is2xxSuccessful = true;
             }
         } catch (Exception e) {
@@ -192,11 +192,11 @@ public enum HttpClientRestRequest {
                 IOException         network error, connection failed, response timeout etc
                 InterruptedException thread interrupted while waiting for response
             */
-            HttpResponse<String> httpResponse = null;
+            HttpResponse<byte[]> httpResponse = null;
             try {
-                log.info("send http request\nurl={}", httpRequest.uri());
-                httpResponse = httpClient.send(httpRequest, BodyHandlers.ofString());
-                log.info("response.statusCode(): {}", httpResponse.statusCode());
+                log.info("http.request url={}", httpRequest.uri());
+                httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
             } catch (java.io.IOException e) {
                 log.error("network error: {}", e.getMessage(), e);
             } catch (InterruptedException e) {
@@ -232,7 +232,7 @@ public enum HttpClientRestRequest {
             uri = URI.create(url);
         } catch (Exception e) {
             log.error("invalid request url: {}", url, e);
-            handler.onReceived(false, "");
+            handler.onReceived(false, new byte[0]);
             return;
         }
 
@@ -256,35 +256,35 @@ public enum HttpClientRestRequest {
                         IOException         network error, connection failed, response timeout etc
                         InterruptedException thread interrupted while waiting for response
                     */
-                    HttpResponse<String> httpResponse = null;
+                    HttpResponse<byte[]> httpResponse = null;
                     try {
-                        log.info("send http request\\nurl={}", httpRequest.uri());
-                        httpResponse = httpClient.send(httpRequest, BodyHandlers.ofString());
-                        log.info("response.statusCode(): {}", httpResponse.statusCode());
+                        log.info("http.request url={}", httpRequest.uri());
+                        httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                        log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
 
                         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
-                            handler.onReceived(true, Objects.requireNonNullElse(httpResponse.body(), ""));
+                            handler.onReceived(true, Objects.requireNonNullElse(httpResponse.body(), new byte[0]));
                         } else {
-                            handler.onReceived(false, "");
+                            handler.onReceived(false, new byte[0]);
                         }
                     } catch (java.io.IOException e) {
                         log.error("network error: {}", e.getMessage(), e);
-                        handler.onReceived(false, "");
+                        handler.onReceived(false, new byte[0]);
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
 
                         // set interrupt status flag again as true of this thread, because the flag removed by catch InterruptedException here
                         Thread.currentThread().interrupt();
-                        handler.onReceived(false, "");
+                        handler.onReceived(false, new byte[0]);
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
-                        handler.onReceived(false, "");
+                        handler.onReceived(false, new byte[0]);
                     }
                 }
             );
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            handler.onReceived(false, "");
+            handler.onReceived(false, new byte[0]);
         }
     }
 
@@ -326,11 +326,11 @@ public enum HttpClientRestRequest {
                         IOException         network error, connection failed, response timeout etc
                         InterruptedException thread interrupted while waiting for response
                     */
-                    HttpResponse<String> httpResponse = null;
+                    HttpResponse<byte[]> httpResponse = null;
                     try {
-                        log.info("send http request\\nurl={}", httpRequest.uri());
-                        httpResponse = httpClient.send(httpRequest, BodyHandlers.ofString());
-                        log.info("response.statusCode(): {}", httpResponse.statusCode());
+                        log.info("http.request url={}", httpRequest.uri());
+                        httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                        log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
 
                         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
                             handler.onReceived(true, httpRequest, httpResponse);
@@ -394,11 +394,11 @@ public enum HttpClientRestRequest {
                 IOException         network error, connection failed, response timeout etc
                 InterruptedException thread interrupted while waiting for response
             */
-            HttpResponse<String> httpResponse = null;
+            HttpResponse<byte[]> httpResponse = null;
             try {
-                log.info("send http request\\nurl={}", httpRequest.uri());
-                httpResponse = httpClient.send(httpRequest, BodyHandlers.ofString());
-                log.info("response.statusCode(): {}", httpResponse.statusCode());
+                log.info("http.request url={}", httpRequest.uri());
+                httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
             } catch (java.io.IOException e) {
                 log.error("network error: {}", e.getMessage(), e);
             } catch (InterruptedException e) {
@@ -410,7 +410,7 @@ public enum HttpClientRestRequest {
             }
 
             if (httpResponse != null) {
-                response.body = httpResponse.body() == null ? "" : httpResponse.body();
+                response.body = httpResponse.body() == null ? new byte[0] : httpResponse.body();
                 if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) response.is2xxSuccessful = true;
             }
         } catch (Exception e) {
@@ -457,11 +457,11 @@ public enum HttpClientRestRequest {
                 IOException         network error, connection failed, response timeout etc
                 InterruptedException thread interrupted while waiting for response
             */
-            HttpResponse<String> httpResponse = null;
+            HttpResponse<byte[]> httpResponse = null;
             try {
-                log.info("send http request\\nurl={}", httpRequest.uri());
-                httpResponse = httpClient.send(httpRequest, BodyHandlers.ofString());
-                log.info("response.statusCode(): {}", httpResponse.statusCode());
+                log.info("http.request url={}", httpRequest.uri());
+                httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
             } catch (java.io.IOException e) {
                 log.error("network error: {}", e.getMessage(), e);
             } catch (InterruptedException e) {
@@ -496,7 +496,7 @@ public enum HttpClientRestRequest {
             uri = URI.create(url);
         } catch (Exception e) {
             log.error("invalid request url: {}", url, e);
-            handler.onReceived(false, "");
+            handler.onReceived(false, new byte[0]);
             return;
         }
 
@@ -520,35 +520,35 @@ public enum HttpClientRestRequest {
                         IOException         network error, connection failed, response timeout etc
                         InterruptedException thread interrupted while waiting for response
                     */
-                    HttpResponse<String> httpResponse = null;
+                    HttpResponse<byte[]> httpResponse = null;
                     try {
-                        log.info("send http request\nurl={}\nbody={}", httpRequest.uri());
-                        httpResponse = httpClient.send(httpRequest, BodyHandlers.ofString());
-                        log.info("response.statusCode(): {}", httpResponse.statusCode());
+                        log.info("http.request url={}", httpRequest.uri());
+                        httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                        log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
 
                         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
-                            handler.onReceived(true, Objects.requireNonNullElse(httpResponse.body(), ""));
+                            handler.onReceived(true, Objects.requireNonNullElse(httpResponse.body(), new byte[0]));
                         } else {
-                            handler.onReceived(false, "");
+                            handler.onReceived(false, new byte[0]);
                         }
                     } catch (java.io.IOException e) {
                         log.error("network error: {}", e.getMessage(), e);
-                        handler.onReceived(false, "");
+                        handler.onReceived(false, new byte[0]);
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
 
                         // set interrupt status flag again as true of this thread, because the flag removed by catch InterruptedException here
                         Thread.currentThread().interrupt();
-                        handler.onReceived(false, "");
+                        handler.onReceived(false, new byte[0]);
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
-                        handler.onReceived(false, "");
+                        handler.onReceived(false, new byte[0]);
                     }
                 }
             );
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            handler.onReceived(false, "");
+            handler.onReceived(false, new byte[0]);
         }
     }
 
@@ -589,11 +589,11 @@ public enum HttpClientRestRequest {
                         IOException         network error, connection failed, response timeout etc
                         InterruptedException thread interrupted while waiting for response
                     */
-                    HttpResponse<String> httpResponse = null;
+                    HttpResponse<byte[]> httpResponse = null;
                     try {
-                        log.info("send http request\nurl={}\nbody={}", httpRequest.uri());
-                        httpResponse = httpClient.send(httpRequest, BodyHandlers.ofString());
-                        log.info("response.statusCode(): {}", httpResponse.statusCode());
+                        log.info("http.request url={}", httpRequest.uri());
+                        httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                        log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
 
                         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
                             handler.onReceived(true, httpRequest, httpResponse);
@@ -662,11 +662,11 @@ public enum HttpClientRestRequest {
                 IOException         network error, connection failed, response timeout etc
                 InterruptedException thread interrupted while waiting for response
             */
-            HttpResponse<String> httpResponse = null;
+            HttpResponse<byte[]> httpResponse = null;
             try {
-                log.info("send http request\\nurl={}", httpRequest.uri());
-                httpResponse = httpClient.send(httpRequest, BodyHandlers.ofString());
-                log.info("response.statusCode(): {}", httpResponse.statusCode());
+                log.info("http.request url={}", httpRequest.uri());
+                httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
             } catch (java.io.IOException e) {
                 log.error("network error: {}", e.getMessage(), e);
             } catch (InterruptedException e) {
@@ -678,7 +678,7 @@ public enum HttpClientRestRequest {
             }
 
             if (httpResponse != null) {
-                response.body = httpResponse.body() == null ? "" : httpResponse.body();
+                response.body = httpResponse.body() == null ? new byte[0] : httpResponse.body();
                 if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) response.is2xxSuccessful = true;
             }
         } catch (Exception e) {
@@ -730,11 +730,11 @@ public enum HttpClientRestRequest {
                 IOException         network error, connection failed, response timeout etc
                 InterruptedException thread interrupted while waiting for response
             */
-            HttpResponse<String> httpResponse = null;
+            HttpResponse<byte[]> httpResponse = null;
             try {
-                log.info("send http request\\nurl={}", httpRequest.uri());
-                httpResponse = httpClient.send(httpRequest, BodyHandlers.ofString());
-                log.info("response.statusCode(): {}", httpResponse.statusCode());
+                log.info("http.request url={}", httpRequest.uri());
+                httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
             } catch (java.io.IOException e) {
                 log.error("network error: {}", e.getMessage(), e);
             } catch (InterruptedException e) {
@@ -771,7 +771,7 @@ public enum HttpClientRestRequest {
             uri = URI.create(url);
         } catch (Exception e) {
             log.error("invalid request url: {}", url, e);
-            handler.onReceived(false, "");
+            handler.onReceived(false, new byte[0]);
             return;
         }
 
@@ -799,35 +799,35 @@ public enum HttpClientRestRequest {
                         IOException         network error, connection failed, response timeout etc
                         InterruptedException thread interrupted while waiting for response
                     */
-                    HttpResponse<String> httpResponse = null;
+                    HttpResponse<byte[]> httpResponse = null;
                     try {
-                        log.info("send http request\\nurl={}", httpRequest.uri());
-                        httpResponse = httpClient.send(httpRequest, BodyHandlers.ofString());
-                        log.info("response.statusCode(): {}", httpResponse.statusCode());
+                        log.info("http.request url={}", httpRequest.uri());
+                        httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                        log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
 
                         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
-                            handler.onReceived(true, Objects.requireNonNullElse(httpResponse.body(), ""));
+                            handler.onReceived(true, Objects.requireNonNullElse(httpResponse.body(), new byte[0]));
                         } else {
-                            handler.onReceived(false, "");
+                            handler.onReceived(false, new byte[0]);
                         }
                     } catch (java.io.IOException e) {
                         log.error("network error: {}", e.getMessage(), e);
-                        handler.onReceived(false, "");
+                        handler.onReceived(false, new byte[0]);
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
 
                         // set interrupt status flag again as true of this thread, because the flag removed by catch InterruptedException here
                         Thread.currentThread().interrupt();
-                        handler.onReceived(false, "");
+                        handler.onReceived(false, new byte[0]);
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
-                        handler.onReceived(false, "");
+                        handler.onReceived(false, new byte[0]);
                     }
                 }
             );
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            handler.onReceived(false, "");
+            handler.onReceived(false, new byte[0]);
         }
     }
 
@@ -874,11 +874,11 @@ public enum HttpClientRestRequest {
                         IOException         network error, connection failed, response timeout etc
                         InterruptedException thread interrupted while waiting for response
                     */
-                    HttpResponse<String> httpResponse = null;
+                    HttpResponse<byte[]> httpResponse = null;
                     try {
-                        log.info("send http request\\nurl={}", httpRequest.uri());
-                        httpResponse = httpClient.send(httpRequest, BodyHandlers.ofString());
-                        log.info("response.statusCode(): {}", httpResponse.statusCode());
+                        log.info("http.request url={}", httpRequest.uri());
+                        httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                        log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
 
                         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
                             handler.onReceived(true, httpRequest, httpResponse);
@@ -926,13 +926,14 @@ public enum HttpClientRestRequest {
      * Collects all pages of data from a paginated API endpoint using HTTP POST requests. The method calculates the total number of pages based on the provided total count and page size, then asynchronously sends POST requests for each page using the specified pagination body format. The results are collected in a thread-safe map, and the method waits for all requests to complete or times out after 3 minutes.
      * @param url   request URL
      * @param apikey    BearerAPI key, Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8)))
-     * @param pagenationFormat  the format of the pagination query parameters, which should contain two '%d' placeholders for page number and page size (e.g., "?page=%d&size=%d"). If the provided format is invalid, a default format will be used.
+     * @param pagenationQueryFormat  the format of the pagination query parameters, which should contain two '%d' placeholders for page number and page size (e.g., "?page=%d&size=%d"). If the provided format is invalid, a default format will be used.
      * @param totalCount    the total number of items to be paginated, used to calculate the total number of pages
      * @param pageSize  the number of items per page, used to calculate the total number of pages
-     * @return  Map<Integer, String>: a map where the key is the page number and the value is the response body for that page. If a page fails to fetch, its value will be null.
+     * @param timeoutSeconds the maximum time to wait for all page requests to complete, in seconds. If the timeout is reached before all requests complete, the method will return the results collected so far.
+     * @return  Map<Integer, byte[]>: a map where the key is the page number and the value is the response body for that page. If a page fails to fetch, its length will be 0.
      */
-    public Map<Integer, String> getAllPages(String url, String apikey, String pagenationFormat, int totalCount, int pageSize) {
-        var results = new ConcurrentHashMap<Integer, String>();
+    public Map<Integer, byte[]> getAllPages(String url, String apikey, String pagenationQueryFormat, int totalCount, int pageSize, int timeoutSeconds) {
+        var results = new ConcurrentHashMap<Integer, byte[]>();
 
         var totalPages = getTotalPages(totalCount, pageSize);
         if (totalPages <= 0) {
@@ -943,14 +944,14 @@ public enum HttpClientRestRequest {
 
         String defaultPagenationFormat = "?page=%d&size=%d";
         String finalPagenationFormat;
-        if (!hasText(pagenationFormat)
-            || !pagenationFormat.contains("%d")
-            || pagenationFormat.indexOf("%d") == pagenationFormat.lastIndexOf("%d")) {
-            log.warn("Invalid pagenationFormat: {}, use default body format: {}",
-                pagenationFormat, defaultPagenationFormat);
+        if (!hasText(pagenationQueryFormat)
+            || !pagenationQueryFormat.contains("%d")
+            || pagenationQueryFormat.indexOf("%d") == pagenationQueryFormat.lastIndexOf("%d")) {
+            log.warn("Invalid pagenationQueryFormat: {}, use default body format: {}",
+                pagenationQueryFormat, defaultPagenationFormat);
             finalPagenationFormat = defaultPagenationFormat;
         } else {
-            finalPagenationFormat = pagenationFormat;
+            finalPagenationFormat = pagenationQueryFormat;
         }
 
         for (int page = 1; page <= totalPages; page++) {
@@ -968,7 +969,7 @@ public enum HttpClientRestRequest {
         }
 
         try {
-            latch.await(3, TimeUnit.MINUTES); // Wait for all pages to be collected or timeout after 3 minutes
+            latch.await(timeoutSeconds, TimeUnit.SECONDS); // Wait for all pages to be collected or timeout after specified seconds
         } catch (java.lang.InterruptedException e) {
             log.warn("Page collection interrupted: " + e.getMessage());
             Thread.currentThread().interrupt(); // Restore the interrupt status after catching InterruptedException
@@ -983,13 +984,14 @@ public enum HttpClientRestRequest {
      * Collects all pages of data from a paginated API endpoint using HTTP POST requests. The method calculates the total number of pages based on the provided total count and page size, then asynchronously sends POST requests for each page using the specified pagination body format. The results are collected in a thread-safe map, and the method waits for all requests to complete or times out after 3 minutes.
      * @param url   request URL
      * @param apikey    BearerAPI key, Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8)))
-     * @param pagenationBodyFormat  the format of the pagination body, which should contain two '%d' placeholders for page number and page size (e.g., "{\"pageNumber\":%d,\"pageSize\":%d}"). If the provided format is invalid, a default format will be used.
+     * @param requestBodyFormat  the format of the pagination body, which should contain two '%d' placeholders for page number and page size (e.g., "{\"pageNumber\":%d,\"pageSize\":%d}"). If the provided format is invalid, a default format will be used.
      * @param totalCount    the total number of items to be paginated, used to calculate the total number of pages
      * @param pageSize  the number of items per page, used to calculate the total number of pages
-     * @return  Map<Integer, String>: a map where the key is the page number and the value is the response body for that page. If a page fails to fetch, its value will be null.
+     * @param timeoutSeconds the maximum time to wait for all page requests to complete, in seconds. If the timeout is reached before all requests complete, the method will return the results collected so far.
+     * @return  Map<Integer, byte[]>: a map where the key is the page number and the value is the response body for that page. If a page fails to fetch, its length will be 0.
      */
-    public Map<Integer, String> postAllPages(String url, String apikey, String pagenationBodyFormat, int totalCount, int pageSize) {
-        var results = new ConcurrentHashMap<Integer, String>();
+    public Map<Integer, byte[]> postAllPages(String url, String apikey, String requestBodyFormat, int totalCount, int pageSize, int timeoutSeconds) {
+        var results = new ConcurrentHashMap<Integer, byte[]>();
 
         var totalPages = getTotalPages(totalCount, pageSize);
         if (totalPages <= 0) {
@@ -998,23 +1000,22 @@ public enum HttpClientRestRequest {
         }
         CountDownLatch latch = new CountDownLatch(totalPages);
 
-        String defaultPagenationBodyFormat = "{\"pageNumber\":%d,\"pageSize\":%d}";
-        String finalPagenationBodyFormat;
-        if (!hasText(pagenationBodyFormat)
-            || !pagenationBodyFormat.contains("%d")
-            || pagenationBodyFormat.indexOf("%d") == pagenationBodyFormat.lastIndexOf("%d")) {
-            log.warn("Invalid pagenationBodyFormat: {}, use default pagenation body format: {}",
-                pagenationBodyFormat, defaultPagenationBodyFormat);
-            finalPagenationBodyFormat = defaultPagenationBodyFormat;
+        String defaultRequestBodyFormat = "{\"pageNumber\":%d,\"pageSize\":%d}";
+        String finalRequestBodyFormat;
+        if (!hasText(requestBodyFormat)
+            || !requestBodyFormat.contains("%d")
+            || requestBodyFormat.indexOf("%d") == requestBodyFormat.lastIndexOf("%d")) {
+            log.warn("Invalid requestBodyFormat: {}, use default pagenation body format: {}",
+                requestBodyFormat, defaultRequestBodyFormat);
+            finalRequestBodyFormat = defaultRequestBodyFormat;
         } else {
             // remove all whitespace characters to avoid formatting issues in JSON body
-            finalPagenationBodyFormat = pagenationBodyFormat.replaceAll("\\s+", "");
+            finalRequestBodyFormat = requestBodyFormat.replaceAll("\\s+", "");
         }
 
         for (int page = 1; page <= totalPages; page++) {
             final int currentPage = page;
-
-            String formattedBody = String.format(finalPagenationBodyFormat, page, pageSize);
+            String formattedBody = String.format(finalRequestBodyFormat, page, pageSize);
             postAsync(url, apikey, formattedBody, (ok, body) -> {
                 if (ok) {
                     results.put(currentPage, body);
@@ -1027,7 +1028,7 @@ public enum HttpClientRestRequest {
         }
 
         try {
-            latch.await(3, TimeUnit.MINUTES); // Wait for all pages to be collected or timeout after 3 minutes
+            latch.await(timeoutSeconds, TimeUnit.SECONDS); // Wait for all pages to be collected or timeout after specified seconds
         } catch (java.lang.InterruptedException e) {
             log.warn("Page collection interrupted: " + e.getMessage());
             Thread.currentThread().interrupt(); // Restore the interrupt status after catching InterruptedException

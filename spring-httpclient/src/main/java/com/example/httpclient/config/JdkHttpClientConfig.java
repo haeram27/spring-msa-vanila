@@ -60,7 +60,7 @@ public class JdkHttpClientConfig {
     }
 
     /**
-     * RestTemplate - Sync, Blocking HttpClient
+     * RestTemplate - Spring Wrapper, Sync, Blocking HttpClient
      */
     @Bean
     @Primary
@@ -83,7 +83,7 @@ public class JdkHttpClientConfig {
     }
 
     /**
-     * RestClient - Sync, Blocking HttpClient
+     * RestClient - Spring Wrapper, Sync, Blocking HttpClient
      */
     @Bean
     @Primary

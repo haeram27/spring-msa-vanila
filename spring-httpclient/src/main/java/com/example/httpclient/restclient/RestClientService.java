@@ -1,4 +1,4 @@
-package com.example.httpclient.service.restclient;
+package com.example.httpclient.restclient;
 
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;

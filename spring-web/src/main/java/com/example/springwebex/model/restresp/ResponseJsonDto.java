@@ -11,15 +11,15 @@ import lombok.Data;
 
 @Data
 @JsonInclude(Include.NON_NULL)
-@JsonPropertyOrder({ "error_code", "error_msg", "response" })
+@JsonPropertyOrder({ "errorCode", "errorMsg", "response" })
 public class ResponseJsonDto<T> {
 
     private static final String SUCCESS_CODE = String.valueOf(ErrorCode.SUCCESS.getCode());
 
-    @JsonProperty("error_code")
+    @JsonProperty("errorCode")
     private String errorCode = SUCCESS_CODE;
 
-    @JsonProperty("error_msg")
+    @JsonProperty("errorMsg")
     private String errorMsg = ErrorCode.SUCCESS.getDefaultMessage();
 
     @JsonProperty("response")

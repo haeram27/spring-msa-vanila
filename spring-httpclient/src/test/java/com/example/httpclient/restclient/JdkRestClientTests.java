@@ -41,14 +41,37 @@ public class JdkRestClientTests {
             return;
         }
 
-        var result = client.postAllPages(serverUrl, null, "{\"pageNumber\":%d,\"pageSize\":%d}", totalCount, totalCount/5, 3000);
-        log.info("result.size={}", result.size());
-        result.forEach((k, v) -> {
-            try {
-                //log.info("page={}, body=\n{}", k, jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonMapper.readTree(v)));
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
+        String requestBody = """
+        {
+            "pageNumber": %d,
+            "pageSize": %d
+        }
+        """;
+
+        var results = client.postAllPages(serverUrl, null, requestBody, totalCount, totalCount/5, 3000);
+        long count = results.values().stream().filter(b -> b.length > 0).count();
+
+        log.info("received {} pages of servers", count);
+        if (count <= 0) {
+            log.error("can NOT receive any server list");
+            return;
+        }
+
+        results.forEach((k, v) -> {
+            if (v.length > 0) {
+                // log.info("page={}, body=\n{}", k, new String(v));
+            } else {
+                log.warn("page={}, body is empty", k);
             }
         });
+
+        // Do something with the results, e.g., parse JSON and process server lists
+        // results.values().stream().filter(b -> b.length > 0).forEach(b -> {
+        //     try {
+        //         log.info("body=\n{}", jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonMapper.readTree(b)));
+        //     } catch (Exception e) {
+        //         log.error(e.getMessage(), e);
+        //     }
+        // });
     }
 }

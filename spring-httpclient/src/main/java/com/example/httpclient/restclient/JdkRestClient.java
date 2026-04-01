@@ -40,20 +40,20 @@ public enum JdkRestClient {
         void onReceived(boolean is2xxSuccessful, HttpRequest request, HttpResponse<byte[]> response);
     }
 
-    public static class Response {
+    public class Response {
         public Response() {
             this.is2xxSuccessful = false;
             this.body = new byte[0];
         }
 
-        boolean is2xxSuccessful;
-        byte[] body;
+        public boolean is2xxSuccessful;
+        public byte[] body;
     }
 
-    public static class ResponseDetail {
-        boolean is2xxSuccessful;
-        HttpRequest request;
-        HttpResponse<byte[]> response;
+    public class ResponseDetail {
+        public boolean is2xxSuccessful;
+        public HttpRequest request;
+        public HttpResponse<byte[]> response;
     }
 
     private HttpClient createTrustAllHttpClient() {
@@ -155,7 +155,8 @@ public enum JdkRestClient {
      * HTTP HEAD is a method that sends the same request as GET, but does not receive a response body.
      * @param url    request URL
      * @param apikey    BearerAPI key, Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8)))
-     * @return
+     * @return is2xxSuccessful is true if the response status code is 2xx, body(byte[]) is empty because HEAD request does not receive response body.
+     *         body will not be null, but empty byte array if the response does not have body or the request failed due to network error, timeout, invalid URL, etc.
      */
     public Response head(String url, String apikey) {
         var response = new Response();
@@ -284,7 +285,8 @@ public enum JdkRestClient {
      * HTTP HEAD is a method that sends the same request as GET, but does not receive a response body.
      * @param url    request URL
      * @param apikey    BearerAPI key, Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8)))
-     * @return
+     * @return is2xxSuccessful is true if the response status code is 2xx, body(byte[]) is empty because HEAD request does not receive response body.
+     *         body will not be null, but empty byte array if the response does not have body or the request failed due to network error, timeout, invalid URL, etc.
      */
     public void headAsync(String url, String apikey, ResponseHandler handler) {
 
@@ -425,7 +427,8 @@ public enum JdkRestClient {
      * HTTP GET Synchronized Request
      * @param url    request URL
      * @param apikey    BearerAPI key, Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8)))
-     * @return
+     * @return is2xxSuccessful is true if the response status code is 2xx, body(byte[]) is empty because HEAD request does not receive response body.
+     *         body will not be null, but empty byte array if the response does not have body or the request failed due to network error, timeout, invalid URL, etc.
      */
     public Response get(String url, String apikey) {
         var response = new Response();
@@ -552,7 +555,8 @@ public enum JdkRestClient {
      * HTTP GET Asynchronized Request
      * @param url    request URL
      * @param apikey    BearerAPI key, Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8)))
-     * @return
+     * @return is2xxSuccessful is true if the response status code is 2xx, body(byte[]) is empty because HEAD request does not receive response body.
+     *         body will not be null, but empty byte array if the response does not have body or the request failed due to network error, timeout, invalid URL, etc.
      */
     public void getAsync(String url, String apikey, ResponseHandler handler) {
 
@@ -693,7 +697,8 @@ public enum JdkRestClient {
      * @param url    request URL
      * @param apikey    BearerAPI key, Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8)))
      * @param body      request body (JSON String)
-     * @return
+     * @return is2xxSuccessful is true if the response status code is 2xx, body(byte[]) is empty because HEAD request does not receive response body.
+     *         body will not be null, but empty byte array if the response does not have body or the request failed due to network error, timeout, invalid URL, etc.
      */
     public Response post(String url, String apikey, String body) {
         var response = new Response();
@@ -831,7 +836,8 @@ public enum JdkRestClient {
      * @param apikey    BearerAPI key, Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8)))
      * @param body      request body (JSON String)
      * @param handler   response handler to handle the response details such as status code, headers, body, etc.
-     * @return
+     * @return is2xxSuccessful is true if the response status code is 2xx, body(byte[]) is empty because HEAD request does not receive response body.
+     *         body will not be null, but empty byte array if the response does not have body or the request failed due to network error, timeout, invalid URL, etc.
      */
     public void postAsync(String url, String apikey, String body, ResponseHandler handler) {
 
@@ -994,7 +1000,11 @@ public enum JdkRestClient {
     }
 
     /**
-     * Collects all pages of data from a paginated API endpoint using HTTP POST requests. The method calculates the total number of pages based on the provided total count and page size, then asynchronously sends POST requests for each page using the specified pagination body format. The results are collected in a thread-safe map, and the method waits for all requests to complete or times out after 3 minutes.
+     * Collects all pages of data from a paginated API endpoint using HTTP GET requests.
+     * The method calculates the total number of pages based on the provided total count and page size,
+     * then asynchronously sends GET requests for each page using the specified pagination body format.
+     * The results are collected in a thread-safe map, and the method waits for all requests to complete or times out with given timeoutSeconds.
+     * 
      * @param url   request URL
      * @param apikey    BearerAPI key, Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8)))
      * @param pagenationQueryFormat  the format of the pagination query parameters, which should contain two '%d' placeholders for page number and page size (e.g., "?page=%d&size=%d"). If the provided format is invalid, a default format will be used.
@@ -1040,7 +1050,11 @@ public enum JdkRestClient {
         }
 
         try {
-            latch.await(timeoutSeconds, TimeUnit.SECONDS); // Wait for all pages to be collected or timeout after specified seconds
+            // Wait for all pages to be collected or timeout after specified seconds
+            boolean completed = latch.await(timeoutSeconds, TimeUnit.SECONDS);
+            if (!completed) {
+                log.warn("Timeout: {} pages still pending", latch.getCount());
+            }
         } catch (java.lang.InterruptedException e) {
             log.warn("Page collection interrupted: " + e.getMessage());
             Thread.currentThread().interrupt(); // Restore the interrupt status after catching InterruptedException
@@ -1052,7 +1066,11 @@ public enum JdkRestClient {
     }
 
     /**
-     * Collects all pages of data from a paginated API endpoint using HTTP POST requests. The method calculates the total number of pages based on the provided total count and page size, then asynchronously sends POST requests for each page using the specified pagination body format. The results are collected in a thread-safe map, and the method waits for all requests to complete or times out after 3 minutes.
+     * Collects all pages of data from a paginated API endpoint using HTTP POST requests.
+     * The method calculates the total number of pages based on the provided total count and page size,
+     * then asynchronously sends POST requests for each page using the specified pagination body format.
+     * The results are collected in a thread-safe map, and the method waits for all requests to complete or times out with given timeoutSeconds.
+     * 
      * @param url   request URL
      * @param apikey    BearerAPI key, Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8)))
      * @param requestBodyFormat  the format of the pagination body, which should contain two '%d' placeholders for page number and page size (e.g., "{\"pageNumber\":%d,\"pageSize\":%d}"). If the provided format is invalid, a default format will be used.
@@ -1099,7 +1117,11 @@ public enum JdkRestClient {
         }
 
         try {
-            latch.await(timeoutSeconds, TimeUnit.SECONDS); // Wait for all pages to be collected or timeout after specified seconds
+            // Wait for all pages to be collected or timeout after specified seconds
+            boolean completed = latch.await(timeoutSeconds, TimeUnit.SECONDS);
+            if (!completed) {
+                log.warn("Timeout: {} pages still pending", latch.getCount());
+            }
         } catch (java.lang.InterruptedException e) {
             log.warn("Page collection interrupted: " + e.getMessage());
             Thread.currentThread().interrupt(); // Restore the interrupt status after catching InterruptedException

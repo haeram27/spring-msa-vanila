@@ -327,22 +327,27 @@ public enum JdkRestClient {
 
                         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
                             handler.onReceived(true, Objects.requireNonNullElse(httpResponse.body(), new byte[0]));
+                            return;
                         } else {
                             handler.onReceived(false, new byte[0]);
+                            return;
                         }
                     } catch (java.io.IOException e) {
                         log.error("network error:");
                         logResourceAccessException(url, e);
                         handler.onReceived(false, new byte[0]);
+                        return;
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
 
                         // set interrupt status flag again as true of this thread, because the flag removed by catch InterruptedException here
                         Thread.currentThread().interrupt();
                         handler.onReceived(false, new byte[0]);
+                        return;
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
                         handler.onReceived(false, new byte[0]);
+                        return;
                     }
                 }
             );
@@ -398,22 +403,27 @@ public enum JdkRestClient {
 
                         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
                             handler.onReceived(true, httpRequest, httpResponse);
+                            return;
                         } else {
                             handler.onReceived(false, httpRequest, httpResponse);
+                            return;
                         }
                     } catch (java.io.IOException e) {
                         log.error("network error:");
                         logResourceAccessException(url, e);
                         handler.onReceived(false, httpRequest, httpResponse == null ? null : httpResponse);
+                        return;
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
 
                         // set interrupt status flag again as true of this thread, because the flag removed by catch InterruptedException here
                         Thread.currentThread().interrupt();
                         handler.onReceived(false, httpRequest, httpResponse == null ? null : httpResponse);
+                        return;
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
                         handler.onReceived(false, httpRequest, httpResponse == null ? null : httpResponse);
+                        return;
                     }
                 }
             );
@@ -597,22 +607,27 @@ public enum JdkRestClient {
 
                         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
                             handler.onReceived(true, Objects.requireNonNullElse(httpResponse.body(), new byte[0]));
+                            return;
                         } else {
                             handler.onReceived(false, new byte[0]);
+                            return;
                         }
                     } catch (java.io.IOException e) {
                         log.error("network error:");
                         logResourceAccessException(url, e);
                         handler.onReceived(false, new byte[0]);
+                        return;
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
 
                         // set interrupt status flag again as true of this thread, because the flag removed by catch InterruptedException here
                         Thread.currentThread().interrupt();
                         handler.onReceived(false, new byte[0]);
+                        return;
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
                         handler.onReceived(false, new byte[0]);
+                        return;
                     }
                 }
             );
@@ -667,22 +682,27 @@ public enum JdkRestClient {
 
                         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
                             handler.onReceived(true, httpRequest, httpResponse);
+                            return;
                         } else {
                             handler.onReceived(false, httpRequest, httpResponse);
+                            return;
                         }
                     } catch (java.io.IOException e) {
                         log.error("network error:");
                         logResourceAccessException(url, e);
                         handler.onReceived(false, httpRequest, httpResponse);
+                        return;
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
 
                         // set interrupt status flag again as true of this thread, because the flag removed by catch InterruptedException here
                         Thread.currentThread().interrupt();
                         handler.onReceived(false, httpRequest, httpResponse);
+                        return;
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
                         handler.onReceived(false, httpRequest, httpResponse);
+                        return;
                     }
                 }
             );
@@ -882,22 +902,27 @@ public enum JdkRestClient {
 
                         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
                             handler.onReceived(true, Objects.requireNonNullElse(httpResponse.body(), new byte[0]));
+                            return;
                         } else {
                             handler.onReceived(false, new byte[0]);
+                            return;
                         }
                     } catch (java.io.IOException e) {
                         log.error("network error:");
                         logResourceAccessException(url, e);
                         handler.onReceived(false, new byte[0]);
+                        return;
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
 
                         // set interrupt status flag again as true of this thread, because the flag removed by catch InterruptedException here
                         Thread.currentThread().interrupt();
                         handler.onReceived(false, new byte[0]);
+                        return;
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
                         handler.onReceived(false, new byte[0]);
+                        return;
                     }
                 }
             );
@@ -958,22 +983,27 @@ public enum JdkRestClient {
 
                         if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
                             handler.onReceived(true, httpRequest, httpResponse);
+                            return;
                         } else {
                             handler.onReceived(false, httpRequest, httpResponse);
+                            return;
                         }
                     } catch (java.io.IOException e) {
                         log.error("network error:");
                         logResourceAccessException(url, e);
                         handler.onReceived(false, httpRequest, httpResponse);
+                        return;
                     } catch (InterruptedException e) {
                         log.warn("request interrupted: " + e.getMessage());
 
                         // set interrupt status flag again as true of this thread, because the flag removed by catch InterruptedException here
                         Thread.currentThread().interrupt();
                         handler.onReceived(false, httpRequest, httpResponse);
+                        return;
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
                         handler.onReceived(false, httpRequest, httpResponse);
+                        return;
                     }
                 }
             );

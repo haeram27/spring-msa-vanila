@@ -21,7 +21,11 @@ public class JdkRestClientTests {
     public void count() {
         var url = "http://localhost:8181/api/pagenation/servers/count";
         var response = client.post(url, null, "{}");
-        log.info("response=\n{}", new String(response.body));
+        if (response.is2xxSuccessful && response.body.length > 0) {
+            log.info("Successfully received response with status body=\n{}", response, new String(response.body));
+        } else {
+            log.error("Failed to receive successful response.");
+        }
     }
 
     @Test

@@ -3,16 +3,14 @@ package com.example.httpclient.restclient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
 import com.fasterxml.jackson.databind.json.JsonMapper;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @SpringBootTest
-public class JdkRestClientTests {
+public class RestClientTests {
 
-    private JdkRestClient client = JdkRestClient.INSTANCE;
+    private RestClient client = RestClient.INSTANCE;
 
     @Autowired
     private JsonMapper jsonMapper;
@@ -20,9 +18,9 @@ public class JdkRestClientTests {
     @Test
     public void count() {
         var url = "http://localhost:8181/api/pagenation/servers/count";
-        var response = client.post(url, null, "{}");
+        var response = client.send(RestClient.HttpMethod.POST, url, null, "{}");
         if (response.is2xxSuccessful && response.body.length > 0) {
-            log.info("Successfully received response with status body=\n{}", response, new String(response.body));
+            log.info("Successfully received response with status body=\n{}", new String(response.body));
         } else {
             log.error("Failed to receive successful response.");
         }
@@ -33,7 +31,7 @@ public class JdkRestClientTests {
         var countUrl = "http://localhost:8181/api/pagenation/servers/count";
         var serverUrl = "http://localhost:8181/api/pagenation/servers";
 
-        var response = client.post(countUrl, null, "{}");
+        var response = client.send(RestClient.HttpMethod.POST, countUrl, null, "{}");
         log.info("response=\n{}", new String(response.body));
 
         int totalCount = 0;
@@ -63,7 +61,7 @@ public class JdkRestClientTests {
 
         results.forEach((k, v) -> {
             if (v.length > 0) {
-                // log.info("page={}, body=\n{}", k, new String(v));
+                log.info("page={}, body=\n{}", k, new String(v));
             } else {
                 log.warn("page={}, body is empty", k);
             }

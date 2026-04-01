@@ -56,7 +56,7 @@ public class RestClientServiceTests extends EvaluatedTimeTests {
             String body
             ) {}
 
-        client.send(HttpMethod.POST,
+        client.sendAsync(HttpMethod.POST,
             "http://localhost:8181/api/post/echo",
             "passw@rd",
             new RequestBody(10, 101, "foo", "bar"),
@@ -97,7 +97,7 @@ public class RestClientServiceTests extends EvaluatedTimeTests {
             String body
             ) {}
 
-        client.send(HttpMethod.POST,
+        client.sendAsync(HttpMethod.POST,
             urlPostJsonPlaceHolder,
             "passw@rd",
             new RequestBody(10, 101, "foo", "bar"),

@@ -1,11 +1,11 @@
 package com.example.httpclient.restclient;
 
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpTimeoutException;
-
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatusCode;
@@ -15,12 +15,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+/**
+    ## RestClientService
+
+    - RestClientService is a wrapper around org.springframework.web.client.RestClient that provides additional functionalities such as error handling, response mapping, and asynchronous request handling.
+    - It provides methods to send HTTP requests and handle responses in a consistent way across the application.
+    - It uses JsonMapper to map JSON responses to Java objects, and it handles various exceptions that may occur during the HTTP request process, such as connection timeouts, DNS errors, etc.
+    - The sendAsync method allows sending HTTP requests asynchronously using virtual threads, which can improve performance and scalability when dealing with a large number of concurrent requests.
+ */
 
 @Service
 @Slf4j
@@ -31,19 +38,26 @@ public class RestClientService {
     private final JsonMapper jsonMapper;
 
     @FunctionalInterface
-    public interface RestClientResponseHandler {
-        public void onReceived(boolean isHttpSuccessful, JsonNode body);
+    public interface ResponseHandler {
+        public void onReceived(boolean is2xxSuccessful, JsonNode body);
     }
 
     @FunctionalInterface
-    public interface RestClientResponseDetailHandler {
-        void onReceived(boolean is2xxSuccessful, HttpRequest request, ClientHttpResponse response);
+    public interface ResponseDetailHandler {
+        // resonse is closable, so it should be handled in the method where it is received, not returned to the caller.
+        void onReceived(boolean is2xxSuccessful, HttpRequest request, ClientHttpResponse closeableResponse);
     }
 
-    public static class RestClientResponseDetail {
+    public static class Response {
+        boolean is2xxSuccessful;
+        JsonNode body;
+    }
+
+    public static class ResponseDetail {
         boolean is2xxSuccessful;
         HttpRequest request;
-        ClientHttpResponse response;
+        // resonse is closable, so it should be handled in the method where it is received, not returned to the caller.
+        ClientHttpResponse closeableResponse;
     }
 
     private static Throwable getRootCause(Throwable throwable) {
@@ -96,9 +110,9 @@ public class RestClientService {
         log.error("restapi io error: method={}, url={}, type={}, message={}", method, url, errorType, errorMessage, e);
     }
 
-    public RestClientResponseDetail send(HttpMethod method, String url, String apikey, Object body) {
+    public Response send(HttpMethod method, String url, String apikey, Object body) {
 
-        var httpResponse = new RestClientResponseDetail();
+        var httpResponse = new Response();
 
         if (method == null) {
             log.error("method is null");
@@ -131,21 +145,25 @@ public class RestClientService {
             reqSpec.retrieve()
                     .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
                         log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        response.close();
                     })
                     .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
                         log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
                         httpResponse.is2xxSuccessful = true;
-                        httpResponse.request = request;
-                        httpResponse.response = response;
+                        try (response) {
+                            var respBody = jsonMapper.readValue(response.getBody().readAllBytes(), JsonNode.class);
+                            httpResponse.body = respBody;
+                        } catch (IOException e) {
+                            log.error(e.getMessage(), e);
+                        }
                     })
                     .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
                         log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        response.close();
                     })
                     .onStatus(HttpStatusCode::isError, (request, response) -> {
                         log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                        httpResponse.is2xxSuccessful = false;
-                        httpResponse.request = request;
-                        httpResponse.response = response;
+                        response.close();
                     })
                     .toBodilessEntity();
 
@@ -158,16 +176,18 @@ public class RestClientService {
         return httpResponse;
     }
 
-    public void send(HttpMethod method, String url, String apikey, Object body, RestClientResponseHandler handle) {
+    public ResponseDetail sendDetail(HttpMethod method, String url, String apikey, Object body) {
+
+        var httpResponse = new ResponseDetail();
 
         if (method == null) {
             log.error("method is null");
-            return;
+            return httpResponse;
         }
 
         if (!StringUtils.hasText(url)) {
             log.error("invalid request url");
-            return;
+            return httpResponse;
         }
 
         try {
@@ -191,84 +211,35 @@ public class RestClientService {
             reqSpec.retrieve()
                     .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
                         log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        response.close();
                     })
                     .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
                         log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                        var respBody = jsonMapper.readValue(response.getBody().readAllBytes(), JsonNode.class);
-                        handle.onReceived(true, respBody);
+                        httpResponse.is2xxSuccessful = true;
+                        httpResponse.request = request;
+                        httpResponse.closeableResponse = response;
                     })
                     .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
                         log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        response.close();
                     })
                     .onStatus(HttpStatusCode::isError, (request, response) -> {
                         log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                        handle.onReceived(false, null);
+                        httpResponse.request = request;
+                        response.close();
                     })
                     .toBodilessEntity();
+
         } catch (ResourceAccessException e) {
             logResourceAccessException(method, url, e);
-            handle.onReceived(false, null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+
+        return httpResponse;
     }
 
-    public void send(HttpMethod method, String url, String apikey, Object body,
-            RestClientResponseDetailHandler handle) {
-
-        if (method == null) {
-            log.error("method is null");
-            return;
-        }
-
-        if (!StringUtils.hasText(url)) {
-            log.error("invalid request url");
-            return;
-        }
-
-        try {
-            var reqSpec = restClient.method(method)
-                    .uri(url)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .contentType(MediaType.APPLICATION_JSON);
-
-            if (body != null) {
-                reqSpec.body(body);
-            }
-
-            if (StringUtils.hasText(apikey)) {
-                // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
-                reqSpec.header("Authorization", apikey);
-            }
-
-            log.debug("send restapi request:\nurl: {}\nbody: {}", url,
-                    (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
-
-            reqSpec.retrieve()
-                    .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                    })
-                    .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                        handle.onReceived(true, request, response);
-                    })
-                    .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                    })
-                    .onStatus(HttpStatusCode::isError, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                        handle.onReceived(false, request, response);
-                    })
-                    .toBodilessEntity();
-        } catch (ResourceAccessException e) {
-            logResourceAccessException(method, url, e);
-            handle.onReceived(false, null, null);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-    }
-
-    public void sendAsync(HttpMethod method, String url, String apikey, Object body, RestClientResponseHandler handle) {
+    public void sendAsync(HttpMethod method, String url, String apikey, Object body, ResponseHandler handle) {
 
         if (method == null) {
             log.error("method is null");
@@ -303,17 +274,25 @@ public class RestClientService {
                     reqSpec.retrieve()
                         .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
                             log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                            response.close();
                         })
                         .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
                             log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                            var respBody = jsonMapper.readValue(response.getBody().readAllBytes(), JsonNode.class);
-                            handle.onReceived(true, respBody);
+                            try (response) {
+                                var respBody = jsonMapper.readValue(response.getBody().readAllBytes(), JsonNode.class);
+                                handle.onReceived(true, respBody);
+                            } catch (IOException e) {
+                                log.error(e.getMessage(), e);
+                                handle.onReceived(false, null);
+                            }
                         })
                         .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
                             log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                            response.close();
                         })
                         .onStatus(HttpStatusCode::isError, (request, response) -> {
                             log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                            response.close();
                             handle.onReceived(false, null);
                         })
                         .toBodilessEntity();
@@ -322,15 +301,16 @@ public class RestClientService {
                     handle.onReceived(false, null);
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
+                    handle.onReceived(false, null);
                 }
             });
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            handle.onReceived(false, null);
         }
     }
 
-    public void sendAsync(HttpMethod method, String url, String apikey, Object body,
-            RestClientResponseDetailHandler handle) {
+    public void sendAsyncDetail(HttpMethod method, String url, String apikey, Object body, ResponseDetailHandler handle) {
 
         if (method == null) {
             log.error("method is null");
@@ -365,6 +345,7 @@ public class RestClientService {
                     reqSpec.retrieve()
                         .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
                             log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                            response.close();
                         })
                         .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
                             log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
@@ -372,10 +353,12 @@ public class RestClientService {
                         })
                         .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
                             log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                            response.close();
                         })
                         .onStatus(HttpStatusCode::isError, (request, response) -> {
                             log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                            handle.onReceived(false, request, response);
+                            response.close();
+                            handle.onReceived(false, request, null);
                         })
                         .toBodilessEntity();
                 } catch (ResourceAccessException e) {
@@ -383,10 +366,12 @@ public class RestClientService {
                     handle.onReceived(false, null, null);
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
+                    handle.onReceived(false, null, null);
                 }
             });
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            handle.onReceived(false, null, null);
         }
     }
 }

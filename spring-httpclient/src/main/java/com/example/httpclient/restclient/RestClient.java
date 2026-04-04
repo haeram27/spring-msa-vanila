@@ -17,10 +17,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import org.apache.tomcat.util.threads.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -42,20 +41,21 @@ public enum RestClient {
     private final int DEFAULT_CONNECT_TIMEOUT_SECONDS = 3; // 1~5
     private final int DEFAULT_READ_TIMEOUT_SECONDS = 20; // 10~30
 
-    // Virtual thread executor used for async send submission and handler execution
-    private final ExecutorService executor = new ThreadPoolExecutor(
-        0, 100,
-        60L, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<>(),
-        Thread.ofVirtual().name("rest-client-").factory()
-    );
+    // limit max concurrent requests, adjust the permits according to your needs and system capacity(socket, file descriptors, memory), 1000 is just an example here
+    // private Semaphore semaphore = new Semaphore(60000);
 
     private HttpClient defaultHttpClient = createTrustAllHttpClient();
     private HttpClient httpClient = defaultHttpClient;
+    private AtomicInteger requestId = new AtomicInteger(0);
 
     public enum HttpMethod {
         // https://datatracker.ietf.org/doc/html/rfc7231#section-4
-        DELETE, GET, HEAD, PATCH, POST, PUT
+        DELETE,
+        GET,
+        HEAD,   // usually allowed only for GET routed apis, for other methods, it depends on the server implementation
+        PATCH,
+        POST,
+        PUT
     }
 
     @FunctionalInterface
@@ -104,14 +104,13 @@ public enum RestClient {
 
             return HttpClient.newBuilder()
                 .sslContext(sslContext)
-                .executor(executor)
                 .connectTimeout(Duration.ofSeconds(DEFAULT_CONNECT_TIMEOUT_SECONDS)) // connection timeout
                 .build();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             log.warn("failed to create SSLContext that trusts all certificates, fallback to default HttpClient without custom SSLContext");
+
             return HttpClient.newBuilder()
-                .executor(executor)
                 .connectTimeout(Duration.ofSeconds(DEFAULT_CONNECT_TIMEOUT_SECONDS)) // connection timeout
                 .build();
         }
@@ -123,24 +122,6 @@ public enum RestClient {
 
     public void resetHttpClient() {
         this.httpClient = defaultHttpClient;
-    }
-
-    /**
-     * Shutdown resources created by RestClient (executor).
-     * Does not close HttpClient supplied externally via {@link #setHttpClient}.
-     * This executor use virtual threads, which will not keep the application running if all other non-daemon threads have completed.
-     * However, it is still recommended to shutdown the executor when it is no longer needed to free up resources and allow for proper cleanup of any pending tasks.
-     */
-    public void shutdownExecutor() {
-        try {
-            executor.shutdown();
-            if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
     }
 
     private boolean hasText(String str) {
@@ -266,36 +247,35 @@ public enum RestClient {
         // build final HttpRequest
         HttpRequest httpRequest = builder.build();
 
+        /*
+            HttpClient.send() Exceptions:
+            IOException         network error, connection failed, response timeout etc
+            InterruptedException thread interrupted while waiting for response
+        */
         try {
-            /*
-                HttpClient.send() Exceptions:
-                IOException         network error, connection failed, response timeout etc
-                InterruptedException thread interrupted while waiting for response
-            */
-            try {
-                log.info("http.request url={}", httpRequest.uri());
-                var httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
-                log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
+            log.info("http.request url={}", httpRequest.uri());
+            var httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+            log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
 
-                response.body = httpResponse.body() == null ? new byte[0] : httpResponse.body();
-                if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
-                    response.is2xxSuccessful = true;
+            response.body = Objects.requireNonNullElse(httpResponse.body(), new byte[0]);
+            if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
+                response.is2xxSuccessful = true;
+            } else {
+                if (Objects.nonNull(httpResponse.body()) && httpResponse.body().length > 0) {
+                    log.warn("received non-2xx response: body={}", new String(httpResponse.body()));
                 } else {
-                    log.warn("received non-2xx response: body={}", (httpResponse.body().length > 0) ? new String(httpResponse.body()) : "");
+                    log.warn("received non-2xx response with empty body");
                 }
-            } catch (java.io.IOException e) {
-                log.error("network error:");
-                logResourceAccessException(url, e);
-            } catch (InterruptedException e) {
-                log.warn("request interrupted: " + e.getMessage());
-                Thread.currentThread().interrupt();
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-                return response;
             }
-
+        } catch (java.io.IOException e) {
+            log.error("network error:");
+            logResourceAccessException(url, e);
+        } catch (InterruptedException e) {
+            log.warn("request interrupted: " + e.getMessage());
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            return response;
         }
 
         return response;
@@ -307,7 +287,8 @@ public enum RestClient {
      * @param url    request URL
      * @param apikey    api authentication key like "Bearer <token>", "Bearer " + Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8))), can be null or empty if the request does not require authentication
      * @param body      request body (JSON String), can be null or empty if the request does not have body, such as GET, DELETE, HEAD, etc.
-     * @return
+     * @return  ResponseDetail object containing the original HttpRequest, the HttpResponse, and a flag indicating whether the response status code is 2xx successful.
+     *          reqeust and response will be null if the request failed due to network error, timeout, invalid URL, etc.
      */
     public ResponseDetail sendDetail(HttpMethod method, String url, String apikey, String body) {
         ResponseDetail response = new ResponseDetail();
@@ -369,35 +350,35 @@ public enum RestClient {
         HttpRequest httpRequest = builder.build();
         response.request = httpRequest;
 
+        /*
+            HttpClient.send() Exceptions:
+            IOException         network error, connection failed, response timeout etc
+            InterruptedException thread interrupted while waiting for response
+        */
         try {
-            /*
-                HttpClient.send() Exceptions:
-                IOException         network error, connection failed, response timeout etc
-                InterruptedException thread interrupted while waiting for response
-            */
-            try {
-                log.info("http.request url={}", httpRequest.uri());
-                var httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
-                log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
+            log.info("http.request url={}", httpRequest.uri());
+            var httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+            log.info("http.response status={} url={}", httpResponse.statusCode(), httpRequest.uri());
 
-                response.response = httpResponse;
-                if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
-                    response.is2xxSuccessful = true;
+            response.response = httpResponse;
+            if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
+                response.is2xxSuccessful = true;
+            } else {
+                if (Objects.nonNull(httpResponse.body()) && httpResponse.body().length > 0) {
+                    log.warn("received non-2xx response: body={}", new String(httpResponse.body()));
                 } else {
-                    log.warn("received non-2xx response: body={}", (httpResponse.body().length > 0) ? new String(httpResponse.body()) : "");
+                    log.warn("received non-2xx response with empty body");
                 }
-            } catch (java.io.IOException e) {
-                log.error("network error:");
-                logResourceAccessException(url, e);
-            } catch (InterruptedException e) {
-                log.warn("request interrupted: " + e.getMessage());
-                Thread.currentThread().interrupt();
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-                return response;
             }
+        } catch (java.io.IOException e) {
+            log.error("network error:");
+            logResourceAccessException(url, e);
+        } catch (InterruptedException e) {
+            log.warn("request interrupted: " + e.getMessage());
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            return response;
         }
 
         return response;
@@ -410,7 +391,7 @@ public enum RestClient {
      * @param apikey    api authentication key like "Bearer <token>", "Bearer " + Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8))), can be null or empty if the request does not require authentication
      * @param body      request body (JSON String), can be null or empty if the request does not have body, such as GET, DELETE, HEAD, etc.
      * @param handler   response handler to handle the response details such as status code, headers, body, etc.
-     * @return is2xxSuccessful is true if the response status code is 2xx
+     * @return ResponseHandler passes a flag indicating whether the response status code is 2xx successful and the response body as byte array.
      *         body will not be null, but empty byte array if the response does not have body or the request failed due to network error, timeout, invalid URL, etc.
      */
     public void sendAsync(HttpMethod method, String url, String apikey, String body, ResponseHandler handler) {
@@ -473,52 +454,85 @@ public enum RestClient {
         HttpRequest httpRequest = builder.build();
 
         try {
-            log.info("http.request url={}", httpRequest.uri());
-            httpClient.sendAsync(httpRequest, BodyHandlers.ofByteArray())
-                .whenCompleteAsync((httpResponse, throwable) -> {
-                    if (throwable != null) {
-                        Throwable t = (throwable instanceof java.util.concurrent.CompletionException)
-                            ? throwable.getCause() : throwable;
+            Thread.startVirtualThread(()->{
+                /*
+                    HttpClient.send() Exceptions:
+                    IOException         network error, connection failed, response timeout etc
+                    InterruptedException thread interrupted while waiting for response
+                */
+                HttpResponse<byte[]> httpResponse = null;
+                var id = requestId.accumulateAndGet(Integer.MAX_VALUE, (current, max) -> 
+                    current >= max ? 0 : current + 1
+                );
 
-                        if (t instanceof IOException) {
-                            log.error("network error:");
-                            logResourceAccessException(url, (IOException) t);
-                        } else {
-                            log.error("request failed: {}", t.getMessage(), t);
-                        }
+                try {
+                    // semaphore.acquire();
+                    log.info("http.request.async requestId={} url={}", id, httpRequest.uri());
+                    httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                    log.info("http.response.async requestId={} status={}", id, httpResponse.statusCode());
+                    // semaphore.release();
 
-                        try {
-                            handler.onReceived(false, new byte[0]);
-                        } catch (Exception e) {
-                            log.error("handler threw: {}", e.getMessage(), e);
-                        }
-                        return;
-                    }
-
-                    if (Objects.isNull(httpResponse)) {
-                        try {
-                            handler.onReceived(false, new byte[0]);
-                        } catch (Exception e) { log.error("handler threw: {}", e.getMessage(), e); }
-                        return;
-                    }
-
-                    byte[] bodyBytes = Objects.isNull(httpResponse.body()) ? new byte[0] : httpResponse.body();
                     if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
                         try {
-                            handler.onReceived(true, bodyBytes);
-                        } catch (Exception e) { log.error("handler threw: {}", e.getMessage(), e); }
+                            handler.onReceived(true, Objects.requireNonNullElse(httpResponse.body(), new byte[0]));
+                        } catch (Exception ex) {
+                            log.error(ex.getMessage(), ex);
+                        }
+                        return;
                     } else {
-                        log.warn("received non-2xx response: body={}", (bodyBytes.length > 0) ? new String(bodyBytes) : "");
+                        if (Objects.nonNull(httpResponse.body()) && httpResponse.body().length > 0) {
+                            log.warn("received non-2xx response: requestId={} body={}", id, new String(httpResponse.body()));
+                        } else {
+                            log.warn("received non-2xx response with empty body: requestId={}", id);
+                        }
+
                         try {
-                            handler.onReceived(false, bodyBytes);
-                        } catch (Exception e) { log.error("handler threw: {}", e.getMessage(), e); }
+                            handler.onReceived(false, Objects.requireNonNullElse(httpResponse.body(), new byte[0]));
+                        } catch (Exception ex) {
+                            log.error(ex.getMessage(), ex);
+                        }
+                        return;
                     }
-                }, executor);
+                } catch (java.io.IOException e) {
+                    log.error("network error: requestId={}", id);
+                    logResourceAccessException(url, e);
+
+                    try {
+                        handler.onReceived(false, new byte[0]);
+                    } catch (Exception ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
+                    return;
+                } catch (InterruptedException e) {
+                    log.warn("request interrupted: requestId={} message={}", id, e.getMessage());
+
+                    // set interrupt status flag again as true of this thread, because the flag removed by catch InterruptedException here
+                    Thread.currentThread().interrupt();
+                    try {
+                        handler.onReceived(false, new byte[0]);
+                    } catch (Exception ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
+                    return;
+                } catch (Exception e) {
+                    log.error("unexpected error: requestId={} message={}", id, e.getMessage(), e);
+
+                    try {
+                        handler.onReceived(false, new byte[0]);
+                    } catch (Exception ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
+                    return;
+                }
+            });
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+
             try {
                 handler.onReceived(false, new byte[0]);
-            } catch (Exception ex) { log.error("handler threw: {}", ex.getMessage(), ex); }
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
         }
     }
 
@@ -529,7 +543,8 @@ public enum RestClient {
      * @param apikey    api authentication key like "Bearer <token>", "Bearer " + Base64.getEncoder().encodeToString(apikeyString.getBytes(StandardCharsets.UTF_8))), can be null or empty if the request does not require authentication
      * @param body      request body (JSON String), can be null or empty if the request does not have body, such as GET, DELETE, HEAD, etc.
      * @param handler   response handler to handle the response details such as status code, headers, body, etc.
-     * @return
+     * @return  ResponseDetailHandler passes the original HttpRequest, the HttpResponse, and a flag indicating whether the response status code is 2xx successful.
+     *          reqeust and response will be null if the request failed due to network error, timeout, invalid URL, etc.
      */
     public void sendAsyncDetail(HttpMethod method, String url, String apikey, String body, ResponseDetailHandler handler) {
 
@@ -591,50 +606,85 @@ public enum RestClient {
         HttpRequest httpRequest = builder.build();
 
         try {
-            log.info("http.request url={}", httpRequest.uri());
-            httpClient.sendAsync(httpRequest, BodyHandlers.ofByteArray())
-                .whenCompleteAsync((httpResponse, throwable) -> {
-                    if (throwable != null) {
-                        Throwable t = (throwable instanceof java.util.concurrent.CompletionException)
-                            ? throwable.getCause() : throwable;
+            Thread.startVirtualThread(()->{
+                /*
+                    HttpClient.send() Exceptions:
+                    IOException         network error, connection failed, response timeout etc
+                    InterruptedException thread interrupted while waiting for response
+                */
+                HttpResponse<byte[]> httpResponse = null;
+                var id = requestId.accumulateAndGet(Integer.MAX_VALUE, (current, max) -> 
+                    current >= max ? 0 : current + 1
+                );
 
-                        if (t instanceof IOException) {
-                            log.error("network error:");
-                            logResourceAccessException(url, (IOException) t);
-                        } else {
-                            log.error("request failed: {}", t.getMessage(), t);
-                        }
+                try {
+                    // semaphore.acquire();
+                    log.info("http.request.async requestId={} url={}", id, httpRequest.uri());
+                    httpResponse = httpClient.send(httpRequest, BodyHandlers.ofByteArray());
+                    log.info("http.response.async requestId={} status={}", id, httpResponse.statusCode());
+                    // semaphore.release();
 
-                        try {
-                            handler.onReceived(false, httpRequest, null);
-                        } catch (Exception e) { log.error("handler threw: {}", e.getMessage(), e); }
-                        return;
-                    }
-
-                    if (Objects.isNull(httpResponse)) {
-                        try {
-                            handler.onReceived(false, httpRequest, null);
-                        } catch (Exception e) { log.error("handler threw: {}", e.getMessage(), e);}
-                        return;
-                    }
-
-                    byte[] bodyBytes = Objects.isNull(httpResponse.body()) ? new byte[0] : httpResponse.body();
                     if (httpResponse.statusCode() >= 200 && httpResponse.statusCode() < 300) {
                         try {
                             handler.onReceived(true, httpRequest, httpResponse);
-                        } catch (Exception e) { log.error("handler threw: {}", e.getMessage(), e); }
+                        } catch (Exception ex) {
+                            log.error(ex.getMessage(), ex);
+                        }
+                        return;
                     } else {
-                        log.warn("received non-2xx response: body={}", (bodyBytes.length > 0) ? new String(bodyBytes) : "");
+                        if (Objects.nonNull(httpResponse.body()) && httpResponse.body().length > 0) {
+                            log.warn("received non-2xx response: requestId={} body={}", id, new String(httpResponse.body()));
+                        } else {
+                            log.warn("received non-2xx response with empty body: requestId={}", id);
+                        }
+
                         try {
                             handler.onReceived(false, httpRequest, httpResponse);
-                        } catch (Exception e) { log.error("handler threw: {}", e.getMessage(), e); }
+                        } catch (Exception ex) {
+                            log.error(ex.getMessage(), ex);
+                        }
+                        return;
                     }
-                }, executor);
+                } catch (java.io.IOException e) {
+                    log.error("network error: requestId={}", id);
+                    logResourceAccessException(url, e);
+
+                    try {
+                        handler.onReceived(false, httpRequest, Objects.nonNull(httpResponse) ? httpResponse : null);
+                    } catch (Exception ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
+                    return;
+                } catch (InterruptedException e) {
+                    log.warn("request interrupted: requestId={} message={}", id, e.getMessage());
+
+                    // set interrupt status flag again as true of this thread, because the flag removed by catch InterruptedException here
+                    Thread.currentThread().interrupt();
+                    try {
+                        handler.onReceived(false, httpRequest, Objects.nonNull(httpResponse) ? httpResponse : null);
+                    } catch (Exception ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
+                    return;
+                } catch (Exception e) {
+                    log.error("unexpected error: requestId={} message={}", id, e.getMessage(), e);
+
+                    try {
+                        handler.onReceived(false, httpRequest, Objects.nonNull(httpResponse) ? httpResponse : null);
+                    } catch (Exception ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
+                    return;
+                }
+            });
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+
             try {
                 handler.onReceived(false, httpRequest, null);
-            } catch (Exception ex) { log.error("handler threw: {}", ex.getMessage(), ex); }
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
         }
     }
 

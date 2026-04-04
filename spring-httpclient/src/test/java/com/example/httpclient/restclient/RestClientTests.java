@@ -16,6 +16,17 @@ public class RestClientTests {
     private JsonMapper jsonMapper;
 
     @Test
+    public void head() {
+        var url = "http://localhost:8181/api/pagenation/servers/count";
+        var response = client.send(RestClient.HttpMethod.HEAD, url, null, "{}");
+        if (response.is2xxSuccessful && response.body.length > 0) {
+            log.info("Successfully received response with status body=\n{}", new String(response.body));
+        } else {
+            log.error("Failed to receive successful response.");
+        }
+    }
+
+    @Test
     public void count() {
         var url = "http://localhost:8181/api/pagenation/servers/count";
         var response = client.send(RestClient.HttpMethod.POST, url, null, "{}");

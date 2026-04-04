@@ -3,6 +3,7 @@ package com.example.httpclient.restclient;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpTimeoutException;
@@ -45,7 +46,7 @@ public class RestClientService {
     @FunctionalInterface
     public interface ResponseDetailHandler {
         // resonse is closable, so it should be handled in the method where it is received, not returned to the caller.
-        void onReceived(boolean is2xxSuccessful, HttpRequest request, ClientHttpResponse closeableResponse);
+        void onReceived(boolean is2xxSuccessful, HttpRequest request, ClientHttpResponse response);
     }
 
     public static class Response {
@@ -53,11 +54,10 @@ public class RestClientService {
         JsonNode body;
     }
 
-    public static class ResponseDetail {
+    public static class ResponseDetail   {
         boolean is2xxSuccessful;
         HttpRequest request;
-        // resonse is closable, so it should be handled in the method where it is received, not returned to the caller.
-        ClientHttpResponse closeableResponse;
+        ClientHttpResponse closableResponse;
     }
 
     private static Throwable getRootCause(Throwable throwable) {
@@ -110,6 +110,17 @@ public class RestClientService {
         log.error("restapi io error: method={}, url={}, type={}, message={}", method, url, errorType, errorMessage, e);
     }
 
+    /**
+     * This method sends an HTTP request using the RestClient and returns a Response object containing the response body and a flag indicating whether the response status code is 2xx successful.
+     * The response body is parsed as a JsonNode using the JsonMapper.
+     * The method also handles various exceptions that may occur during the HTTP request process and logs appropriate error messages.
+     * 
+     * @param method
+     * @param url
+     * @param apikey
+     * @param body
+     * @return
+     */
     public Response send(HttpMethod method, String url, String apikey, Object body) {
 
         var httpResponse = new Response();
@@ -119,36 +130,39 @@ public class RestClientService {
             return httpResponse;
         }
 
-        if (!StringUtils.hasText(url)) {
-            log.error("invalid request url");
+        URI uri = null;
+        try{
+            uri = URI.create(url);
+        } catch (Exception e) {
+            log.error("invalid request url: {}", url, e);
             return httpResponse;
         }
 
+        var reqSpec = restClient.method(method)
+                        .uri(uri)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON);
+
+        if (body != null) {
+            reqSpec.body(body);
+        }
+
+        if (StringUtils.hasText(apikey)) {
+            // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
+            reqSpec.header("Authorization", apikey);
+        }
+
         try {
-            var reqSpec = restClient.method(method)
-                    .uri(url)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .contentType(MediaType.APPLICATION_JSON);
-
-            if (body != null) {
-                reqSpec.body(body);
-            }
-
-            if (StringUtils.hasText(apikey)) {
-                // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
-                reqSpec.header("Authorization", apikey);
-            }
-
             log.debug("send restapi request:\nurl: {}\nbody: {}", url,
-                    (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
+                (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
 
             reqSpec.retrieve()
                     .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
                         response.close();
                     })
                     .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
                         httpResponse.is2xxSuccessful = true;
                         try (response) {
                             var respBody = jsonMapper.readValue(response.getBody().readAllBytes(), JsonNode.class);
@@ -158,12 +172,19 @@ public class RestClientService {
                         }
                     })
                     .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
                         response.close();
                     })
                     .onStatus(HttpStatusCode::isError, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                        response.close();
+                        log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
+                        try (response) {
+                            if (response.getBody() != null) {
+                                log.error("restapi error response body: {}", new String(response.getBody().readAllBytes()));
+                            }
+                        } catch (IOException e) {
+                            log.error(e.getMessage(), e);
+                        }
+
                     })
                     .toBodilessEntity();
 
@@ -176,6 +197,16 @@ public class RestClientService {
         return httpResponse;
     }
 
+    /**
+     * This method is similar to send() but it returns more detailed information about the response, including the original HttpRequest and the ClientHttpResponse.
+     * The ClientHttpResponse is closable, so it should be handled in the method where it is received, not returned to the caller.
+     * 
+     * @param method
+     * @param url
+     * @param apikey
+     * @param body
+     * @return
+     */
     public ResponseDetail sendDetail(HttpMethod method, String url, String apikey, Object body) {
 
         var httpResponse = new ResponseDetail();
@@ -185,48 +216,57 @@ public class RestClientService {
             return httpResponse;
         }
 
-        if (!StringUtils.hasText(url)) {
-            log.error("invalid request url");
+        URI uri  = null;
+        try{
+            uri = URI.create(url);
+        } catch (Exception e) {
+            log.error("invalid request url: {}", url, e);
             return httpResponse;
         }
 
+        var reqSpec = restClient.method(method)
+                        .uri(uri)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON);
+
+        if (body != null) {
+            reqSpec.body(body);
+        }
+
+        if (StringUtils.hasText(apikey)) {
+            // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
+            reqSpec.header("Authorization", apikey);
+        }
+
         try {
-            var reqSpec = restClient.method(method)
-                    .uri(url)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .contentType(MediaType.APPLICATION_JSON);
-
-            if (body != null) {
-                reqSpec.body(body);
-            }
-
-            if (StringUtils.hasText(apikey)) {
-                // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
-                reqSpec.header("Authorization", apikey);
-            }
-
             log.debug("send restapi request:\nurl: {}\nbody: {}", url,
-                    (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
+                (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
 
             reqSpec.retrieve()
                     .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
                         response.close();
                     })
                     .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
                         httpResponse.is2xxSuccessful = true;
                         httpResponse.request = request;
-                        httpResponse.closeableResponse = response;
+                        httpResponse.closableResponse = response;
                     })
                     .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
                         response.close();
                     })
                     .onStatus(HttpStatusCode::isError, (request, response) -> {
-                        log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                        log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
                         httpResponse.request = request;
-                        response.close();
+                        try (response) {
+                            if (response.getBody() != null) {
+                                log.error("restapi error response body: {}", new String(response.getBody().readAllBytes()));
+                            }
+                        } catch (IOException e) {
+                            log.error(e.getMessage(), e);
+                        }
                     })
                     .toBodilessEntity();
 
@@ -239,33 +279,55 @@ public class RestClientService {
         return httpResponse;
     }
 
+    /**
+     * This method sends an HTTP request asynchronously using virtual threads.
+     * It takes a ResponseHandler as a parameter, which is a functional interface that defines a callback method to handle the response when it is received.
+     * The response body is parsed as a JsonNode and passed to the callback method along with a flag indicating whether the response status code is 2xx successful.
+     * 
+     * @param method
+     * @param url
+     * @param apikey
+     * @param body
+     * @param handle
+     */
     public void sendAsync(HttpMethod method, String url, String apikey, Object body, ResponseHandler handle) {
 
         if (method == null) {
             log.error("method is null");
-            return;
+            try {
+                handle.onReceived(false, null);
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
         }
 
-        if (!StringUtils.hasText(url)) {
-            log.error("invalid request url");
-            return;
+        URI uri = null;
+        try{
+            uri = URI.create(url);
+        } catch (Exception e) {
+            log.error("invalid request url: {}", url, e);
+            try {
+                handle.onReceived(false, null);
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
+
+        var reqSpec = restClient.method(method)
+                        .uri(uri)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON);
+
+        if (body != null) {
+            reqSpec.body(body);
+        }
+
+        if (StringUtils.hasText(apikey)) {
+            // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
+            reqSpec.header("Authorization", apikey);
         }
 
         try {
-            var reqSpec = restClient.method(method)
-                    .uri(url)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .contentType(MediaType.APPLICATION_JSON);
-
-            if (body != null) {
-                reqSpec.body(body);
-            }
-
-            if (StringUtils.hasText(apikey)) {
-                // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
-                reqSpec.header("Authorization", apikey);
-            }
-
             log.debug("send restapi request:\nurl: {}\nbody: {}", url,
                     (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
 
@@ -273,70 +335,108 @@ public class RestClientService {
                 try {
                     reqSpec.retrieve()
                         .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                            log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
                             response.close();
                         })
                         .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                            log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
                             try (response) {
                                 var respBody = jsonMapper.readValue(response.getBody().readAllBytes(), JsonNode.class);
                                 handle.onReceived(true, respBody);
-                            } catch (IOException e) {
+                            } catch (Exception e) {
                                 log.error(e.getMessage(), e);
-                                handle.onReceived(false, null);
                             }
                         })
                         .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                            log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
                             response.close();
                         })
                         .onStatus(HttpStatusCode::isError, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                            response.close();
-                            handle.onReceived(false, null);
+                            log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
+                            try (response) {
+                                if (response.getBody() != null) {
+                                    log.error("restapi error response body: {}", new String(response.getBody().readAllBytes()));
+                                }
+                                handle.onReceived(false, null);
+                            } catch (Exception ex) {
+                                log.error(ex.getMessage(), ex);
+                            }
                         })
                         .toBodilessEntity();
                 } catch (ResourceAccessException e) {
                     logResourceAccessException(method, url, e);
-                    handle.onReceived(false, null);
+                    try {
+                        handle.onReceived(false, null);
+                    } catch (Exception ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
-                    handle.onReceived(false, null);
+                    try {
+                        handle.onReceived(false, null);
+                    } catch (Exception ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
                 }
             });
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            handle.onReceived(false, null);
+            try {
+                handle.onReceived(false, null);
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
         }
     }
 
+    /**
+     * This method is similar to sendAsync() but it provides more detailed information about the response, including the original HttpRequest and the ClientHttpResponse.
+     * The response body is InputStream, so it should be handled in the callback method and closed after use.
+     * 
+     * @param method
+     * @param url
+     * @param apikey
+     * @param body
+     * @param handle
+     */
     public void sendAsyncDetail(HttpMethod method, String url, String apikey, Object body, ResponseDetailHandler handle) {
 
         if (method == null) {
             log.error("method is null");
-            return;
+            try {
+                handle.onReceived(false, null, null);
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
         }
 
-        if (!StringUtils.hasText(url)) {
-            log.error("invalid request url");
-            return;
+        URI uri = null;
+        try{
+            uri = URI.create(url);
+        } catch (Exception e) {
+            log.error("invalid request url: {}", url, e);
+            try {
+                handle.onReceived(false, null, null);
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
+
+        var reqSpec = restClient.method(method)
+                        .uri(uri)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON);
+
+        if (body != null) {
+            reqSpec.body(body);
+        }
+
+        if (StringUtils.hasText(apikey)) {
+            // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
+            reqSpec.header("Authorization", apikey);
         }
 
         try {
-            var reqSpec = restClient.method(method)
-                    .uri(url)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .contentType(MediaType.APPLICATION_JSON);
-
-            if (body != null) {
-                reqSpec.body(body);
-            }
-
-            if (StringUtils.hasText(apikey)) {
-                // reqSpec.header("Authorization", "Bearer " + Base64.getEncoder().encodeToString(apikey.getBytes(StandardCharsets.UTF_8)));
-                reqSpec.header("Authorization", apikey);
-            }
-
             log.debug("send restapi request:\nurl: {}\nbody: {}", url,
                     (body == null) ? "null" : jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
 
@@ -344,34 +444,56 @@ public class RestClientService {
                 try {
                     reqSpec.retrieve()
                         .onStatus(HttpStatusCode::is1xxInformational, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                            log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
                             response.close();
                         })
                         .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                            handle.onReceived(true, request, response);
+                            log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
+                            try (response) {
+                                handle.onReceived(false, request, response);
+                            } catch (Exception ex) {
+                                log.error(ex.getMessage(), ex);
+                            }
                         })
                         .onStatus(HttpStatusCode::is3xxRedirection, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
+                            log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
                             response.close();
                         })
                         .onStatus(HttpStatusCode::isError, (request, response) -> {
-                            log.info(String.format("%s, %s, %s", request.getURI(), response.getStatusCode(), response.getHeaders()));
-                            response.close();
-                            handle.onReceived(false, request, null);
+                            log.info(String.format("received restapi response: %s, %s", response.getStatusCode(), request.getURI()));
+                            try (response) {
+                                if (response.getBody() != null) {
+                                    log.error("restapi error response body: {}", new String(response.getBody().readAllBytes()));
+                                }
+                                handle.onReceived(false, request, null);
+                            } catch (Exception ex) {
+                                log.error(ex.getMessage(), ex);
+                            }
                         })
                         .toBodilessEntity();
                 } catch (ResourceAccessException e) {
                     logResourceAccessException(method, url, e);
-                    handle.onReceived(false, null, null);
+                    try {
+                        handle.onReceived(false, null, null);
+                    } catch (Exception ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
-                    handle.onReceived(false, null, null);
+                    try {
+                        handle.onReceived(false, null, null);
+                    } catch (Exception ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
                 }
             });
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            handle.onReceived(false, null, null);
+            try {
+                handle.onReceived(false, null, null);
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
         }
     }
 }

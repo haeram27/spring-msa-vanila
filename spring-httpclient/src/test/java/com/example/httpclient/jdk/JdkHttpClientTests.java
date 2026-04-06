@@ -1,4 +1,4 @@
-package com.example.httpclient;
+package com.example.httpclient.jdk;
 
 import java.net.URI;
 import java.net.http.HttpClient;

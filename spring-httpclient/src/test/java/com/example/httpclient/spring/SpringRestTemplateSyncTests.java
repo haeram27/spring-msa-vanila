@@ -1,4 +1,4 @@
-package com.example.httpclient;
+package com.example.httpclient.spring;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @SpringBootTest
-public class JdkRestTemplateSyncTests extends EvaluatedTimeTests {
+public class SpringRestTemplateSyncTests extends EvaluatedTimeTests {
 
     @Autowired
     @Qualifier("jdkClientTrustAllRestTemplate")

@@ -1,4 +1,4 @@
-package com.example.httpclient.restclient;
+package com.example.httpclient.restclient.jdk;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -267,7 +267,7 @@ public enum RestClient {
                     log.warn("received non-2xx response with empty body");
                 }
             }
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             log.error("network error:");
             logResourceAccessException(url, e);
         } catch (InterruptedException e) {
@@ -370,7 +370,7 @@ public enum RestClient {
                     log.warn("received non-2xx response with empty body");
                 }
             }
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             log.error("network error:");
             logResourceAccessException(url, e);
         } catch (InterruptedException e) {
@@ -493,7 +493,7 @@ public enum RestClient {
                         }
                         return;
                     }
-                } catch (java.io.IOException e) {
+                } catch (IOException e) {
                     log.error("network error: requestId={}", id);
                     logResourceAccessException(url, e);
 
@@ -645,7 +645,7 @@ public enum RestClient {
                         }
                         return;
                     }
-                } catch (java.io.IOException e) {
+                } catch (IOException e) {
                     log.error("network error: requestId={}", id);
                     logResourceAccessException(url, e);
 

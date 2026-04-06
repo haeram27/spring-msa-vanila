@@ -1,4 +1,4 @@
-package com.example.httpclient;
+package com.example.httpclient.apache;
 
 import java.net.URI;
 import java.util.ArrayList;

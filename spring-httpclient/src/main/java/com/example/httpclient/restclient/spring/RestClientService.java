@@ -1,4 +1,4 @@
-package com.example.httpclient.restclient;
+package com.example.httpclient.restclient.spring;
 
 import java.io.IOException;
 import java.net.ConnectException;

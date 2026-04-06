@@ -1,14 +1,17 @@
-package com.example.httpclient.restclient;
+package com.example.httpclient.jdk;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import com.example.httpclient.restclient.jdk.RestClient;
+import com.example.httpclient.restclient.jdk.RestClient.HttpMethod;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @SpringBootTest
-public class RestClientTests {
+public class JdkRestClientTests {
 
     private RestClient client = RestClient.INSTANCE;
 
@@ -18,7 +21,7 @@ public class RestClientTests {
     @Test
     public void head() {
         var url = "http://localhost:8181/api/pagenation/servers/count";
-        var response = client.send(RestClient.HttpMethod.HEAD, url, null, "{}");
+        var response = client.send(HttpMethod.HEAD, url, null, "{}");
         if (response.is2xxSuccessful && response.body.length > 0) {
             log.info("Successfully received response with status body=\n{}", new String(response.body));
         } else {
@@ -29,7 +32,7 @@ public class RestClientTests {
     @Test
     public void count() {
         var url = "http://localhost:8181/api/pagenation/servers/count";
-        var response = client.send(RestClient.HttpMethod.POST, url, null, "{}");
+        var response = client.send(HttpMethod.POST, url, null, "{}");
         if (response.is2xxSuccessful && response.body.length > 0) {
             log.info("Successfully received response with status body=\n{}", new String(response.body));
         } else {
@@ -42,7 +45,7 @@ public class RestClientTests {
         var countUrl = "http://localhost:8181/api/pagenation/servers/count";
         var serverUrl = "http://localhost:8181/api/pagenation/servers";
 
-        var response = client.send(RestClient.HttpMethod.POST, countUrl, null, "{}");
+        var response = client.send(HttpMethod.POST, countUrl, null, "{}");
         log.info("response=\n{}", new String(response.body));
 
         int totalCount = 0;

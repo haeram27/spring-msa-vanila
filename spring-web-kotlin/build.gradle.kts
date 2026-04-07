@@ -1,0 +1,133 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    java
+    id("org.jetbrains.kotlin.jvm") version "2.1.21"
+    id("org.jetbrains.kotlin.plugin.spring") version "2.1.21"
+    id("org.springframework.boot") version "3.5.10"
+}
+
+val mybatisVersion = "3.0.3"
+val springBootVersion = "3.5.10"
+
+group = "com.example"
+version = "0.0.1-SNAPSHOT"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+configurations {
+    all {
+        exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
+    }
+}
+
+dependencies {
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
+    runtimeOnly("org.postgresql:postgresql")
+
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("com.google.code.gson:gson")
+    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:$mybatisVersion")
+
+    implementation("org.springframework.boot:spring-boot-starter-log4j2")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-quartz")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("com.google.code.gson:gson")
+    testImplementation("org.springframework.boot:spring-boot-starter-log4j2")
+    testImplementation("org.springframework.boot:spring-boot-starter-aop")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        freeCompilerArgs += "-Xjsr305=strict"
+        jvmTarget = "21"
+    }
+}
+
+// do not archive plain-jar(jar \wo dependency)
+tasks.jar {
+    enabled = false
+}
+
+/*
+ * # clean a specific test result cache before run test
+ * gradle test --rerun --tests 'Hello*.hello'
+ * # clean all tests result cache before run tests
+ * gradle test --rerun-tasks --tests 'Hello*.hello'
+ */
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        showStandardStreams = true
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        events(
+            "passed",
+            "skipped",
+            "failed",
+            "standardOut",
+            "standardError"
+        )
+    }
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    environment("spring.output.ansi.console-available", "true")
+}
+
+/*
+    # tasks = commands list
+    $ gradle tasks --all
+
+        Application tasks
+        -----------------
+        bootRun - Runs this project as a Spring Boot application.
+        bootTestRun - Runs this project as a Spring Boot application using the test runtime classpath.
+
+        Build tasks
+        -----------
+        assemble - Assembles the outputs of this project.
+        bootBuildImage - Builds an OCI image of the application using the output of the bootJar task
+        bootJar - Assembles an executable jar archive containing the main classes and their dependencies.
+        build - Assembles and tests this project.
+        buildDependents - Assembles and tests this project and all projects that depend on it.
+        buildNeeded - Assembles and tests this project and all projects it depends on.
+        classes - Assembles main classes.
+        clean - Deletes the build directory.
+        jar - Assembles a jar archive containing the classes of the 'main' feature.
+        resolveMainClassName - Resolves the name of the application's main class.
+        resolveTestMainClassName - Resolves the name of the application's test main class.
+        testClasses - Assembles test classes.
+
+    # assemble = build - text
+    $ gradle assemble --refresh-dependencies
+    $ gradle build -x test --refresh-dependencies
+
+    # build = assemble + test
+    $ gradle build --refresh-dependencies
+
+    # test = run junit test
+    $ gradle test --rerun-tasks --tests "ClassTests.MethodTest"
+
+    # dependency version checked by 'io.spring.dependency-management' plugin serves compatible versions of lib using each BOM
+    $ gradle dependencies
+    $ gradle dependencyManagement
+    $ gradle dependencyInsight --dependency httpclient5
+*/

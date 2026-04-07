@@ -1,6 +1,18 @@
 // plugin repositories
 pluginManagement {
     repositories {
+        maven {
+            url privateMavenRepositoryUrl
+
+            // if url is NOT secure (like http)
+            // allowInsecureProtocol = true
+
+            // if ahthentication is required
+            // credentials {
+            //     username = "user"
+            //     password = "password"
+            // }
+        }
         gradlePluginPortal()
         mavenCentral()
     }
@@ -8,6 +20,18 @@ pluginManagement {
 
 // dependency repositories
 dependencyResolutionManagement {
+    maven {
+            url privateMavenRepositoryUrl
+
+            // if url is NOT secure (like http)
+            // allowInsecureProtocol = true
+
+            // if ahthentication is required
+            // credentials {
+            //     username = "user"
+            //     password = "password"
+            // }
+        }
     repositories {
         mavenCentral()
     } 

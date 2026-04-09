@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = providers.gradleProperty("jvmVersion").get().toInt()
 val kotlinLoggingVersion = providers.gradleProperty("kotlinLoggingVersion").get()
 val springBootVersion = providers.gradleProperty("springBootVersion").get()
-val mybatisVersion = "3.0.3"
 
 plugins {
     java
@@ -33,25 +32,19 @@ configurations {
 dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
-    implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
-    runtimeOnly("org.postgresql:postgresql")
+    implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingVersion")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation("com.fasterxml.jackson.module:jackson-module-parameter-names")
+    implementation("org.apache.httpcomponents.client5:httpclient5")
+
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-log4j2")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-    implementation("com.google.code.gson:gson")
-    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:$mybatisVersion")
-
-    implementation("org.springframework.boot:spring-boot-starter-log4j2")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-aop")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-quartz")
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("com.google.code.gson:gson")
     testImplementation("org.springframework.boot:spring-boot-starter-log4j2")
-    testImplementation("org.springframework.boot:spring-boot-starter-aop")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

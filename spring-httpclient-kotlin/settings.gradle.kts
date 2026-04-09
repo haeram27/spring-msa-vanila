@@ -13,7 +13,6 @@ pluginManagement {
         id("org.springframework.boot") version springBootVersion
     }
 
-
     repositories {
         if (!privateMavenRepositoryUrl.isNullOrBlank()) {
             maven {
@@ -47,4 +46,4 @@ if (gradle.startParameter.isOffline) {
     println("======================")
 }
 
-rootProject.name = "springwebex-kotlin"
+rootProject.name = "spring-httpclient-kotlin"

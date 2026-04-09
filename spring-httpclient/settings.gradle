@@ -20,7 +20,8 @@ pluginManagement {
 
 // dependency repositories
 dependencyResolutionManagement {
-    maven {
+    repositories {
+        maven {
             url privateMavenRepositoryUrl
 
             // if url is NOT secure (like http)
@@ -32,7 +33,6 @@ dependencyResolutionManagement {
             //     password = "password"
             // }
         }
-    repositories {
         mavenCentral()
     } 
 }

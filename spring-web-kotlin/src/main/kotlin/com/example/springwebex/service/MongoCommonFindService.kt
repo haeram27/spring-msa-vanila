@@ -39,13 +39,13 @@ class MongoCommonFindService(
     private val minPageSize = 1
     private val maxPageSize = 1000
 
-    private inner class ObjectIdConverter : Converter<ObjectId> {
+    private class ObjectIdConverter : Converter<ObjectId> {
         override fun convert(value: ObjectId, writer: StrictJsonWriter) {
             writer.writeString(value.toHexString())
         }
     }
 
-    private inner class DateTimeConverter(private val zoneId: String) : Converter<Long> {
+    private class DateTimeConverter(private val zoneId: String) : Converter<Long> {
         override fun convert(value: Long, writer: StrictJsonWriter) {
             writer.writeString(
                 DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(
@@ -92,7 +92,7 @@ class MongoCommonFindService(
         var pageNumber = request.pageNumber ?: 0
         var pageSize = request.pageSize ?: 0
         if (pageNumber < minPageNumber) pageNumber = minPageNumber
-        if (pageSize < minPageSize || pageSize > maxPageSize) pageSize = maxPageSize
+        if (pageSize !in minPageSize..maxPageSize) pageSize = maxPageSize
 
         val pageable = PageRequest.of(pageNumber - minPageNumber, pageSize)
         query.with(pageable)

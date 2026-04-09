@@ -4,12 +4,16 @@ import java.util.Locale
 
 object StringUtil {
 
+    fun hasText(text: String?): Boolean {
+        return text.isNullOrBlank().not()
+    }
+
     fun isEmpty(text: String?): Boolean {
-        return text == null || text.isEmpty()
+        return text.isNullOrEmpty()
     }
 
     fun nonEmpty(text: String?): Boolean {
-        return text != null && text.isNotEmpty()
+        return text.isNullOrEmpty().not()
     }
 
     fun toLong(value: String?, def: Long): Long {

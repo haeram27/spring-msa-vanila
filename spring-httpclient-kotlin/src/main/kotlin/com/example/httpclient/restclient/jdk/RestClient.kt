@@ -212,8 +212,8 @@ object RestClient {
             if (httpResponse.statusCode() in 200..299) {
                 response.is2xxSuccessful = true
             } else {
-                val respBody = httpResponse.body()
-                if (respBody != null && respBody.isNotEmpty()) {
+                val respBody = httpResponse.body() ?: ByteArray(0)
+                if (respBody.isNotEmpty()) {
                     log.warn { "received non-2xx response: body=${String(respBody)}" }
                 } else {
                     log.warn { "received non-2xx response with empty body" }
@@ -255,8 +255,8 @@ object RestClient {
             if (httpResponse.statusCode() in 200..299) {
                 response.is2xxSuccessful = true
             } else {
-                val respBody = httpResponse.body()
-                if (respBody != null && respBody.isNotEmpty()) {
+                val respBody = httpResponse.body() ?: ByteArray(0)
+                if (respBody.isNotEmpty()) {
                     log.warn { "received non-2xx response: body=${String(respBody)}" }
                 } else {
                     log.warn { "received non-2xx response with empty body" }

@@ -117,6 +117,10 @@ public class MongoCommonFindService {
         if (pageSize < MIN_PAGE_SIZE || pageSize > MAX_PAGE_SIZE)
             pageSize = MAX_PAGE_SIZE;
 
+        // query to count total elements without pagination
+        // Query countQuery = query.skip(-1).limit(-1);
+        // long totalElements = mongoTemplate.count(countQuery, collection);
+
         Pageable pageable = PageRequest.of(pageNumber - MIN_PAGE_NUMBER, pageSize);
         query.with(pageable);
 
@@ -139,6 +143,15 @@ public class MongoCommonFindService {
                 throw new RestApiException(ex.getMessage());
             }
         }
+
+        // Response ageNation Info
+        // TotalElements(totalElements); 
+        // CurrentElements(results.size());
+        // CurrentPage(pageNumber);
+        // PageSize(pageSize);
+        // TotalPages((int) Math.ceil((double) totalElements / pageSize));
+        // HasNext(pageNumber < TotalPages);
+        // HasPrevious(pageNumber > 1);
 
         ResponseJsonDto<List<Map<String, Object>>> response = new ResponseJsonDto<>();
         response.setResponse(mappedResults);

@@ -1,35 +1,47 @@
+// plugin repositories
 pluginManagement {
     repositories {
-        maven {
-            url privateMavenRepositoryUrl
+        if (settings.hasProperty('privateMavenRepositoryUrl') && 
+            privateMavenRepositoryUrl != null && 
+            !privateMavenRepositoryUrl.toString().trim().isEmpty()) {
+            
+            maven {
+                url privateMavenRepositoryUrl
+                
+                // if url is NOT https
+                // allowInsecureProtocol = true
 
-            // if url is NOT secure (like http)
-            // allowInsecureProtocol = true
-
-            // if ahthentication is required
-            // credentials {
-            //     username = "user"
-            //     password = "password"
-            // }
+                // if ahthentication is required
+                // credentials {
+                //     username = "user"
+                //     password = "password"
+                // }
+            }
         }
         gradlePluginPortal()
         mavenCentral()
     }
 }
 
+// dependency repositories
 dependencyResolutionManagement {
     repositories {
-        maven {
-            url privateMavenRepositoryUrl
+        if (settings.hasProperty('privateMavenRepositoryUrl') && 
+            privateMavenRepositoryUrl != null && 
+            !privateMavenRepositoryUrl.toString().trim().isEmpty()) {
+            
+            maven {
+                url privateMavenRepositoryUrl
+                
+                // if url is NOT https
+                // allowInsecureProtocol = true
 
-            // if url is NOT secure (like http)
-            // allowInsecureProtocol = true
-
-            // if ahthentication is required
-            // credentials {
-            //     username = "user"
-            //     password = "password"
-            // }
+                // if ahthentication is required
+                // credentials {
+                //     username = "user"
+                //     password = "password"
+                // }
+            }
         }
         mavenCentral()
     } 
@@ -41,5 +53,4 @@ if (startParameter.offline) {
         println "gradle in offline mode"
         println "======================"
 }
-
 rootProject.name = 'springempty'

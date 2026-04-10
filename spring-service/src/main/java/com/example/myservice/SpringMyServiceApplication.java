@@ -1,7 +1,6 @@
 package com.example.myservice;
 
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CountDownLatch;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -22,11 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 @SpringBootApplication
 @Slf4j
 public class SpringMyServiceApplication {
-    private static ReentrantLock LOCK_TERM = new ReentrantLock();
-    private static Condition COND_TERM = LOCK_TERM.newCondition();
+
+    private static final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     public static void main(String[] args) throws Exception {
         log.debug("*** main() ***");
+
         new SpringApplicationBuilder(SpringMyServiceApplication.class)
             .listeners(new ApplicationListener<ApplicationEvent>() {
                 @SuppressWarnings("null")
@@ -48,22 +48,12 @@ public class SpringMyServiceApplication {
                         // implementations under HERE before applcation closed
 
                         // release main thread
-                        LOCK_TERM.lock();
-                        try {
-                            COND_TERM.signalAll();
-                        } finally {
-                            LOCK_TERM.unlock();
-                        }
+                        shutdownLatch.countDown();
                     }
                 }
             }).run(args);
 
-        // prevent main thread termination
-        LOCK_TERM.lock();
-        try {
-            COND_TERM.await();
-        } finally {
-            LOCK_TERM.unlock();
-        }
+        // hold main thread
+        shutdownLatch.await();
     }
 }

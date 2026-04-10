@@ -1,8 +1,8 @@
 package com.example.service;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CountDownLatch;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -14,9 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ServiceApplication {
 
-    private static ReentrantLock LOCK_TERM = new ReentrantLock();
-    private static Condition COND_TERM = LOCK_TERM.newCondition();
     private static AtomicInteger ATOM_INT = new AtomicInteger(0);
+    private static final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     @EventListener
     public void onApplicationEvent(ApplicationReadyEvent e) {
@@ -42,24 +41,14 @@ public class ServiceApplication {
         // applicaiton terminated
         log.info("@@@ ContextClosedEvent");
 
-        // wakeup main thread
-        LOCK_TERM.lock();
-        try {
-            COND_TERM.signalAll();
-        } finally {
-            LOCK_TERM.unlock();
-        }
+        // release main thread
+        shutdownLatch.countDown();
     }
 
     public static void main(String[] args) throws Exception {
         new SpringApplicationBuilder(ServiceApplication.class).run(args);
 
-        // wait on main thread
-        LOCK_TERM.lock();
-        try {
-            COND_TERM.await();
-        } finally {
-            LOCK_TERM.unlock();
-        }
+        // hold main thread
+        shutdownLatch.await();
     }
 }

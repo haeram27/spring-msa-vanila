@@ -1,5 +1,5 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val jvmVersion = providers.gradleProperty("jvmVersion").get().toInt()
 val kotlinLoggingVersion = providers.gradleProperty("kotlinLoggingVersion").get()
@@ -15,16 +15,9 @@ plugins {
 group = "com.example"
 version = "0.0.1-SNAPSHOT"
 
-java {
-    sourceCompatibility = JavaVersion.toVersion(jvmVersion)
-}
-
-kotlin {
-    jvmToolchain(jvmVersion)
-}
-
 configurations {
     all {
+        // exclude default logging framework (logback) to use log4j2
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
     }
 }
@@ -48,6 +41,26 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
+// set java source compatibility for java compile task
+java {
+    // minimum java version to compile source code
+    sourceCompatibility = JavaVersion.toVersion(jvmVersion)
+    // minimum java version to run the compiled bytecode, same or bigger than sourceCompatibility
+    targetCompatibility = JavaVersion.toVersion(jvmVersion)
+
+    // foojay-resolver: Apply a specific Java toolchain to ease working on different environments.
+    // foojay downloads specified JDK version if not found in .gradle/toolchains/ so gradlew can automatically setup the JDK toolchain.
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(jvmVersion)
+    }
+}
+
+// set jvm toolchain for kotlin compile task
+kotlin {
+    jvmToolchain(jvmVersion)
+}
+
+// kotlin compiler options
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         freeCompilerArgs.add("-Xjsr305=strict")
@@ -84,6 +97,7 @@ tasks.test {
     }
 }
 
+// make spring output colorful in console
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
     environment("spring.output.ansi.console-available", "true")
 }

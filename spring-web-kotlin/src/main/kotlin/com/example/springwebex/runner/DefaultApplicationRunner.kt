@@ -15,7 +15,7 @@ class DefaultApplicationRunner : ApplicationRunner {
         if (args != null) {
             log.info { "Option Names: ${args.optionNames}" }
             log.info { "Non Option Args: ${args.nonOptionArgs}" }
-            
+
             for (optionName in args.optionNames) {
                 log.info { "Option - $optionName: ${args.getOptionValues(optionName)}" }
             }

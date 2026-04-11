@@ -1,18 +1,8 @@
 pluginManagement {
-
     val privateMavenRepositoryUrl = providers.gradleProperty("privateMavenRepositoryUrl").orNull
     if (privateMavenRepositoryUrl.isNullOrBlank()) {
-        println("[WARN] gradle property 'privateMavenRepositoryUrl' is missing.")
+        println("No private maven repository url provided, fallback to pulic maven repositories.")
     }
-
-    val kotlinVersion = providers.gradleProperty("kotlinVersion").get()
-    val springBootVersion = providers.gradleProperty("springBootVersion").get()
-    plugins {
-        id("org.jetbrains.kotlin.jvm") version kotlinVersion
-        id("org.jetbrains.kotlin.plugin.spring") version kotlinVersion
-        id("org.springframework.boot") version springBootVersion
-    }
-
     repositories {
         if (!privateMavenRepositoryUrl.isNullOrBlank()) {
             maven {
@@ -22,12 +12,23 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
     }
+
+    val kotlinVersion = providers.gradleProperty("kotlinVersion").get()
+    val springBootVersion = providers.gradleProperty("springBootVersion").get()
+    val fooJayVersion = providers.gradleProperty("fooJayVersion").get()
+    plugins {
+        id("org.jetbrains.kotlin.jvm") version kotlinVersion
+        id("org.jetbrains.kotlin.plugin.spring") version kotlinVersion
+        id("org.springframework.boot") version springBootVersion
+        // jdk toolchain resolver plugin for jdk auto download and setup
+        id("org.gradle.toolchains.foojay-resolver-convention") version fooJayVersion
+    }
 }
 
 dependencyResolutionManagement {
     val privateMavenRepositoryUrl = providers.gradleProperty("privateMavenRepositoryUrl").orNull
     if (privateMavenRepositoryUrl.isNullOrBlank()) {
-        println("[WARN] gradle property 'privateMavenRepositoryUrl' is missing.")
+        println("No private maven repository url provided, fallback to pulic maven repositories.")
     }
     repositories {
         if (!privateMavenRepositoryUrl.isNullOrBlank()) {

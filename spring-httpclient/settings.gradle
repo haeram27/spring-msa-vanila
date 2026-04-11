@@ -4,10 +4,9 @@ pluginManagement {
         if (settings.hasProperty('privateMavenRepositoryUrl') && 
             privateMavenRepositoryUrl != null && 
             !privateMavenRepositoryUrl.toString().trim().isEmpty()) {
-            
             maven {
                 url privateMavenRepositoryUrl
-                
+
                 // if url is NOT https
                 // allowInsecureProtocol = true
 
@@ -17,6 +16,8 @@ pluginManagement {
                 //     password = "password"
                 // }
             }
+        } else {
+            println "No private maven repository url provided, fallback to pulic maven repositories."
         }
         gradlePluginPortal()
         mavenCentral()
@@ -29,10 +30,9 @@ dependencyResolutionManagement {
         if (settings.hasProperty('privateMavenRepositoryUrl') && 
             privateMavenRepositoryUrl != null && 
             !privateMavenRepositoryUrl.toString().trim().isEmpty()) {
-            
             maven {
                 url privateMavenRepositoryUrl
-                
+
                 // if url is NOT https
                 // allowInsecureProtocol = true
 
@@ -42,6 +42,8 @@ dependencyResolutionManagement {
                 //     password = "password"
                 // }
             }
+        } else {
+            println "No private maven repository url provided, fallback to pulic maven repositories."
         }
         mavenCentral()
     } 

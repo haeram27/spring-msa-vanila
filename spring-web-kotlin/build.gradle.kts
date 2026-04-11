@@ -1,10 +1,11 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val jvmVersion = providers.gradleProperty("jvmVersion").get().toInt()
 val kotlinLoggingVersion = providers.gradleProperty("kotlinLoggingVersion").get()
+val kotlinxCoroutinesVersion = providers.gradleProperty("kotlinxCoroutinesVersion").get()
 val springBootVersion = providers.gradleProperty("springBootVersion").get()
-val mybatisVersion = "3.0.3"
+val mybatisVersion = providers.gradleProperty("mybatisVersion").get()
 
 plugins {
     java
@@ -16,16 +17,9 @@ plugins {
 group = "com.example"
 version = "0.0.1-SNAPSHOT"
 
-java {
-    sourceCompatibility = JavaVersion.toVersion(jvmVersion)
-}
-
-kotlin {
-    jvmToolchain(jvmVersion)
-}
-
 configurations {
     all {
+        // exclude default logging framework (logback) to use log4j2
         exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
     }
 }
@@ -33,11 +27,11 @@ configurations {
 dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
-    implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
+    implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingVersion")
     runtimeOnly("org.postgresql:postgresql")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
     implementation("com.google.code.gson:gson")
     implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:$mybatisVersion")
 
@@ -55,6 +49,26 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
+// set java source compatibility for java compile task
+java {
+    // minimum java version to compile source code
+    sourceCompatibility = JavaVersion.toVersion(jvmVersion)
+    // minimum java version to run the compiled bytecode, same or bigger than sourceCompatibility
+    targetCompatibility = JavaVersion.toVersion(jvmVersion)
+
+    // foojay-resolver: Apply a specific Java toolchain to ease working on different environments.
+    // foojay downloads specified JDK version if not found in .gradle/toolchains/ so gradlew can automatically setup the JDK toolchain.
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(jvmVersion)
+    }
+}
+
+// set jvm toolchain for kotlin compile task
+kotlin {
+    jvmToolchain(jvmVersion)
+}
+
+// kotlin compiler options
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         freeCompilerArgs.add("-Xjsr305=strict")

@@ -30,7 +30,7 @@ class HttpRequestLoggingFilter : Filter {
             log.debug { "URI: ${httpRequest.requestURI}" }
             log.debug { "URL: ${httpRequest.requestURL}" }
             log.debug { "QueryString: ${httpRequest.queryString}" }
-            
+
             val headerNames = httpRequest.headerNames
             if (headerNames != null) {
                 while (headerNames.hasMoreElements()) {

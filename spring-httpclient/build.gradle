@@ -1,24 +1,13 @@
 plugins {
     id 'java'
     // https://plugins.gradle.org/plugin/org.springframework.boot
-    id 'org.springframework.boot' version '3.5.10'
+    id 'org.springframework.boot'
     // https://plugins.gradle.org/plugin/io.spring.dependency-management
-    id 'io.spring.dependency-management' version '1.1.7'
-}
-
-// variables
-// testCompileOnly "org.projectlombok:lombok:${myLombokVersion}"
-ext {
-    myLombokVersion = '1.18.42'
-    httpclient5Version = '5.1'
+    id 'io.spring.dependency-management'
 }
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
-
-java {
-    sourceCompatibility = '21'
-}
 
 configurations {
     all {
@@ -32,8 +21,8 @@ configurations {
 
 // module versions are automatically managed by 'io.spring.dependency-management'
 dependencies {
-    annotationProcessor 'org.projectlombok:lombok'
-    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
 
     // ## jackson
     // jackson suport Java 8 date/time Module (o)
@@ -42,18 +31,31 @@ dependencies {
     implementation "com.fasterxml.jackson.module:jackson-module-parameter-names"
 
     // ## apache HttpClient 5
-    // implementation "org.apache.httpcomponents.client5:httpclient5:${httpclient5Version}"
-    implementation 'org.apache.httpcomponents.client5:httpclient5'
+    implementation "org.apache.httpcomponents.client5:httpclient5"
 
     // ## spring
     implementation 'org.springframework.boot:spring-boot-starter-web'
     // to use async http client wrapper
     implementation 'org.springframework.boot:spring-boot-starter-log4j2'
 
-    testAnnotationProcessor 'org.projectlombok:lombok'
-    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     testImplementation 'org.springframework.boot:spring-boot-starter-log4j2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+// set java source compatibility for java compile task
+java {
+    // minimum java version to compile source code
+    sourceCompatibility = JavaVersion.toVersion(jvmVersion)
+    // minimum java version to run the compiled bytecode, same or bigger than sourceCompatibility
+    targetCompatibility = JavaVersion.toVersion(jvmVersion)
+
+    // foojay-resolver: Apply a specific Java toolchain to ease working on different environments.
+    // foojay downloads specified JDK version if not found in .gradle/toolchains/ so gradlew can automatically setup the JDK toolchain.
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(jvmVersion)
+    }
 }
 
 // do not archive plain-jar(jar \wo dependency)

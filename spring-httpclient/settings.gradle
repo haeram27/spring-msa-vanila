@@ -17,10 +17,18 @@ pluginManagement {
                 // }
             }
         } else {
-            println "No private maven repository url provided, fallback to pulic maven repositories."
+            println "pluginManagement: No private maven repository url provided, fallback to public maven repositories."
         }
         gradlePluginPortal()
         mavenCentral()
+        google()
+    }
+
+    plugins {
+        id 'org.springframework.boot' version "${springBootPluginVersion}"
+        id 'io.spring.dependency-management' version "${springDependencyManagementPluginVersion}"
+        // jdk toolchain resolver plugin for jdk auto download and setup
+        id 'org.gradle.toolchains.foojay-resolver-convention' version "${fooJayVersion}"
     }
 }
 
@@ -43,7 +51,7 @@ dependencyResolutionManagement {
                 // }
             }
         } else {
-            println "No private maven repository url provided, fallback to pulic maven repositories."
+            println "dependencyResolutionManagement: No private maven repository url provided, fallback to public maven repositories."
         }
         mavenCentral()
     } 

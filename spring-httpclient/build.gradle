@@ -9,6 +9,20 @@ plugins {
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
+// set java source compatibility for java compile task
+java {
+    // minimum java version to compile source code
+    sourceCompatibility = JavaVersion.toVersion(jvmVersion)
+    // minimum java version to run the compiled bytecode, same or bigger than sourceCompatibility
+    targetCompatibility = JavaVersion.toVersion(jvmVersion)
+
+    // foojay-resolver: Apply a specific Java toolchain to ease working on different environments.
+    // foojay downloads specified JDK version if not found in .gradle/toolchains/ so gradlew can automatically setup the JDK toolchain.
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(jvmVersion)
+    }
+}
+
 configurations {
     all {
         // exclude logback
@@ -42,20 +56,6 @@ dependencies {
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     testImplementation 'org.springframework.boot:spring-boot-starter-log4j2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-
-// set java source compatibility for java compile task
-java {
-    // minimum java version to compile source code
-    sourceCompatibility = JavaVersion.toVersion(jvmVersion)
-    // minimum java version to run the compiled bytecode, same or bigger than sourceCompatibility
-    targetCompatibility = JavaVersion.toVersion(jvmVersion)
-
-    // foojay-resolver: Apply a specific Java toolchain to ease working on different environments.
-    // foojay downloads specified JDK version if not found in .gradle/toolchains/ so gradlew can automatically setup the JDK toolchain.
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(jvmVersion)
-    }
 }
 
 // do not archive plain-jar(jar \wo dependency)

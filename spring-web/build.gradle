@@ -1,20 +1,26 @@
 plugins {
     id 'java'
     // https://plugins.gradle.org/plugin/org.springframework.boot
-    id 'org.springframework.boot' version '3.5.10'
+    id 'org.springframework.boot'
     // https://plugins.gradle.org/plugin/io.spring.dependency-management
-    id 'io.spring.dependency-management' version '1.1.7'
-}
-
-ext {
-    mybatisVersion = '3.0.3'
+    id 'io.spring.dependency-management'
 }
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
+// set java source compatibility for java compile task
 java {
-    sourceCompatibility = '21'
+    // minimum java version to compile source code
+    sourceCompatibility = JavaVersion.toVersion(jvmVersion)
+    // minimum java version to run the compiled bytecode, same or bigger than sourceCompatibility
+    targetCompatibility = JavaVersion.toVersion(jvmVersion)
+
+    // foojay-resolver: Apply a specific Java toolchain to ease working on different environments.
+    // foojay downloads specified JDK version if not found in .gradle/toolchains/ so gradlew can automatically setup the JDK toolchain.
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(jvmVersion)
+    }
 }
 
 configurations {

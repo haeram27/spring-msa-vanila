@@ -1,50 +1,22 @@
 // plugin repositories
 pluginManagement {
     repositories {
-        if (settings.hasProperty('privateMavenRepositoryUrl') && 
-            privateMavenRepositoryUrl != null && 
-            !privateMavenRepositoryUrl.toString().trim().isEmpty()) {
-            maven {
-                url privateMavenRepositoryUrl
-
-                // if url is NOT https
-                // allowInsecureProtocol = true
-
-                // if ahthentication is required
-                // credentials {
-                //     username = "user"
-                //     password = "password"
-                // }
-            }
-        } else {
-            println "No private maven repository url provided, fallback to pulic maven repositories."
-        }
         gradlePluginPortal()
         mavenCentral()
+        google()
+    }
+
+    plugins {
+        id 'org.springframework.boot' version "${springBootPluginVersion}"
+        id 'io.spring.dependency-management' version "${springDependencyManagementPluginVersion}"
+        // jdk toolchain resolver plugin for jdk auto download and setup
+        id 'org.gradle.toolchains.foojay-resolver-convention' version "${fooJayVersion}"
     }
 }
 
 // dependency repositories
 dependencyResolutionManagement {
     repositories {
-        if (settings.hasProperty('privateMavenRepositoryUrl') && 
-            privateMavenRepositoryUrl != null && 
-            !privateMavenRepositoryUrl.toString().trim().isEmpty()) {
-            maven {
-                url privateMavenRepositoryUrl
-
-                // if url is NOT https
-                // allowInsecureProtocol = true
-
-                // if ahthentication is required
-                // credentials {
-                //     username = "user"
-                //     password = "password"
-                // }
-            }
-        } else {
-            println "No private maven repository url provided, fallback to pulic maven repositories."
-        }
         mavenCentral()
     } 
 }

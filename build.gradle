@@ -1,0 +1,23 @@
+tasks.register('assembleAll') {
+    group = 'assemble'
+    description = 'Assembles all included Gradle builds without running tests.'
+    dependsOn gradle.includedBuilds.collect { it.task(':assemble') }
+}
+
+tasks.register('cleanAll') {
+    group = 'build'
+    description = 'Cleans all included Gradle builds.'
+    dependsOn gradle.includedBuilds.collect { it.task(':clean') }
+}
+
+tasks.register('buildAll') {
+    group = 'build'
+    description = 'Builds all included Gradle builds with tests.'
+    dependsOn gradle.includedBuilds.collect { it.task(':build') }
+}
+
+tasks.register('testAll') {
+    group = 'verification'
+    description = 'Runs tests in all included Gradle builds that expose :test.'
+    dependsOn gradle.includedBuilds.collect { it.task(':test') }
+}

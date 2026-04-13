@@ -47,7 +47,7 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-bootRun {
+tasks.matching { it.name == 'bootRun' }.configureEach {
     environment 'spring.output.ansi.console-available', true
 }
 

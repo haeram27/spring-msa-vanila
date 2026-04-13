@@ -4,14 +4,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val jvmVersion = providers.gradleProperty("jvmVersion").get().toInt()
 val kotlinLoggingVersion = providers.gradleProperty("kotlinLoggingVersion").get()
 val kotlinxCoroutinesVersion = providers.gradleProperty("kotlinxCoroutinesVersion").get()
-val springBootVersion = providers.gradleProperty("springBootVersion").get()
-val mybatisVersion = providers.gradleProperty("mybatisVersion").get()
+val mybatisSpringBootStarterVersion = providers.gradleProperty("mybatisSpringBootStarterVersion").get()
 
 plugins {
     java
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.spring")
     id("org.springframework.boot")
+    id("io.spring.dependency-management")
 }
 
 group = "com.example"
@@ -25,8 +25,6 @@ configurations {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
-
     implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingVersion")
     runtimeOnly("org.postgresql:postgresql")
 
@@ -35,7 +33,7 @@ dependencies {
 
     implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
     implementation("com.google.code.gson:gson")
-    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:$mybatisVersion")
+    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:$mybatisSpringBootStarterVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-log4j2")
     implementation("org.springframework.boot:spring-boot-starter-web")

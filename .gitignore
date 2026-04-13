@@ -41,6 +41,9 @@ out/
 !.vscode/launch.json
 !.vscode/tasks.json
 
+### KOTLIN ###
+**/.kotlin/
+
 # Compiled class file
 *.class
 

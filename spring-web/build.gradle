@@ -2,6 +2,7 @@ plugins {
     id 'java'
     // https://plugins.gradle.org/plugin/org.springframework.boot
     id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
 }
 
 group = 'com.example'
@@ -32,16 +33,14 @@ configurations {
 }
 
 dependencies {
-    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-
-    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok"
+    compileOnly "org.projectlombok:lombok"
     runtimeOnly 'org.postgresql:postgresql'
 
     // tools
     implementation "tools.jackson.dataformat:jackson-dataformat-yaml"
     implementation 'com.google.code.gson:gson'
-    implementation "org.mybatis.spring.boot:mybatis-spring-boot-starter:${mybatisVersion}"
+    implementation "org.mybatis.spring.boot:mybatis-spring-boot-starter:${mybatisSpringBootStarterVersion}"
 
     implementation 'org.springframework.boot:spring-boot-starter-log4j2'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -52,8 +51,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
-    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok"
+    testCompileOnly "org.projectlombok:lombok"
     testImplementation 'com.google.code.gson:gson'
     testImplementation 'org.springframework.boot:spring-boot-starter-log4j2'
     // aop > aspectj from spring boot 4.0.x

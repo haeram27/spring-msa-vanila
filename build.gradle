@@ -1,3 +1,4 @@
+// gradle assemble -PrefreshDeps
 if (project.hasProperty('refreshDeps')) {
     gradle.startParameter.refreshDependencies = true
 }

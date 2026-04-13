@@ -3,13 +3,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val jvmVersion = providers.gradleProperty("jvmVersion").get().toInt()
 val kotlinLoggingVersion = providers.gradleProperty("kotlinLoggingVersion").get()
-val springBootVersion = providers.gradleProperty("springBootVersion").get()
 
 plugins {
     java
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.spring")
     id("org.springframework.boot")
+    id("io.spring.dependency-management")
 }
 
 group = "com.example"
@@ -23,8 +23,6 @@ configurations {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
-
     implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingVersion")
 
     implementation("tools.jackson.dataformat:jackson-dataformat-yaml")

@@ -1,6 +1,6 @@
 package com.example.httpclient.config
 
-import com.fasterxml.jackson.databind.json.JsonMapper
+import tools.jackson.databind.json.JsonMapper
 import java.security.GeneralSecurityException
 import java.time.Duration
 import org.apache.hc.client5.http.config.ConnectionConfig
@@ -17,13 +17,13 @@ import org.springframework.beans.factory.BeanCreationException
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestTemplate
 
 @Configuration
 class ApacheHttpClientConfig(
-    private val mapper: JsonMapper,
+    private val mapper: JsonMapper
 ) {
     @Bean
     fun apacheClientTrustAllRestTemplate(): RestTemplate {
@@ -65,9 +65,9 @@ class ApacheHttpClientConfig(
 
             val template = RestTemplate(requestFactory)
             val converters = template.messageConverters
-                .filterIsInstance<MappingJackson2HttpMessageConverter>()
+                .filterIsInstance<JacksonJsonHttpMessageConverter>()
                 .toMutableList()
-            converters.add(MappingJackson2HttpMessageConverter(mapper))
+            converters.add(JacksonJsonHttpMessageConverter(mapper))
             template.messageConverters = converters
 
             return template
@@ -120,9 +120,8 @@ class ApacheHttpClientConfig(
 
             return RestClient.builder()
                 .requestFactory(requestFactory)
-                .messageConverters { converters ->
-                    converters.removeIf { it is MappingJackson2HttpMessageConverter }
-                    converters.add(MappingJackson2HttpMessageConverter(mapper))
+                .configureMessageConverters { converters ->
+                    converters.withJsonConverter(JacksonJsonHttpMessageConverter(mapper))
                 }
                 .build()
         } catch (e: GeneralSecurityException) {

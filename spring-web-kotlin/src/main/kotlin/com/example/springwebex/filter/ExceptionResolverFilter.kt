@@ -1,6 +1,6 @@
 package com.example.springwebex.filter
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Component
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain

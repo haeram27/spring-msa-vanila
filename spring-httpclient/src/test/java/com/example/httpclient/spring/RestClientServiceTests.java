@@ -7,7 +7,7 @@ import org.springframework.http.HttpMethod;
 
 import com.example.EvaluatedTimeTests;
 import com.example.httpclient.restclient.spring.RestClientService;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import lombok.extern.slf4j.Slf4j;
 

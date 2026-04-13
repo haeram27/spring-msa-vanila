@@ -15,8 +15,8 @@ import com.example.springwebex.model.restresp.ResponseJsonDto
 import com.example.springwebex.service.MongoCommonFindService
 import com.example.springwebex.service.PostEchoService
 import com.example.springwebex.util.ServletUtil
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.json.JsonMapper
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.json.JsonMapper
 import jakarta.servlet.http.HttpServletRequest
 
 @RestController
@@ -79,7 +79,7 @@ class PostController(
 
         val clientIp = ServletUtil.getClientIp(httpServletRequest)
         log.info { "client.ip: $clientIp" }
-        log.info { "request.body:\n${mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(requestBody).toPrettyString()}" }
+        log.info { "request.body:\n${mapper.valueToTree<tools.jackson.databind.JsonNode>(requestBody).toPrettyString()}" }
 
         return postEchoService.echo<BasicReqDto>(requestBody)
     }
@@ -91,7 +91,7 @@ class PostController(
     ): ResponseJsonDto<List<Map<String, Any>>> {
         val clientIp = ServletUtil.getClientIp(httpServletRequest)
         log.info { "client.ip: $clientIp" }
-        log.info { "request.body:\n${mapper.valueToTree<com.fasterxml.jackson.databind.JsonNode>(requestBody).toPrettyString()}" }
+        log.info { "request.body:\n${mapper.valueToTree<tools.jackson.databind.JsonNode>(requestBody).toPrettyString()}" }
 
         @Suppress("UNCHECKED_CAST")
         return mongoCommonFindService.find(requestBody)

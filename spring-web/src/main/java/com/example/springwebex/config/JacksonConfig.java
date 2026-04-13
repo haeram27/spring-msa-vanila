@@ -3,11 +3,9 @@ package com.example.springwebex.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 public class JacksonConfig {
@@ -16,11 +14,10 @@ public class JacksonConfig {
     @Primary
     public JsonMapper restClientJsonMapper(){
         return JsonMapper.builder()
-            .addModule(new JavaTimeModule())
             .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
             .enable(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) // prevent UnknownPropertyException
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
             .build();
     }
 }

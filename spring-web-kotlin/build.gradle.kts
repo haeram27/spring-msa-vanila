@@ -32,12 +32,14 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
+
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
     implementation("com.google.code.gson:gson")
     implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:$mybatisVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-log4j2")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-aspectj")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-quartz")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
@@ -45,7 +47,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("com.google.code.gson:gson")
     testImplementation("org.springframework.boot:spring-boot-starter-log4j2")
-    testImplementation("org.springframework.boot:spring-boot-starter-aop")
+    testImplementation("org.springframework.boot:spring-boot-starter-aspectj")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

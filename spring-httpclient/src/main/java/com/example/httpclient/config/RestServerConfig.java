@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.example.httpclient.model.RestServerConfigDto;
 import com.example.httpclient.util.PathUtil;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

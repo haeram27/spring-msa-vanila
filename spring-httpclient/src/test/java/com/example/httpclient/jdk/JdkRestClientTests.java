@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.example.httpclient.restclient.jdk.RestClient;
 import com.example.httpclient.restclient.jdk.RestClient.HttpMethod;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

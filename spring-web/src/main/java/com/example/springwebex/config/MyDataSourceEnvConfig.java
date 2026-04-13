@@ -5,11 +5,13 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
 import com.example.springwebex.model.bean.MyDataSource;
 
 @Configuration
+@Profile("!test")
 public class MyDataSourceEnvConfig {
 
     private final Environment env;

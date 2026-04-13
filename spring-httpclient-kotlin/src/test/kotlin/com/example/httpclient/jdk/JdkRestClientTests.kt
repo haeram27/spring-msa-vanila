@@ -2,7 +2,7 @@ package com.example.httpclient.jdk
 
 import com.example.httpclient.restclient.jdk.RestClient
 import com.example.httpclient.restclient.jdk.RestClient.HttpMethod
-import com.fasterxml.jackson.databind.json.JsonMapper
+import tools.jackson.databind.json.JsonMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

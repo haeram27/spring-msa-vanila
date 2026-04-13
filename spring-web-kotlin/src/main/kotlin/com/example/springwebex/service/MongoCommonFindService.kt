@@ -4,8 +4,8 @@ import com.example.springwebex.exception.RestApiException
 import com.example.springwebex.exception.ecode.ErrorCode
 import com.example.springwebex.model.restreq.MongoCommonFindReqDto
 import com.example.springwebex.model.restresp.ResponseJsonDto
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
 import java.time.LocalDateTime

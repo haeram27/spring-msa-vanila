@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RestController
 import com.example.springwebex.model.pagenation.Server
 import com.example.springwebex.util.PagenationUtil
 import com.example.springwebex.util.ServletUtil
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.node.ObjectNode
 import jakarta.servlet.http.HttpServletRequest
 
 @RestController
@@ -79,12 +79,12 @@ class PagenationController(private val mapper: JsonMapper) {
 
         var responseBody: JsonNode = mapper.createObjectNode()
         try {
-            responseBody = mapper.readTree(respStr)
+            responseBody = mapper.readTree(respStr) as ObjectNode
             val body = responseBody.path("body") as ObjectNode
             body.put("pageNum", pageNumber)
             body.put("pageSize", pageSize)
             body.put("totalCount", totalServerCount)
-            body.set<JsonNode>("data", mapper.valueToTree(collectedServers))
+            body.set("data", mapper.valueToTree(collectedServers))
         } catch (e: Exception) {
             log.error(e) { "## Error" }
         }
@@ -107,9 +107,9 @@ class PagenationController(private val mapper: JsonMapper) {
         }
 
         var responseBody: JsonNode = mapper.createObjectNode()
-        if (StringUtils.hasLength(countResponse)) {
+        if (StringUtils.hasLength(COUNT_RESPONSE)) {
             try {
-                val json = mapper.readTree(countResponse)
+                val json = mapper.readTree(COUNT_RESPONSE)
                 if (!json.path("body").path("totalCount").isMissingNode) {
                     val node = json.path("body") as ObjectNode
                     node.put("totalCount", servers.size)
@@ -125,7 +125,7 @@ class PagenationController(private val mapper: JsonMapper) {
 
     companion object {
         private const val SERVER_SIZE = 570
-        private const val countResponse = """
+        private const val COUNT_RESPONSE = """
             {"header":{"isSuccessful":true,"resultCode":0,"resultMessage":"SUCCESS"},"body":{"totalCount":1,"data":null}}
         """
     }

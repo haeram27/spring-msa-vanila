@@ -18,8 +18,8 @@ import com.example.springwebex.util.mongo.MongoFindUtils;
 import com.example.springwebex.util.mongo.model.MongoCommonFindReq;
 import com.example.springwebex.util.mongo.model.MongoDateCriteria;
 import com.example.springwebex.util.mongo.model.MongoObjectIdCriteria;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClients;
@@ -106,7 +106,7 @@ public class MongoFindTests {
         mappedResults.stream().forEach((map) -> {
             try {
                 System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(map));
-            } catch (JsonProcessingException ex) {
+            } catch (JacksonException ex) {
                 System.out.println(ex.getMessage());
             }
         });

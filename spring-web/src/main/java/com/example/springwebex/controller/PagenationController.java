@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.springwebex.model.pagenation.Server;
 import com.example.springwebex.util.PagenationUtil;
 import com.example.springwebex.util.ServletUtil;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;

@@ -9,16 +9,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 @Order(2)
 class DefaultApplicationRunner : ApplicationRunner {
     private val log = KotlinLogging.logger {}
-    override fun run(args: ApplicationArguments?) {
+    override fun run(args: ApplicationArguments) {
         log.info { "DefaultApplicationRunner: Application started" }
-        
-        if (args != null) {
-            log.info { "Option Names: ${args.optionNames}" }
-            log.info { "Non Option Args: ${args.nonOptionArgs}" }
 
-            for (optionName in args.optionNames) {
-                log.info { "Option - $optionName: ${args.getOptionValues(optionName)}" }
-            }
+        log.info { "Option Names: ${args.optionNames}" }
+        log.info { "Non Option Args: ${args.nonOptionArgs}" }
+
+        for (optionName in args.optionNames) {
+            log.info { "Option - $optionName: ${args.getOptionValues(optionName)}" }
         }
     }
 }

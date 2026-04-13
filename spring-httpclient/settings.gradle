@@ -8,9 +8,9 @@ pluginManagement {
 
     plugins {
         // https://github.com/spring-projects/spring-boot/releases
-        id 'org.springframework.boot' version "${springBootPluginVersion}"
+        id 'org.springframework.boot' version "${springBootVersion}"
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        id 'io.spring.dependency-management' version "${springDependencyManagementPluginVersion}"
+        id 'io.spring.dependency-management' version "${springDependencyManagementVersion}"
         // jdk toolchain resolver plugin for jdk auto download and setup
         id 'org.gradle.toolchains.foojay-resolver-convention' version "${fooJayVersion}"
     }

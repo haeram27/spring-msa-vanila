@@ -1,6 +1,6 @@
 rootProject.name = 'spring-msa-vanila'
 
-includeBuild 'spring-batch5'
+includeBuild 'spring-batch'
 includeBuild 'spring-clould-eureka'
 includeBuild 'spring-data-mongo'
 includeBuild 'spring-empty'

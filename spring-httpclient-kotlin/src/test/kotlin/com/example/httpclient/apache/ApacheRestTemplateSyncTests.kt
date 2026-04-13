@@ -1,12 +1,12 @@
 package com.example.httpclient.apache
 
 import com.example.EvaluatedTimeTests
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.databind.node.ArrayNode
-import com.fasterxml.jackson.databind.node.ObjectNode
+import tools.jackson.core.JacksonException
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.node.ArrayNode
+import tools.jackson.databind.node.ObjectNode
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.net.URI
 import org.junit.jupiter.api.Test
@@ -197,7 +197,7 @@ class ApacheRestTemplateSyncTests : EvaluatedTimeTests() {
         if (responseBody.isNotEmpty()) {
             try {
                 log.debug { "## response: ${mapper.writerWithDefaultPrettyPrinter().writeValueAsString(responseBody)}" }
-            } catch (_: JsonProcessingException) {
+            } catch (_: JacksonException) {
                 log.error { "## invalid response" }
             }
         } else {

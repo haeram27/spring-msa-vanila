@@ -39,10 +39,7 @@ dependencies {
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
 
     // ## jackson
-    // jackson suport Java 8 date/time Module (o)
-    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-    implementation "com.fasterxml.jackson.module:jackson-module-parameter-names"
+    implementation "tools.jackson.dataformat:jackson-dataformat-yaml"
 
     // ## apache HttpClient 5
     implementation "org.apache.httpcomponents.client5:httpclient5"

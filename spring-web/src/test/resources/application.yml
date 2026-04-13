@@ -1,0 +1,25 @@
+spring:
+  profiles:
+    active: test
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  autoconfigure:
+    exclude:
+      - org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    # use an in-memory schema if tests need DB setup
+my:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password: sa
+    etc:
+      max-connection: 5
+      timeout: 30s
+      options:
+        - TEST

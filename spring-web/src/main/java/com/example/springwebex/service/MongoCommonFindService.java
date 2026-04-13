@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import org.bson.Document;
 import org.bson.json.Converter;
 import org.bson.json.JsonMode;
@@ -28,16 +27,14 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
 import com.example.springwebex.exception.RestApiException;
 import com.example.springwebex.model.restreq.MongoCommonFindReqDto;
 import com.example.springwebex.model.restresp.ResponseJsonDto;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @Slf4j
@@ -139,7 +136,7 @@ public class MongoCommonFindService {
                 mappedResults
                         .add(objectMapper.readValue(e.toJson(writerSettings), new TypeReference<Map<String, Object>>() {
                         }));
-            } catch (JsonProcessingException ex) {
+            } catch (JacksonException ex) {
                 throw new RestApiException(ex.getMessage());
             }
         }

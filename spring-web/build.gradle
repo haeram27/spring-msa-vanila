@@ -2,8 +2,6 @@ plugins {
     id 'java'
     // https://plugins.gradle.org/plugin/org.springframework.boot
     id 'org.springframework.boot'
-    // https://plugins.gradle.org/plugin/io.spring.dependency-management
-    id 'io.spring.dependency-management'
 }
 
 group = 'com.example'
@@ -34,27 +32,36 @@ configurations {
 }
 
 dependencies {
-    annotationProcessor 'org.projectlombok:lombok'
-    compileOnly 'org.projectlombok:lombok'
+    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
     runtimeOnly 'org.postgresql:postgresql'
 
+    // tools
+    implementation "tools.jackson.dataformat:jackson-dataformat-yaml"
     implementation 'com.google.code.gson:gson'
     implementation "org.mybatis.spring.boot:mybatis-spring-boot-starter:${mybatisVersion}"
 
     implementation 'org.springframework.boot:spring-boot-starter-log4j2'
     implementation 'org.springframework.boot:spring-boot-starter-web'
 //    implementation 'org.springframework.boot:spring-boot-starter-security'  // enable auth for spring web apis
-    implementation 'org.springframework.boot:spring-boot-starter-aop'  // aop > aspectj from spring boot 4.0.x
+    // aop > aspectj from spring boot 4.0.x
+    implementation 'org.springframework.boot:spring-boot-starter-aspectj'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
-    testAnnotationProcessor 'org.projectlombok:lombok'
-    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     testImplementation 'com.google.code.gson:gson'
     testImplementation 'org.springframework.boot:spring-boot-starter-log4j2'
-    testImplementation 'org.springframework.boot:spring-boot-starter-aop' // aop > aspectj from spring boot 4.0.x
+    // aop > aspectj from spring boot 4.0.x
+    testImplementation 'org.springframework.boot:spring-boot-starter-aspectj'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // ensure autoconfigure test annotations (AutoConfigureMockMvc) available
+    testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
+    testRuntimeOnly 'com.h2database:h2'
 }
 
 // do not archive plain-jar(jar \wo dependency)
@@ -70,6 +77,7 @@ jar {
  */
 test {
     useJUnitPlatform()
+    systemProperty 'spring.profiles.active', 'test'
     testLogging {
         showStandardStreams = true
         showCauses = true

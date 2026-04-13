@@ -26,9 +26,8 @@ dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
     implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingVersion")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-    implementation("com.fasterxml.jackson.module:jackson-module-parameter-names")
+
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
     implementation("org.apache.httpcomponents.client5:httpclient5")
 
     implementation("org.springframework.boot:spring-boot-starter-web")

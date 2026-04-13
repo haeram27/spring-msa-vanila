@@ -1,6 +1,6 @@
 package com.example.httpclient.config
 
-import com.fasterxml.jackson.databind.json.JsonMapper
+import tools.jackson.databind.json.JsonMapper
 import java.net.http.HttpClient
 import java.security.KeyManagementException
 import java.security.NoSuchAlgorithmException
@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.http.client.JdkClientHttpRequestFactory
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestTemplate
 
@@ -57,9 +57,9 @@ class JdkHttpClientConfig(
 
         val template = RestTemplate(requestFactory)
         val converters = template.messageConverters
-            .filterIsInstance<MappingJackson2HttpMessageConverter>()
+            .filterIsInstance<JacksonJsonHttpMessageConverter>()
             .toMutableList()
-        converters.add(MappingJackson2HttpMessageConverter(mapper))
+        converters.add(JacksonJsonHttpMessageConverter(mapper))
         template.messageConverters = converters
 
         return template
@@ -73,9 +73,8 @@ class JdkHttpClientConfig(
 
         return RestClient.builder()
             .requestFactory(requestFactory)
-            .messageConverters { converters ->
-                converters.removeIf { it is MappingJackson2HttpMessageConverter }
-                converters.add(MappingJackson2HttpMessageConverter(mapper))
+            .configureMessageConverters { converters ->
+                converters.withJsonConverter(JacksonJsonHttpMessageConverter(mapper))
             }
             .build()
     }

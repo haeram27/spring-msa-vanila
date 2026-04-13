@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 
 import lombok.Data;
 

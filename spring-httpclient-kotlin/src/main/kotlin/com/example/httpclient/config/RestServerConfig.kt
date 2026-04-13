@@ -2,7 +2,7 @@ package com.example.httpclient.config
 
 import com.example.httpclient.model.RestServerConfigDto
 import com.example.httpclient.util.PathUtil
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.nio.file.Files
 import org.springframework.context.annotation.Bean

@@ -43,16 +43,13 @@ dependencies {
     // jackson BOM - automate version dependencies
     implementation platform("com.fasterxml.jackson:jackson-bom:${jacksonVersion}")
     // jackson core library (m)
-    implementation "com.fasterxml.jackson.core:jackson-core"
+    implementation "tools.jackson.core:jackson-core"
+    // jackson databind (m)
+    implementation "tools.jackson.core:jackson-databind"
     // jackson support annotation (m)
     implementation "com.fasterxml.jackson.core:jackson-annotations"
-    // jackson databind (m)
-    implementation "com.fasterxml.jackson.core:jackson-databind"
-    // jackson suport Java 8 date/time Module (o)
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-    implementation "com.fasterxml.jackson.module:jackson-module-parameter-names"
     // jackson support YAML Pretty Print (o)
-    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+    implementation "tools.jackson.dataformat:jackson-dataformat-yaml"
     // jackson support kotlin (o)
     // implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 

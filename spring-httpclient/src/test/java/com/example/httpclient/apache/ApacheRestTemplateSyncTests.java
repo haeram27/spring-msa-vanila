@@ -20,11 +20,11 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.example.EvaluatedTimeTests;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 /*
  * RestAPI Client GET Test
@@ -190,14 +190,14 @@ public class ApacheRestTemplateSyncTests extends EvaluatedTimeTests {
                     log.debug("resonseBody is object body type");
 
                     ObjectNode node = (ObjectNode) responseBody;
-                    Map<String, Object> map = mapper.convertValue(node, new com.fasterxml.jackson.core.type.TypeReference<Map<String,Object>>() {});
+                    Map<String, Object> map = mapper.convertValue(node, new tools.jackson.core.type.TypeReference<Map<String,Object>>() {});
                     // var map = mapper.treeToValue(node, Map.class);
                     list.add(map);
                 } else if (responseBody.isArray()) {
                     log.debug("resonseBody is array body type");
 
                     ArrayNode node = (ArrayNode) responseBody;
-                    list = mapper.convertValue(node, new com.fasterxml.jackson.core.type.TypeReference<List<Map<String,Object>>>() {});
+                    list = mapper.convertValue(node, new tools.jackson.core.type.TypeReference<List<Map<String,Object>>>() {});
                 } else {
                     log.error("Error: Response content type is NOT applicable");
                 }
@@ -271,7 +271,7 @@ public class ApacheRestTemplateSyncTests extends EvaluatedTimeTests {
             try {
                 log.debug("## response: {}",
                         mapper.writerWithDefaultPrettyPrinter().writeValueAsString(responseBody));
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 e.printStackTrace();
                 log.error("## invalid response");
             }

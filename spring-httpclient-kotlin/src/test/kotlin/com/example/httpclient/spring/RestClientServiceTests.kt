@@ -2,7 +2,7 @@ package com.example.httpclient.spring
 
 import com.example.EvaluatedTimeTests
 import com.example.httpclient.restclient.spring.RestClientService
-import com.fasterxml.jackson.databind.json.JsonMapper
+import tools.jackson.databind.json.JsonMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

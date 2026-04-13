@@ -9,7 +9,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 @Order(1)
 class DefaultCommandLineRunner : CommandLineRunner {
     private val log = KotlinLogging.logger {}
-    override fun run(vararg args: String?) {
+    override fun run(vararg args: String) {
         log.info { "DefaultCommandLineRunner: Application started" }
         
         if (args.isNotEmpty()) {

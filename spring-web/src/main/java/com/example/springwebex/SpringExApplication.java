@@ -2,6 +2,7 @@ package com.example.springwebex;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.mybatis.spring.annotation.MapperScan;
 import lombok.extern.slf4j.Slf4j;
 
 

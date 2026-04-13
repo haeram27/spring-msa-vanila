@@ -4,22 +4,17 @@ import java.net.http.HttpClient;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.stream.Collectors;
-
 import javax.net.ssl.SSLContext;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
-
-import com.fasterxml.jackson.databind.json.JsonMapper;
-
 import lombok.RequiredArgsConstructor;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 @RequiredArgsConstructor
@@ -75,8 +70,9 @@ public class JdkHttpClientConfig {
 
         var template = new RestTemplate(rf);
         // use converter to map json response as JsonNode of Jackson with user defined JsonMapper(mapper)
-        var converters = template.getMessageConverters().stream().filter(c -> c instanceof MappingJackson2HttpMessageConverter).collect(Collectors.toList());
-        converters.add(new MappingJackson2HttpMessageConverter(mapper));
+        var converters = template.getMessageConverters();
+        converters.removeIf(c -> c instanceof JacksonJsonHttpMessageConverter);
+        converters.add(new JacksonJsonHttpMessageConverter(mapper));
         template.setMessageConverters(converters);
 
         return template;
@@ -92,12 +88,11 @@ public class JdkHttpClientConfig {
         var rf = new JdkClientHttpRequestFactory(httpClient);
         rf.setReadTimeout(Duration.ofSeconds(5));
 
-        return RestClient.builder()
+            return RestClient.builder()
                 .requestFactory(rf)
                 // use converter to map json response as JsonNode of Jackson with user defined JsonMapper(mapper)
-                .messageConverters(converters -> {
-                    converters.removeIf(c -> c instanceof MappingJackson2HttpMessageConverter);
-                    converters.add(new MappingJackson2HttpMessageConverter(mapper));
+                .configureMessageConverters(converters -> {
+                    converters.withJsonConverter(new JacksonJsonHttpMessageConverter(mapper));
                 })
                 .build();
     }

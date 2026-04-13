@@ -31,13 +31,13 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.example.springwebex.util.mongo.model.MongoCommonFindReq;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,11 +45,10 @@ import lombok.extern.slf4j.Slf4j;
 public class MongoFindUtils {
 
     private static final ObjectMapper objectMapper = JsonMapper.builder()
-            .addModule(new JavaTimeModule())
             .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
             .enable(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) // prevent UnknownPropertyException
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
             .build();
 
     private static final String MONGO_OBJECT_ID_KEY = "_id";
@@ -120,7 +119,7 @@ public class MongoFindUtils {
             try {
                 mappedResults.add(objectMapper.readValue(e.toJson(builder.build()),
                     new TypeReference<Map<String, Object>>() {}));
-            } catch (JsonProcessingException ex) {
+            } catch (JacksonException ex) {
                 throw new RuntimeException(ex);
             }
         }

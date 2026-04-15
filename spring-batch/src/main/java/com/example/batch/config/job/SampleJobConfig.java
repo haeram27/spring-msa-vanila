@@ -19,10 +19,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.example.batch.utils.batch.BatchUtil;
-import com.example.batch.utils.quartz.QuartzJobExecutor;
+import com.example.batch.utils.quartz.QuartzJobExecutorBeanMap;
 import com.example.batch.utils.quartz.QuartzUtil;
 
 import lombok.extern.slf4j.Slf4j;
+
+/**
+ *  Configuration: Create Sample Job Beans
+ * - Quartz Job: sampleQuartzJob (runs every 2 seconds, triggers the batch job)
+ * - Batch Job: sampleBatchJob (single step that logs a message)
+ * 
+ * To enable this job, set 'job.enabler.sample=true' in application properties.
+ */
 
 @Configuration
 @ConditionalOnProperty(prefix = "job.enabler", name = "sample", havingValue = "true")
@@ -39,8 +47,8 @@ public class SampleJobConfig {
      */
     @Bean(QUARTZ_JOB_NAME)
     public JobDetail sampleJobDetail() {
-        return QuartzUtil.quartzJobBuilder(QUARTZ_JOB_NAME, QuartzJobExecutor.class)
-                .usingJobData(BatchUtil.BATCH_JOB_ID_KEY, BATCH_JOB_NAME) // QuartzJobExecutor find batch job with this name
+        return QuartzUtil.quartzJobBuilder(QUARTZ_JOB_NAME, QuartzJobExecutorBeanMap.class)
+                .usingJobData(BatchUtil.BATCH_JOB_ID_KEY, BATCH_JOB_NAME) // QuartzJobExecutorBeanMap find batch job with this name
                 .storeDurably()
                 .build();
     }

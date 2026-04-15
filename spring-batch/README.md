@@ -5,14 +5,17 @@
 <br>
 
 ## About the project
+
 Spring Batch 6 + Quartz Scheduler 통합 예제 프로젝트입니다.  
 Quartz에서 Spring Batch Job을 타입 안전하게 조회·실행하는 구조를 구현합니다.
 
 ## DOCS
+
 - [Spring Batch Version 6](https://docs.spring.io/spring-batch/reference/whatsnew.html)
 - [Quartz Scheduler](https://www.quartz-scheduler.org/documentation/)
 
 ## Technologies
+
 - [Java](https://www.java.com/pt-BR/)
 - [Spring Boot](https://spring.io/projects/spring-boot)
 - [Spring Batch](https://spring.io/projects/spring-batch)
@@ -22,18 +25,47 @@ Quartz에서 Spring Batch Job을 타입 안전하게 조회·실행하는 구조
 
 ## Architecture
 
-```
-QuartzJobExecutor (Quartz Job)
-    │
-    ▼
-JobRegistry (인터페이스)
-    │
-    ▼
-JobRegistryImpl
-    │  ApplicationContext.getBean(qualifier, Job.class)
-    ▼
-Spring Batch Job (@Bean)
-```
+Spring Batch + Quartz 연동
+
+- Quartz Job이 Trigger의 설정 시간에 fire 된다
+- Quartz Job 내부에서 Spring Batch의 JobLauncher를 이용해 Batch Job이 실행된다
+
+Quartz는 스케줄/트리거 담당이고, 실제 배치 처리 로직은 Spring Batch가 담당
+
+주의할 점:
+
+- Quartz Job 코드에서 Batch Job 실행 호출을 직접 넣어야 합니다.
+- 같은 배치 파라미터로 재실행하면 이미 완료된 Job 인스턴스로 간주되어 실행이 안 될 수 있습니다. 보통 실행 시점 같은 고유 파라미터를 넣습니다.
+- 중복 실행 방지(동시 실행 제어) 설정이 필요할 수 있습니다.
+
+중요: `Trigger(QuartzJob(BatchJob))`의 형태로 작업이 정의되고, `Scheduler`가 `Trigger`에 정의 된 타이밍에 `QuartJob`을 실행시켜서 최종적으로 `BatchJob`이 실행된다. `BatchJob`은 `BatchStep`에서 사에서 작업을 수행한다.
+
+### 주요 class
+
+#### Quartz
+
+- `org.quartz.Job`
+  - Quartz용 Job 인터페이스
+- `org.quartz.JobDetail`
+  - Quartz의 Job Context, Quartz Job과 Trigger를 담는 컨테이너
+- `org.quartz.Trigger`
+  - sheduler에서 Quartz Job이 실행될 시간 정보를 담는 객체
+- `org.quartz.Scheduler`
+  - Trigger를 기반으로 지정된 시간이 되면 Quartz Job을 실행 시킴
+- `org.springframework.scheduling.quartz.QuartzJobBean`
+  - `org.quartz.Job`를 구현한 추상 클래스, spring 에서 `org.quartz.Job`을 사용하기 편하게 Wrap 처리 함
+
+#### Batch
+
+- `org.springframework.batch.core.job.Job`
+  - Batch의 Job, Step을 담을수 있으며, Step으로 상세 단계를 구현
+- `org.springframework.batch.core.repository.JobRepository`
+  - 실행 메타데이터(실행 여부, 실행 시간, 성공 여부 등), 기본적으로 메모리에 저장되지만 DB에 저장 가능
+
+#### Application
+
+- SampleJobConfig : Quartz Job, Trigger, Batch Jog의 Bean 생성
+- QuartzJobExecutorBeanMap: QuartzJobBean 구현체, Quartz scheduler를 통해 Trigger가 fire되면 `executeInternal()`이 실행됨, `executeInternal()` 에서 Batch Job Bean을 찾아서 `org.springframework.batch.core.launch.JobOperator`을 이용하여 실행
 
 ## Job 등록 및 사용 방법
 

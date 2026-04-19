@@ -1,0 +1,9 @@
+my:
+  datasource:
+    url: prod.db.com
+    username: prod_user
+    password: prod_pw
+    etc:
+      max-connection: 50
+      timeout: 10s
+      options: PROD, CACHE

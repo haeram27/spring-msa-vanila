@@ -1,0 +1,107 @@
+plugins {
+    id 'java-platform'
+    id 'maven-publish'
+}
+
+group   = 'com.example.platform'
+version = '1.0.0-SNAPSHOT'
+
+// ---------------------------------------------------------------
+// Java Platform configuration
+// allowDependencies() is required to import other BOMs (platforms).
+// ---------------------------------------------------------------
+javaPlatform {
+    allowDependencies()
+}
+
+// All version numbers are defined in gradle/libs.versions.toml (version catalog).
+dependencies {
+
+    // ── Platform BOM imports ──────────────────────────────────────
+    // Spring Boot / Cloud version policies are propagated to consumer projects as well.
+    api platform(libs.spring.boot.dependencies)
+    api platform(libs.spring.cloud.dependencies)
+    api platform(libs.jackson.bom)
+    api platform(libs.testcontainers.bom)
+
+    // ── Individual dependency version constraints ──────────────────
+    constraints {
+        // Persistence / Data
+        api libs.querydsl.jpa
+        api libs.querydsl.apt
+        api libs.mapstruct
+        api libs.mapstruct.processor
+        api libs.p6spy
+
+        // Utility
+        api libs.lombok
+        api libs.guava
+        api libs.commons.lang3
+        api libs.commons.io
+        api libs.commons.collections4
+
+        // Testing
+        api libs.mockito.core
+        api libs.archunit.junit5
+
+        // Observability
+        api libs.micrometer.registry.prometheus
+    }
+}
+
+// ---------------------------------------------------------------
+// Publishing configuration
+// ---------------------------------------------------------------
+publishing {
+    publications {
+        mavenBom(MavenPublication) {
+            from components.javaPlatform
+
+            // POM metadata
+            pom {
+                name        = 'Java Platform BOM'
+                description = 'Centralized dependency version management BOM for Spring MSA services'
+                url         = 'https://github.com/example/java-platform-bom'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url  = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        // Local file system repository (for development / verification)
+        maven {
+            name = 'local'
+            url  = uri(layout.buildDirectory.dir("repo"))
+        }
+
+        // ── Remote repository examples (uncomment and configure as needed) ──────
+        //
+        // Nexus / Artifactory
+        // maven {
+        //     name = 'nexus'
+        //     def releasesUrl  = 'https://nexus.example.com/repository/maven-releases'
+        //     def snapshotsUrl = 'https://nexus.example.com/repository/maven-snapshots'
+        //     url = version.endsWith('SNAPSHOT') ? snapshotsUrl : releasesUrl
+        //     credentials {
+        //         username = findProperty('nexusUser')     ?: System.getenv('NEXUS_USER')
+        //         password = findProperty('nexusPassword') ?: System.getenv('NEXUS_PASSWORD')
+        //     }
+        // }
+        //
+        // GitHub Packages
+        // maven {
+        //     name = 'githubPackages'
+        //     url  = 'https://maven.pkg.github.com/OWNER/REPOSITORY'
+        //     credentials {
+        //         username = findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR')
+        //         password = findProperty('gpr.key')  ?: System.getenv('GITHUB_TOKEN')
+        //     }
+        // }
+    }
+}

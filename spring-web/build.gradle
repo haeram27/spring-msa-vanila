@@ -57,6 +57,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-log4j2'
     // aop > aspectj from spring boot 4.0.x
     testImplementation 'org.springframework.boot:spring-boot-starter-aspectj'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     // ensure autoconfigure test annotations (AutoConfigureMockMvc) available
     testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'

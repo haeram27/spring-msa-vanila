@@ -1,0 +1,143 @@
+package com.example.httpclient.apache;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestClient;
+import com.example.EvaluatedTimeTests;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@SpringBootTest
+public class ApacheRestClientSyncTests extends EvaluatedTimeTests {
+
+    @Autowired
+    @Qualifier("apacheClientTrustAllRestClient")
+    private RestClient restClient;
+
+    @Autowired
+    @Qualifier("restClientJsonMapper")
+    private JsonMapper mapper;
+
+    // https://jsonplaceholder.typicode.com/guide/
+    private final String serverUrl1 = "https://jsonplaceholder.typicode.com/todos";
+    private final String serverUrl2 = "https://httpbin.org/"; 
+
+    @Test
+    public void get() {
+
+        log.info("uri="+serverUrl1);
+
+        JsonNode responseBody = mapper.createObjectNode();
+        try {
+            responseBody = restClient.get()
+            .uri(serverUrl1)
+            .accept(MediaType.APPLICATION_JSON)
+            .retrieve()
+            .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
+                var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
+                log.info(m);
+            })
+            .onStatus(HttpStatusCode::isError, (request, response) -> {
+                var m = String.format("%s, %s", response.getStatusCode(), response.getHeaders());
+                log.error(m);
+            })
+            .body(JsonNode.class);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return;
+        }
+
+        // handle responseBody
+        if (responseBody.isEmpty()) {
+            log.error("empty response");
+            return;
+        }
+
+        try {
+            log.info("response:\n" + responseBody.toPrettyString());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    @Test
+    public void post() {
+
+        // var requestBody = """
+        //     {
+        //         title: 'foo',
+        //         body: 'bar',
+        //         userId: 1
+        //     }
+        //     """;
+
+        @Data
+        class RequestBody {
+            String title;
+            String body;
+            Integer userId;
+        }
+
+        var requestBody = new RequestBody();
+        requestBody.title = "foo";
+        requestBody.body = "bar";
+        requestBody.userId = 1;
+
+        record RequestBody2(
+            String title,
+            String body,
+            Integer userId) {
+        }
+
+        JsonNode responseBody = mapper.createObjectNode();
+        try {
+            responseBody = restClient.post()
+                .uri("https://jsonplaceholder.typicode.com/posts")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new RequestBody2("a", "b", 2))
+                .retrieve()
+                .onStatus(HttpStatusCode::is2xxSuccessful, (request, response) -> {
+                    log.info("=== request ===============================================================");
+                    log.info(String.format("URI: %s", request.getURI()));
+                    log.info(String.format("Method: %s", request.getMethod()));
+                    log.info(String.format("Headers: %s", request.getHeaders()));
+
+                    log.info("=== response ===============================================================");
+                    log.info(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
+                })
+                .onStatus(HttpStatusCode::isError, (request, response) -> {
+                    log.info("=== request ===============================================================");
+                    log.info(String.format("URI: %s", request.getURI()));
+                    log.info(String.format("Method: %s", request.getMethod()));
+                    log.info(String.format("Headers: %s", request.getHeaders()));
+
+                    log.info("=== response ===============================================================");
+                    log.error(String.format("%s, %s", response.getStatusCode(), response.getHeaders()));
+                })
+                .body(JsonNode.class);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return;
+        }
+
+        // handle responseBody
+        if (responseBody.isEmpty()) {
+            log.error("empty response");
+            return;
+        }
+
+        try {
+            log.info("response:\n" + responseBody.toPrettyString());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+}

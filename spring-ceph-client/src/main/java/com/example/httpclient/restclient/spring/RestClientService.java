@@ -184,10 +184,8 @@ public class RestClientService {
                         } catch (IOException e) {
                             log.error(e.getMessage(), e);
                         }
-
                     })
                     .toBodilessEntity();
-
         } catch (ResourceAccessException e) {
             logResourceAccessException(method, url, e);
         } catch (Exception e) {
@@ -269,7 +267,6 @@ public class RestClientService {
                         }
                     })
                     .toBodilessEntity();
-
         } catch (ResourceAccessException e) {
             logResourceAccessException(method, url, e);
         } catch (Exception e) {

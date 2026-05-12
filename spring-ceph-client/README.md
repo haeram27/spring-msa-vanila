@@ -14,11 +14,11 @@ HTTPClient 선택 기준:
 
 **주요 구현**
 
-- `com.example.httpclient.restclient.jdk.RestClient.java`
+- `com.example.cephclient.restclient.jdk.RestClient.java`
   - Java built-in HttpClient를 이용하여 구현된 RESTAPI Client 싱글턴 구현체
   - Restapi에 대해 요청을 보낼수 있는 유틸리티 클래스
   - Java HttpClient의 상세 사용 방법을 참조 가능
-- `com.example.httpclient.restclient.spring.RestClientService.java`
+- `com.example.cephclient.restclient.spring.RestClientService.java`
   - spring-web의 RestClient 사용법을 참조 가능
 
 **Spring의 RestClient 설정 방식**

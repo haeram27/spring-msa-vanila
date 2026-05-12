@@ -11,6 +11,22 @@ spring.profiles.active: dev
 # log4j2 configuration
 logging.config: classpath:log4j2-${spring.profiles.active}.xml
 
+# ceph integration defaults
+ceph:
+  aws:
+    s3:
+      endpoint: http://127.0.0.1:8555
+      region: us-east-1
+      access-key: 4VIKYHR6YA7ZGW3YVM07
+      secret-key: h97fOlBHgQ1kCzKYvnb47uTU9Pasu5oZQWp9p7Xz
+      path-style-access-enabled: true
+  radosgw:
+    admin:
+      endpoint: http://127.0.0.1:8555/admin
+      access-key: 4VIKYHR6YA7ZGW3YVM07
+      secret-key: h97fOlBHgQ1kCzKYvnb47uTU9Pasu5oZQWp9p7Xz
+      user-id: rgw-admin-ops-user
+
 ---
 ########################################
 ### dev profile env properties

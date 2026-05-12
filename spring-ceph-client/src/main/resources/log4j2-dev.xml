@@ -69,7 +69,7 @@
         <!-- =================================================================== -->
         <!-- App                                                                 -->
         <!-- =================================================================== -->
-        <Logger name="com.example.httpclient" level="debug" additivity="false">
+        <Logger name="com.example.cephclient" level="debug" additivity="false">
             <AppenderRef ref="console" />
         </Logger>
 

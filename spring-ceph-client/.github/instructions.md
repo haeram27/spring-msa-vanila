@@ -14,3 +14,10 @@ description: "Project-level overview for the Java Ceph client repository; refere
 
 ## Referenced Rule File
 - Java 개발 규칙은 [java-project-rules.instructions.md](.github/java-project-rules.instructions.md)를 따른다.
+- AI 채팅/터미널 실행 운영 규칙은 [ai-chat.instructions.md](.github/ai-chat.instructions.md)를 따른다.
+
+## AI Chat Policy Summary
+- 터미널 명령은 기본적으로 백그라운드(비동기) 실행 후 즉시 사용자에게 주도권을 반환한다.
+- 동기 실행은 기본 타임아웃 10초를 적용한다.
+- 10초 초과 시 백그라운드로 전환하고 현재 로그 요약을 먼저 보고한다.
+- 완료 신호(green/idle)를 받으면 절대로 추가 대기하지 않고 즉시 결과를 확인해 전달한다.

@@ -1,43 +1,204 @@
-spring-httpclient
-=================
+# Spring Ceph Client - S3Presigner Backend MSA
 
-**프로젝트**: 간단한 Java HTTP 클라이언트 유틸리티(동기/비동기)와 관련 테스트를 제공하는 예제 프로젝트입니다.
+**프로젝트**: Frontend에 Ceph/S3 스토리지 기능을 제공하는 Backend MSA(마이크로서비스 아키텍처)
 
-HTTPClient 선택 기준:
+Frontend 클라이언트가 직접 S3 호환 스토리지(Ceph RadosGW)에 파일을 업로드/다운로드할 수 있도록 **AWS S3Presigner 기반의 서명된 URL 발급** 아키텍처를 제공합니다.
 
-- Java built-in : 가장 표준화된 client를 제공하며, 특별히 부족한 것이 없고 효율적인 방식으로 요청을 생성할 수 있다. 대부분의 경우 가장 추천 한다.
-- apache httpclient : 좀더 상세한 timeout 설정이 가능하지만 대부분의 경우 필요하지 않습니다. jdk에 비해 설정이 복잡하고 버전마다 설정 변화가 커서 유지보수에 비용이 크다. spring framework 사용시 spring과 apache 버전을 변경 할 때마다 구현이 방법이 달라지면서 기존 구현 코드에서 오류가 발생할 가능성이 매우 높다. 꼭 필요하지 않다면 추천하지 않는다.
-- Spring Restclient wrapper : 나름의 편리한 구조를 제공한다고 하지만 순수 Java API 만으로 대부분의 경우에 대처가 가능하므로 필수로 사용할 필요는 없다. 오히려 모든 HTTP 요청이 Synchronized 방식이며 반환 HttpResonse의 body가 InputStream으로 고정 되어 있어 이를 반드시 close 처리 해줘야 하기 때문에 구현 복잡도가 높아질 수 있다. 사용 방법에 대한 깊은 이해가 필요한 부분이 많으므로 java 표준 HttpClient 사용 대비 큰 장점이 있다고 하기 어렵다.
-  - 특징:
-    - 모든 request 는 synchronized
-    - Http reponse body는 InputStream 타입, 단, ClientHttpResponse 자체를 Closeable 인터페이스 구현체로 제공
+## 🎯 핵심 아키텍처
 
-**주요 구현**
+**URL 발급 중심 설계**: 백엔드 서버는 S3 요청에 필요한 서명을 미리 만들어 URL 형태로 프론트엔드에 전달하고, 프론트엔드는 이 URL을 이용하여 S3에 **직접 접근**합니다.
 
-- `com.example.cephclient.restclient.jdk.RestClient.java`
-  - Java built-in HttpClient를 이용하여 구현된 RESTAPI Client 싱글턴 구현체
-  - Restapi에 대해 요청을 보낼수 있는 유틸리티 클래스
-  - Java HttpClient의 상세 사용 방법을 참조 가능
-- `com.example.cephclient.restclient.spring.RestClientService.java`
-  - spring-web의 RestClient 사용법을 참조 가능
-
-**Spring의 RestClient 설정 방식**
-
-Spring의 `RestTemplate`과 `RestClient`는 `HttpClient`를 사용하는 Wrapper 클래스 이며, HttpClient를 이용하여 RESTAPI에 대한 호출을 편리하게 해준다.
-`RestClient`가 `RestTemplate`보다 더 최신의 모던한 구현체이다.
-다만, 기본 Java의 `HttpClient` 자체가 단순한 설정과 필수 기능을 매우 잘 구현한 상태이기 때문에 대부분의 HTTP 요청이나 RESTAPI 호출에 쉽게 사용이 가능하므로 굳이 `RestTemplate`이나 `RestClient` 사용을 권장하진 않는다.
-
-`HttpClient`는 Java의 built-in과 Apache, Netty 등의 3rd-party library의 것이 있다.
-Spring은 `RestClient`, `RestTemplate`을 위해 이 모든 HttpClient를 사용할 수 있도록 `XXXClientHttpRequestFactory` Adapter 클래스를 제공한다.
-기본 Java의 `HttpClient`가 가장 깔끔하며, Spring 버전 업데이트에 의한 설정 변경 오류도 발생되지 않으므로, 기본 Java의 `HttpClient` 사용을 권장한다.
-
-- Java HttpClient를 이용한 Spring RestClient 설정(Wrapping) 순서
-
-```plain
-RestClient(JdkClientHttpRequestFactory(HttpClient(SSLContext)))
+```
+Frontend → Backend(Presigner) → S3Presigner API → [서명된 URL 발급]
+                                                       ↓
+Frontend → S3 (서버 우회, 직접 데이터 전송)
 ```
 
-**요구사항**:
+**장점:**
+- 서버 부하 최소화 (데이터가 서버를 경유하지 않음)
+- 병렬 업로드/다운로드 지원
+- 대용량 파일 처리 효율성
 
-- Java 21 이상 (가상 스레드 사용)
-- Gradle
+## 📋 주요 기능 시나리오
+
+AWS SDK 기준 버전: `software.amazon.awssdk BOM 2.44.4`
+
+### 1. **단일 Object PUT/GET** (`presignPutObject`, `presignGetObject`)
+- 일반적인 파일 업로드/다운로드
+- 작은 파일에 최적화
+
+### 2. **Multipart Upload** (`presignCreateMultipartUpload`, `presignUploadPart`, `presignCompleteMultipartUpload`)
+- 대용량 파일 업로드
+- 병렬 파트 전송
+- 실패 시 파트별 재시도 가능
+
+### 3. **멀티파트 실패 복구** (`presignAbortMultipartUpload`)
+- 업로드 중단 후 미완료 파트 정리
+- 스토리지 비용 누수 방지
+
+### 4. **객체 삭제 위임** (`presignDeleteObject`)
+- 프론트엔드가 직접 객체 삭제
+
+### 5. **객체 메타 확인** (`presignHeadObject`)
+- 객체 존재/크기/ETag 확인 (응답 바디 없음)
+- SDK 2.44.4+ 정식 지원
+
+### 6. **버킷 접근 가능 여부 확인** (`presignHeadBucket`)
+- 업로드 시작 전 권한 검증
+- SDK 2.44.4+ 정식 지원
+
+### 7. **Range 부분 다운로드** (`presignGetObject` + Range 헤더)
+- 대용량 파일 부분 다운로드
+- 스트리밍/재생 탐색 지원
+
+## 📦 프로젝트 구조
+
+```
+src/main/java/com/example/cephclient/
+├── SpringApplication.java                 # 메인 진입점
+├── component/
+│   └── DefaultApplicationRunner.java       # 애플리케이션 초기화
+├── config/
+│   ├── AwsSdkConfig.java                   # AWS SDK 설정
+│   ├── RadosgwAdmin4jConfig.java           # Ceph RadosGW 관리자 설정
+│   ├── JdkHttpClientConfig.java            # Java HttpClient 설정
+│   ├── JacksonConfig.java                  # JSON 직렬화/역직렬화
+│   ├── RestServerConfig.java               # REST 서버 설정
+│   └── SpringLifeCycleEventListener.java    # 라이프사이클 이벤트
+├── model/
+│   └── RestServerConfigDto.java            # 서버 설정 DTO
+├── restclient/
+│   ├── jdk/RestClient.java                 # Java built-in HttpClient 구현
+│   └── spring/RestClientService.java       # Spring RestClient 구현
+├── s3/
+│   ├── S3ClientFacade.java                 # S3 클라이언트 파사드
+│   ├── S3PresignerController.java          # Presigner API 엔드포인트
+│   └── S3PresignerFacade.java              # S3Presigner 파사드
+├── service/
+│   └── FileReadService.java                # 파일 읽기 서비스
+└── util/
+    └── PathUtil.java                       # 경로 유틸리티
+```
+
+## 🔧 주요 구현 클래스
+
+### S3PresignerController
+Frontend 클라이언트가 호출하는 REST API 엔드포인트:
+- `POST /presign-put` - 업로드용 URL 발급
+- `GET /presign-get` - 다운로드용 URL 발급
+- `POST /multipart/start` - 멀티파트 시작
+- `POST /multipart/part-url` - 파트별 URL 발급
+- `POST /multipart/complete` - 멀티파트 완료
+- `POST /multipart/abort-url` - 멀티파트 중단
+- `POST /presign-delete` - 삭제용 URL 발급
+- `GET /presign-head-object` - 객체 메타 확인 URL 발급
+- `GET /presign-head-bucket` - 버킷 접근 확인 URL 발급
+- `GET /presign-get-range` - Range 다운로드 URL 발급
+
+### S3PresignerFacade
+AWS SDK의 `S3Presigner`를 감싸는 파사드 클래스:
+- URL 생성 로직 캡슐화
+- 헤더 관리 및 서명 처리
+- 만료 시간 설정
+
+### S3ClientFacade
+직접 S3 호출 시 사용 (Fallback/검증용):
+- 객체 존재 여부 확인
+- 메타데이터 조회
+- 버킷 접근성 검증
+
+## 🌐 HTTP 클라이언트 구성
+
+### Java Built-in HttpClient (권장)
+- **이유**: 표준화된 API, 설정 간결함, Spring 버전 업데이트 영향 최소화
+- **구현**: `com.example.cephclient.restclient.jdk.RestClient`
+- **설정 순서**: `RestClient(JdkClientHttpRequestFactory(HttpClient(SSLContext)))`
+
+### Spring RestClient (선택)
+- **특징**: 모든 요청이 동기식(synchronized), 응답 바디가 InputStream 고정
+- **구현**: `com.example.cephclient.restclient.spring.RestClientService`
+
+## 📊 요청/응답 데이터 구조
+
+### PUT URL 발급 예시
+```json
+// 요청
+{
+  "bucket": "my-bucket",
+  "key": "images/2026/05/a.png",
+  "contentType": "image/png",
+  "contentLength": 1048576,
+  "expiresInSeconds": 300
+}
+
+// 응답
+{
+  "uploadUrl": "https://...",
+  "method": "PUT",
+  "headers": {
+    "Content-Type": "image/png"
+  },
+  "expiresAt": "2026-05-12T04:30:00Z"
+}
+```
+
+### Multipart 시작 예시
+```json
+// 요청
+{
+  "bucket": "my-bucket",
+  "key": "videos/2026/demo.mp4",
+  "contentType": "video/mp4",
+  "expiresInSeconds": 3600
+}
+
+// 응답
+{
+  "startUrl": "https://...",
+  "expiresAt": "2026-05-12T05:30:00Z"
+}
+
+// S3 직접 호출 결과 (UploadId 획득)
+{
+  "UploadId": "VXBsb2FkIElE..."
+}
+```
+
+## ⚙️ 설정 및 실행
+
+### 요구사항
+- **Java**: 21 이상 (가상 스레드 사용)
+- **빌드**: Gradle
+- **AWS SDK**: software.amazon.awssdk BOM 2.44.4+
+
+### 빌드
+```bash
+./gradlew assemble
+```
+
+### 테스트
+```bash
+./gradlew test --rerun-tasks
+```
+
+## 🧪 테스트 커버리지
+
+- **S3ClientFacadeIntegrationTests**: 실제 S3 연결 테스트
+- **S3ClientFacadeMockTests**: Mock 기반 단위 테스트
+- **S3PresignerFacadeIntegrationTests**: Presigner 통합 테스트
+- **S3PresignerFacadeMockTests**: Presigner Mock 테스트
+- **RestClientServiceTests**: Spring RestClient 테스트
+- **JdkHttpClientTests**: Java HttpClient 테스트
+
+## ⚠️ 주의사항
+
+1. **헤더 정합성**: Presign 시 포함된 헤더는 실제 요청과 동일해야 함
+2. **만료 시간**: 짧은 TTL 권장 (기본 300초)
+3. **Multipart 중단**: 미완료 파트는 스토리지 비용 누적 → 실패 시 반드시 Abort 호출
+4. **Range 헤더**: 서명에 포함된 경우 실제 호출 헤더 값이 일치해야 함
+
+## 📚 상세 시나리오 가이드
+
+자세한 API 시퀀스 다이어그램 및 요청/응답 데이터는 다음 파일을 참조하세요:
+- **파일**: `.github/scenario/aws.s3presigner.scenarios.html`
+- **내용**: 7가지 시나리오별 Mermaid 시퀀스 다이어그램, 용어 정리, 요청/응답 JSON 예시

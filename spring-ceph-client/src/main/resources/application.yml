@@ -11,6 +11,9 @@ spring.profiles.active: dev
 # log4j2 configuration
 logging.config: classpath:log4j2-${spring.profiles.active}.xml
 
+# default web server port (avoid 8080 collision)
+server.port: 18080
+
 # ceph integration defaults
 ceph:
   aws:

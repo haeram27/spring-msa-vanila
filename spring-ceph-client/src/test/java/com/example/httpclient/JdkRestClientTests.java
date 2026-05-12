@@ -1,4 +1,4 @@
-package com.example.cephclient.jdk;
+package com.example.httpclient;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

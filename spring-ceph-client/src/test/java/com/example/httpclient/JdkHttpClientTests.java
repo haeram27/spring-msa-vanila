@@ -1,4 +1,4 @@
-package com.example.cephclient.jdk;
+package com.example.httpclient;
 
 import java.net.URI;
 import java.net.http.HttpClient;

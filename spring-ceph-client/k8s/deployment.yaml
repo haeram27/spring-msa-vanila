@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-ceph-client
+  labels:
+    app: spring-ceph-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-ceph-client
+  template:
+    metadata:
+      labels:
+        app: spring-ceph-client
+    spec:
+      containers:
+        - name: spring-ceph-client
+          image: CHANGE_ME_IMAGE:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 18080
+          env:
+            - name: CEPH_AWS_S3_ENDPOINT
+              value: "http://ceph-rgw.default.svc.cluster.local:80"
+            - name: CEPH_AWS_S3_REGION
+              value: "us-east-1"
+            - name: CEPH_AWS_S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ceph-s3-credentials
+                  key: access-key
+            - name: CEPH_AWS_S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ceph-s3-credentials
+                  key: secret-key
+            - name: CEPH_AWS_S3_PATH_STYLE_ACCESS_ENABLED
+              value: "true"
+          readinessProbe:
+            tcpSocket:
+              port: 18080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 18080
+            initialDelaySeconds: 30
+            periodSeconds: 15

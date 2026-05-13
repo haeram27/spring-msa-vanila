@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-ceph-client
+  labels:
+    app: spring-ceph-client
+spec:
+  selector:
+    app: spring-ceph-client
+  ports:
+    - name: http
+      port: 80
+      targetPort: 18080
+      protocol: TCP
+  type: LoadBalancer

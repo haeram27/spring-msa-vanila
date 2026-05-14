@@ -13,6 +13,14 @@ import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 
+/**
+ * Facade for S3 client operations, providing methods to interact with S3 buckets and objects.
+ * <p>
+ * This class includes methods for creating, listing, and deleting buckets, as well as deleting objects, with input validation and error handling.
+ * <p>
+ * Refer to AWS SDK for Java v2 documentation for details on S3 client usage:
+ * https://docs.aws.amazon.com/java/api/latest/software/amazon/awssdk/services/s3/S3Client.html
+ */
 @Component
 @Slf4j
 @RequiredArgsConstructor

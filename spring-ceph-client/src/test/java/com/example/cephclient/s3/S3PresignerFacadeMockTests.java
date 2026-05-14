@@ -1,7 +1,10 @@
 package com.example.cephclient.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.net.URI;
@@ -14,8 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.example.cephclient.s3.S3PresignerFacade;
 
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -60,6 +61,58 @@ class S3PresignerFacadeMockTests {
 
         assertThat(result.method()).isEqualTo("PUT");
         assertThat(result.url()).isEqualTo("https://ceph.local/put");
+    }
+
+    @Test
+    void presignPutObjectBulk_ValidRequests_ReturnsPresignedRequests() {
+        PresignedPutObjectRequest presigned1 = mock(PresignedPutObjectRequest.class);
+        PresignedPutObjectRequest presigned2 = mock(PresignedPutObjectRequest.class);
+        when(presigned1.url()).thenReturn(toUrl("https://ceph.local/put-1"));
+        when(presigned2.url()).thenReturn(toUrl("https://ceph.local/put-2"));
+
+        when(s3Presigner.presignPutObject(org.mockito.ArgumentMatchers.any(PutObjectPresignRequest.class))).thenAnswer(invocation -> {
+            PutObjectPresignRequest argument = invocation.getArgument(0);
+            String key = argument.putObjectRequest().key();
+            if ("k-1".equals(key)) {
+                return presigned1;
+            }
+            if ("k-2".equals(key)) {
+                return presigned2;
+            }
+            throw new IllegalArgumentException("unexpected key: " + key);
+        });
+
+        List<PresignedPutObjectRequest> results = facade.presignPutObjectBulk(
+            List.of(
+                new S3PresignerFacade.PutObjectUrlRequest("b", "k-1", "text/plain", 100L, 120),
+                new S3PresignerFacade.PutObjectUrlRequest("b", "k-2", "text/plain", 200L, 120)
+            )
+        );
+
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).url().toString()).isEqualTo("https://ceph.local/put-1");
+        assertThat(results.get(1).url().toString()).isEqualTo("https://ceph.local/put-2");
+        verify(s3Presigner, times(2)).presignPutObject(org.mockito.ArgumentMatchers.any(PutObjectPresignRequest.class));
+    }
+
+    @Test
+    void presignPutObjectBulk_PresignFailure_ThrowsBulkPresignException() {
+        when(s3Presigner.presignPutObject(org.mockito.ArgumentMatchers.any(PutObjectPresignRequest.class)))
+            .thenThrow(new RuntimeException("presign error"));
+
+        assertThatThrownBy(() -> facade.presignPutObjectBulk(
+            List.of(new S3PresignerFacade.PutObjectUrlRequest("b", "k-1", null, null, 120))
+        ))
+            .isInstanceOf(BulkPresignException.class)
+            .satisfies(e -> assertThat(((BulkPresignException) e).getReason())
+                .isEqualTo(BulkPresignException.Reason.PRESIGN_FAILURE));
+    }
+
+    @Test
+    void presignPutObjectBulk_EmptyRequests_ThrowsIllegalArgumentException() {
+        assertThatThrownBy(() -> facade.presignPutObjectBulk(List.of()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("requests must not be empty");
     }
 
     @Test
@@ -141,6 +194,43 @@ class S3PresignerFacadeMockTests {
         );
 
         assertThat(result.method()).isEqualTo("PUT");
+    }
+
+    @Test
+    void presignUploadPartBulk_ValidRequest_ReturnsPartUrls() {
+        PresignedUploadPartRequest uploadPartPresigned1 = mock(PresignedUploadPartRequest.class);
+        PresignedUploadPartRequest uploadPartPresigned2 = mock(PresignedUploadPartRequest.class);
+
+        mockPresignedCommon(uploadPartPresigned1, "https://ceph.local/multipart-part-1", SdkHttpMethod.PUT);
+        mockPresignedCommon(uploadPartPresigned2, "https://ceph.local/multipart-part-2", SdkHttpMethod.PUT);
+
+        when(s3Presigner.presignUploadPart(org.mockito.ArgumentMatchers.any(UploadPartPresignRequest.class))).thenAnswer(invocation -> {
+            UploadPartPresignRequest argument = invocation.getArgument(0);
+            int partNumber = argument.uploadPartRequest().partNumber();
+            if (partNumber == 1) {
+                return uploadPartPresigned1;
+            }
+            if (partNumber == 2) {
+                return uploadPartPresigned2;
+            }
+            throw new IllegalArgumentException("unexpected partNumber: " + partNumber);
+        });
+
+        List<S3PresignerFacade.PresignResult> result = facade.presignUploadPartBulk(
+            new S3PresignerFacade.PresignUploadPartBulkRequest(
+                "b",
+                "k",
+                "upload-id",
+                2,
+                300
+            )
+        );
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).url()).isEqualTo("https://ceph.local/multipart-part-1");
+        assertThat(result.get(1).url()).isEqualTo("https://ceph.local/multipart-part-2");
+
+        verify(s3Presigner, times(2)).presignUploadPart(org.mockito.ArgumentMatchers.any(UploadPartPresignRequest.class));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.example.cephclient.s3;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 
 @RestController
 @RequestMapping
@@ -29,6 +31,31 @@ public class S3PresignerController {
     ) {
         Objects.requireNonNull(request, "request must not be null");
         return s3PresignerFacade.presignPutObject(request);
+    }
+
+    @PostMapping("/files/presign-put/bulk")
+    @Operation(summary = "Issue bulk PUT presigned URLs", description = "Issues presigned PUT URLs for multiple objects in one request.")
+    public List<S3PresignerFacade.PresignResult> presignPutObjectBulk(
+        @RequestBody List<S3PresignerFacade.PutObjectUrlRequest> requests
+    ) {
+        Objects.requireNonNull(requests, "requests must not be null");
+        if (requests.isEmpty()) {
+            throw new IllegalArgumentException("requests must not be empty");
+        }
+        if (requests.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("requests must not contain null");
+        }
+
+        List<PresignedPutObjectRequest> presignedRequests = s3PresignerFacade.presignPutObjectBulk(requests);
+
+        return presignedRequests.stream()
+            .map(request -> new S3PresignerFacade.PresignResult(
+                request.url().toString(),
+                request.httpRequest().method().name(),
+                request.httpRequest().headers(),
+                request.expiration()
+            ))
+            .toList();
     }
 
     @GetMapping("/files/presign-get")
@@ -115,6 +142,18 @@ public class S3PresignerController {
     ) {
         Objects.requireNonNull(request, "request must not be null");
         return s3PresignerFacade.presignCreateMultipartUpload(request);
+    }
+
+    @PostMapping("/multipart/part-urls")
+    @Operation(
+        summary = "Issue Multipart part URLs",
+        description = "Issues presigned UploadPart URLs in bulk using an existing uploadId."
+    )
+    public List<S3PresignerFacade.PresignResult> presignUploadPartBulk(
+        @RequestBody S3PresignerFacade.PresignUploadPartBulkRequest request
+    ) {
+        Objects.requireNonNull(request, "request must not be null");
+        return s3PresignerFacade.presignUploadPartBulk(request);
     }
 
     @PostMapping("/multipart/part-url")

@@ -2,9 +2,17 @@ package com.example.cephclient.s3;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
 
@@ -37,15 +45,74 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartReq
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignRequest;
 
+/**
+ * Facade for S3 presigner operations, providing methods to generate presigned URLs for various S3 actions.
+ * <p>
+ * This class includes methods for presigning single and bulk operations, with input validation and error handling.
+ * <p>
+ * Refer to AWS SDK for Java v2 documentation for details on S3 presigner usage:
+ * https://docs.aws.amazon.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html
+ */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class S3PresignerFacade {
 
     private static final int DEFAULT_EXPIRES_IN_SECONDS = 300;
+    private static final int BULK_TIMEOUT_SECONDS = 10;
 
     private final S3Presigner s3Presigner;
 
     public PresignResult presignPutObject(PutObjectUrlRequest request) {
+        Objects.requireNonNull(request, "request must not be null");
+
+        PresignedPutObjectRequest presigned = presignPutObjectRequest(request);
+
+        return toResult(presigned);
+    }
+
+    public List<PresignedPutObjectRequest> presignPutObjectBulk(List<PutObjectUrlRequest> requests) {
+        Objects.requireNonNull(requests, "requests must not be null");
+        if (requests.isEmpty()) {
+            throw new IllegalArgumentException("requests must not be empty");
+        }
+        if (requests.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("requests must not contain null");
+        }
+
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<CompletableFuture<PresignedPutObjectRequest>> futures = requests.stream()
+                .map(request -> CompletableFuture.supplyAsync(() -> presignPutObjectRequest(request), executor))
+                .toList();
+
+            try {
+                CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
+                    .orTimeout(BULK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                    .get();
+            } catch (ExecutionException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof TimeoutException) {
+                    log.warn("bulk presign timed out after {}s: count={}", BULK_TIMEOUT_SECONDS, requests.size());
+                    futures.forEach(f -> f.cancel(true));
+                    throw new BulkPresignException(BulkPresignException.Reason.TIMEOUT,
+                        "Bulk presign timed out after " + BULK_TIMEOUT_SECONDS + "s", cause);
+                }
+                log.error("bulk presign failed: count={} cause={}", requests.size(), cause.getMessage(), cause);
+                throw new BulkPresignException(BulkPresignException.Reason.PRESIGN_FAILURE,
+                    "Bulk presign failed: " + cause.getMessage(), cause);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new BulkPresignException(BulkPresignException.Reason.PRESIGN_FAILURE,
+                    "Bulk presign interrupted", e);
+            }
+
+            return futures.stream()
+                .map(CompletableFuture::join)
+                .toList();
+        }
+    }
+
+    private PresignedPutObjectRequest presignPutObjectRequest(PutObjectUrlRequest request) {
         Objects.requireNonNull(request, "request must not be null");
 
         var putObjectRequestBuilder = PutObjectRequest.builder()
@@ -67,7 +134,7 @@ public class S3PresignerFacade {
                 .build()
         );
 
-        return toResult(presigned);
+        return presigned;
     }
 
     public PresignResult presignGetObject(GetObjectUrlRequest request) {
@@ -161,6 +228,51 @@ public class S3PresignerFacade {
         );
 
         return toResult(presigned);
+    }
+
+    public List<PresignResult> presignUploadPartBulk(PresignUploadPartBulkRequest request) {
+        Objects.requireNonNull(request, "request must not be null");
+
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<CompletableFuture<PresignResult>> futures = new ArrayList<>(request.partCount());
+
+            for (int partNumber = 1; partNumber <= request.partCount(); partNumber++) {
+                final int currentPartNumber = partNumber;
+                futures.add(CompletableFuture.supplyAsync(
+                    () -> presignUploadPart(new UploadPartUrlRequest(
+                        request.bucket(),
+                        request.key(),
+                        request.uploadId(),
+                        currentPartNumber,
+                        request.expiresInSeconds()
+                    )),
+                    executor
+                ));
+            }
+
+            try {
+                CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
+                    .orTimeout(BULK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                    .get();
+            } catch (ExecutionException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof TimeoutException) {
+                    log.warn("multipart upload-part presign timed out after {}s: partCount={}", BULK_TIMEOUT_SECONDS, request.partCount());
+                    futures.forEach(f -> f.cancel(true));
+                    throw new BulkPresignException(BulkPresignException.Reason.TIMEOUT,
+                        "Multipart upload-part presign timed out after " + BULK_TIMEOUT_SECONDS + "s", cause);
+                }
+                log.error("multipart upload-part presign failed: partCount={} cause={}", request.partCount(), cause.getMessage(), cause);
+                throw new BulkPresignException(BulkPresignException.Reason.PRESIGN_FAILURE,
+                    "Multipart upload-part presign failed: " + cause.getMessage(), cause);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new BulkPresignException(BulkPresignException.Reason.PRESIGN_FAILURE,
+                    "Multipart upload-part presign interrupted", e);
+            }
+
+            return futures.stream().map(CompletableFuture::join).toList();
+        }
     }
 
     public PresignResult presignUploadPart(UploadPartUrlRequest request) {
@@ -538,6 +650,22 @@ public class S3PresignerFacade {
             if (rangeEnd < rangeStart) {
                 throw new IllegalArgumentException("rangeEnd must be greater than or equal to rangeStart");
             }
+            validateExpiresInSeconds(expiresInSeconds);
+        }
+    }
+
+    public record PresignUploadPartBulkRequest(
+        String bucket,
+        String key,
+        String uploadId,
+        Integer partCount,
+        Integer expiresInSeconds
+    ) {
+        public PresignUploadPartBulkRequest {
+            requireNotBlank(bucket, "bucket");
+            requireNotBlank(key, "key");
+            requireNotBlank(uploadId, "uploadId");
+            requirePositive(partCount, "partCount");
             validateExpiresInSeconds(expiresInSeconds);
         }
     }

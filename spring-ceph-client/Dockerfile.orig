@@ -1,4 +1,4 @@
-FROM abis.ahnlab.com/docker-virtual-remotes/eclipse-temurin:25-jre
+FROM eclipse-temurin:25-jre
 
 ARG JAR_FILE=build/libs/*.jar
 

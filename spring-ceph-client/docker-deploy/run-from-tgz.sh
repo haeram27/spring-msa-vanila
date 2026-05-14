@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ARCHIVE_FILE=""
-IMAGE_NAME="spring-ceph-client"
-IMAGE_TAG="latest"
-CONTAINER_NAME="spring-ceph-client"
-HOST_PORT="18080"
-CONTAINER_PORT="18080"
-NETWORK_NAME=""
+ARCHIVE_FILE="${ARCHIVE_FILE:-spring-ceph-client_latest.tgz}"
+IMAGE_NAME="${IMAGE_NAME:-spring-ceph-client}"
+IMAGE_TAG="${IMAGE_TAG:-latest}"
+CONTAINER_NAME="${CONTAINER_NAME:-spring-ceph-client}"
+HOST_PORT="${HOST_PORT:-31349}"
+CONTAINER_PORT="${CONTAINER_PORT:-31349}"
+NETWORK_NAME="${NETWORK_NAME:-}"
 
-CEPH_AWS_S3_ENDPOINT=""
-CEPH_AWS_S3_REGION=""
-CEPH_AWS_S3_ACCESS_KEY=""
-CEPH_AWS_S3_SECRET_KEY=""
-CEPH_AWS_S3_PATH_STYLE_ACCESS_ENABLED="true"
+CEPH_AWS_S3_ENDPOINT="${CEPH_AWS_S3_ENDPOINT:-}"
+CEPH_AWS_S3_REGION="${CEPH_AWS_S3_REGION:-}"
+CEPH_AWS_S3_ACCESS_KEY="${CEPH_AWS_S3_ACCESS_KEY:-}"
+CEPH_AWS_S3_SECRET_KEY="${CEPH_AWS_S3_SECRET_KEY:-}"
+CEPH_AWS_S3_PATH_STYLE_ACCESS_ENABLED="${CEPH_AWS_S3_PATH_STYLE_ACCESS_ENABLED:-true}"
 
 usage() {
   cat <<'EOF'
@@ -24,8 +24,8 @@ Options:
   --image <name>                           Target Docker image name (default: spring-ceph-client)
   --tag <tag>                              Target Docker image tag (default: latest)
   --container <name>                       Container name (default: spring-ceph-client)
-  --host-port <port>                       Host port to publish (default: 18080)
-  --container-port <port>                  Container port to expose (default: 18080)
+  --host-port <port>                       Host port to publish (default: 31349)
+  --container-port <port>                  Container port to expose (default: 31349)
   --network <name>                         Optional Docker network name
 
   --ceph-aws-s3-endpoint <value>           Set CEPH_AWS_S3_ENDPOINT

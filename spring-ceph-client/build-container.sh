@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE_NAME="spring-ceph-client"
-IMAGE_TAG="latest"
-JAR_FILE=""
-DOCKERFILE="Dockerfile"
-BUILD_JAR=true
-PUSH_IMAGE=false
-SAVE_IMAGE_ARCHIVE=false
-ARCHIVE_FILE=""
+IMAGE_NAME="${IMAGE_NAME:-spring-ceph-client}"
+IMAGE_TAG="${IMAGE_TAG:-latest}"
+JAR_FILE="${JAR_FILE:-}"
+DOCKERFILE="${DOCKERFILE:-Dockerfile}"
+BUILD_JAR="${BUILD_JAR:-true}"
+PUSH_IMAGE="${PUSH_IMAGE:-false}"
+SAVE_IMAGE_ARCHIVE="${SAVE_IMAGE_ARCHIVE:-false}"
+ARCHIVE_FILE="${ARCHIVE_FILE:-}"
 
 usage() {
   cat <<'EOF'
@@ -73,34 +73,39 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ "$BUILD_JAR" == true ]]; then
-  echo "[1/3] Building jar (skip tests): gradle clean bootJar -x test"
-  gradle clean bootJar -x test
-fi
+FULL_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}"
 
-if [[ -z "$JAR_FILE" ]]; then
-  mapfile -t jars < <(ls -1t build/libs/*.jar 2>/dev/null || true)
-  if [[ ${#jars[@]} -eq 0 ]]; then
-    echo "No jar found under build/libs. Run gradle bootJar first or pass --jar."
+if docker image inspect "$FULL_IMAGE" >/dev/null 2>&1; then
+  echo "Image already exists locally. Skipping build: $FULL_IMAGE"
+else
+  if [[ "$BUILD_JAR" == true ]]; then
+    echo "[1/3] Building jar (skip tests): gradle clean bootJar -x test"
+    gradle clean bootJar -x test
+  fi
+
+  if [[ -z "$JAR_FILE" ]]; then
+    mapfile -t jars < <(ls -1t build/libs/*.jar 2>/dev/null || true)
+    if [[ ${#jars[@]} -eq 0 ]]; then
+      echo "No jar found under build/libs. Run gradle bootJar first or pass --jar."
+      exit 1
+    fi
+    JAR_FILE="${jars[0]}"
+  fi
+
+  if [[ ! -f "$JAR_FILE" ]]; then
+    echo "Jar file not found: $JAR_FILE"
     exit 1
   fi
-  JAR_FILE="${jars[0]}"
+
+  echo "[2/3] Building container image"
+  docker build \
+    -f "$DOCKERFILE" \
+    --build-arg "JAR_FILE=${JAR_FILE}" \
+    -t "$FULL_IMAGE" \
+    .
+
+  echo "Built image: $FULL_IMAGE"
 fi
-
-if [[ ! -f "$JAR_FILE" ]]; then
-  echo "Jar file not found: $JAR_FILE"
-  exit 1
-fi
-
-echo "[2/3] Building container image"
-FULL_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}"
-docker build \
-  -f "$DOCKERFILE" \
-  --build-arg "JAR_FILE=${JAR_FILE}" \
-  -t "$FULL_IMAGE" \
-  .
-
-echo "Built image: $FULL_IMAGE"
 
 if [[ "$PUSH_IMAGE" == true ]]; then
   echo "[3/3] Pushing image"

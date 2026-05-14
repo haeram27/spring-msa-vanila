@@ -19,7 +19,7 @@ spec:
           image: CHANGE_ME_IMAGE:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 18080
+            - containerPort: 31349
           env:
             - name: CEPH_AWS_S3_ENDPOINT
               value: "http://ceph-rgw.default.svc.cluster.local:80"
@@ -39,11 +39,11 @@ spec:
               value: "true"
           readinessProbe:
             tcpSocket:
-              port: 18080
+              port: 31349
             initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
             tcpSocket:
-              port: 18080
+              port: 31349
             initialDelaySeconds: 30
             periodSeconds: 15

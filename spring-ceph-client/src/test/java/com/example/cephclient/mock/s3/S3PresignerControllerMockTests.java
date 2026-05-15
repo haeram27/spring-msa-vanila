@@ -1,4 +1,4 @@
-package com.example.cephclient.s3;
+package com.example.cephclient.mock.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -16,12 +16,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.example.cephclient.s3.controller.S3PresignerController;
+import com.example.cephclient.s3.facade.S3PresignerFacade;
+
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 
 @ExtendWith(MockitoExtension.class)
-class S3PresignerControllerTests {
+class S3PresignerControllerMockTests {
 
     @Mock
     private S3PresignerFacade s3PresignerFacade;

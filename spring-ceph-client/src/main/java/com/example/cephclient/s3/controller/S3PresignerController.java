@@ -1,4 +1,4 @@
-package com.example.cephclient.s3;
+package com.example.cephclient.s3.controller;
 
 import java.util.List;
 import java.util.Objects;
@@ -9,6 +9,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.example.cephclient.s3.facade.S3PresignerFacade;
+import com.example.cephclient.s3.facade.S3PresignerFacade.AbortMultipartUploadUrlRequest;
+import com.example.cephclient.s3.facade.S3PresignerFacade.CompleteMultipartUploadUrlRequest;
+import com.example.cephclient.s3.facade.S3PresignerFacade.CreateMultipartUploadUrlRequest;
+import com.example.cephclient.s3.facade.S3PresignerFacade.DeleteObjectUrlRequest;
+import com.example.cephclient.s3.facade.S3PresignerFacade.GetObjectUrlRequest;
+import com.example.cephclient.s3.facade.S3PresignerFacade.HeadBucketUrlRequest;
+import com.example.cephclient.s3.facade.S3PresignerFacade.HeadObjectUrlRequest;
+import com.example.cephclient.s3.facade.S3PresignerFacade.PresignResult;
+import com.example.cephclient.s3.facade.S3PresignerFacade.PresignUploadPartBulkRequest;
+import com.example.cephclient.s3.facade.S3PresignerFacade.PutObjectUrlRequest;
+import com.example.cephclient.s3.facade.S3PresignerFacade.RangeGetObjectUrlRequest;
+import com.example.cephclient.s3.facade.S3PresignerFacade.UploadPartUrlRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

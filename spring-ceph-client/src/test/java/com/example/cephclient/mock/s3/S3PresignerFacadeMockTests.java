@@ -1,4 +1,4 @@
-package com.example.cephclient.s3;
+package com.example.cephclient.mock.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -17,6 +17,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.example.cephclient.s3.exception.BulkPresignException;
+import com.example.cephclient.s3.facade.S3PresignerFacade;
 
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;

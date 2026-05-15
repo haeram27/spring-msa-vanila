@@ -1,4 +1,4 @@
-package com.example.cephclient.s3;
+package com.example.cephclient.s3.facade;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -15,6 +15,9 @@ import java.util.concurrent.TimeoutException;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
+
+import com.example.cephclient.s3.exception.BulkPresignException;
+import com.example.cephclient.s3.exception.BulkPresignException.Reason;
 
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;

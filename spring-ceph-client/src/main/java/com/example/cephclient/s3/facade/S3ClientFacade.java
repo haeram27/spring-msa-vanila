@@ -1,4 +1,4 @@
-package com.example.cephclient.s3;
+package com.example.cephclient.s3.facade;
 
 import java.util.Objects;
 import java.util.List;

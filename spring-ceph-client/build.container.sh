@@ -9,6 +9,7 @@ BUILD_JAR="${BUILD_JAR:-true}"
 PUSH_IMAGE="${PUSH_IMAGE:-false}"
 SAVE_IMAGE_ARCHIVE="${SAVE_IMAGE_ARCHIVE:-false}"
 ARCHIVE_FILE="${ARCHIVE_FILE:-}"
+FORCE_REBUILD="${FORCE_REBUILD:-false}"
 
 usage() {
   cat <<'EOF'
@@ -20,6 +21,7 @@ Options:
   --jar <path>         Jar path to package (default: auto-detect build/libs/*.jar)
   --dockerfile <path>  Dockerfile path (default: Dockerfile)
   --no-build           Skip jar build step
+  --force-rebuild      Remove existing image and rebuild even if image already exists
   --push               Push image after build
   --save-archive       Save image as tar.gz for later docker load use (default: disabled)
   --archive-file <p>   Output archive path (default: <image>_<tag>.tar.gz)
@@ -49,6 +51,14 @@ while [[ $# -gt 0 ]]; do
       BUILD_JAR=false
       shift
       ;;
+    --force-rebuild)
+      FORCE_REBUILD=true
+      shift
+      ;;
+    -f)
+      FORCE_REBUILD=true
+      shift
+      ;;
     --push)
       PUSH_IMAGE=true
       shift
@@ -75,9 +85,18 @@ done
 
 FULL_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}"
 
+NEED_BUILD=true
 if docker image inspect "$FULL_IMAGE" >/dev/null 2>&1; then
-  echo "Image already exists locally. Skipping build: $FULL_IMAGE"
-else
+  if [[ "$FORCE_REBUILD" == true ]]; then
+    echo "Image already exists locally. Removing due to --force-rebuild: $FULL_IMAGE"
+    docker rmi "$FULL_IMAGE"
+  else
+    echo "Image already exists locally. Skipping build: $FULL_IMAGE"
+    NEED_BUILD=false
+  fi
+fi
+
+if [[ "$NEED_BUILD" == true ]]; then
   if [[ "$BUILD_JAR" == true ]]; then
     echo "[1/3] Building jar (skip tests): gradle clean bootJar -x test"
     gradle clean bootJar -x test

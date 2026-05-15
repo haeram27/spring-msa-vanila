@@ -1,4 +1,4 @@
-package com.example.cephclient.s3;
+package com.example.cephclient.mock.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -15,7 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.example.cephclient.s3.S3ClientFacade;
+import com.example.cephclient.s3.facade.S3ClientFacade;
 
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3Client;

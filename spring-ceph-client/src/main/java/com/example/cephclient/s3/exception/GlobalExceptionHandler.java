@@ -1,4 +1,4 @@
-package com.example.cephclient.s3;
+package com.example.cephclient.s3.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

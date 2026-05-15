@@ -1,4 +1,4 @@
-package com.example.cephclient.s3;
+package com.example.cephclient.integration.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.example.EvaluatedTimeTests;
-import com.example.cephclient.s3.S3ClientFacade;
+import com.example.cephclient.s3.facade.S3ClientFacade;
 
 import lombok.extern.slf4j.Slf4j;
 

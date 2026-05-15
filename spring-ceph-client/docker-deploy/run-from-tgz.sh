@@ -125,25 +125,25 @@ fi
 
 FULL_IMAGE="${IMAGE_NAME}:${IMAGE_TAG}"
 
-if docker image inspect "$FULL_IMAGE" >/dev/null 2>&1; then
-  echo "[1/5] Removing existing image: $FULL_IMAGE"
-  docker rmi "$FULL_IMAGE"
-else
-  echo "[1/5] Existing image not found: $FULL_IMAGE"
-fi
-
 if docker ps --format '{{.Names}}' | grep -Fxq "$CONTAINER_NAME"; then
-  echo "[2/5] Stopping running container: $CONTAINER_NAME"
+  echo "[1/5] Stopping running container: $CONTAINER_NAME"
   docker stop "$CONTAINER_NAME" >/dev/null
 else
-  echo "[2/5] Running container not found: $CONTAINER_NAME"
+  echo "[1/5] Running container not found: $CONTAINER_NAME"
 fi
 
 if docker ps -a --format '{{.Names}}' | grep -Fxq "$CONTAINER_NAME"; then
-  echo "[3/5] Removing existing container: $CONTAINER_NAME"
+  echo "[2/5] Removing existing container: $CONTAINER_NAME"
   docker rm "$CONTAINER_NAME" >/dev/null
 else
-  echo "[3/5] Existing container not found: $CONTAINER_NAME"
+  echo "[2/5] Existing container not found: $CONTAINER_NAME"
+fi
+
+if docker image inspect "$FULL_IMAGE" >/dev/null 2>&1; then
+  echo "[3/5] Removing existing image: $FULL_IMAGE"
+  docker rmi "$FULL_IMAGE"
+else
+  echo "[3/5] Existing image not found: $FULL_IMAGE"
 fi
 
 echo "[4/5] Loading image archive: $ARCHIVE_FILE"

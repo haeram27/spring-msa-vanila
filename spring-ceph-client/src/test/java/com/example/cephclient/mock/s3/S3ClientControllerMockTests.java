@@ -1,4 +1,4 @@
-package com.example.cephclient.s3;
+package com.example.cephclient.mock.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -13,8 +13,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.example.cephclient.s3.controller.S3ClientController;
+import com.example.cephclient.s3.facade.S3ClientFacade;
+
 @ExtendWith(MockitoExtension.class)
-class S3ClientControllerTests {
+class S3ClientControllerMockTests {
 
     @Mock
     private S3ClientFacade s3ClientFacade;

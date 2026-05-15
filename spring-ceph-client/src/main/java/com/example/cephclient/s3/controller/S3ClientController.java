@@ -1,4 +1,4 @@
-package com.example.cephclient.s3;
+package com.example.cephclient.s3.controller;
 
 import java.util.List;
 import java.util.Objects;
@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.example.cephclient.s3.facade.S3ClientFacade;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

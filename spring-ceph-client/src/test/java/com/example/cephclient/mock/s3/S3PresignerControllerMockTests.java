@@ -66,7 +66,16 @@ class S3PresignerControllerMockTests {
     @Test
     void presignUploadPartBulk_ValidRequest_ReturnsResult() {
         S3PresignerFacade.PresignUploadPartBulkRequest request =
-            new S3PresignerFacade.PresignUploadPartBulkRequest("bucket", "key", "upload-id", 2, 300);
+            new S3PresignerFacade.PresignUploadPartBulkRequest(
+                "upload-id",
+                "bucket",
+                "key",
+                300,
+                List.of(
+                    new S3PresignerFacade.MultipartPartResource(1, null),
+                    new S3PresignerFacade.MultipartPartResource(2, null)
+                )
+            );
 
         List<S3PresignerFacade.PresignResult> expected = List.of(
             new S3PresignerFacade.PresignResult("https://ceph.local/multipart-part-1", "PUT", java.util.Map.of(), Instant.now().plusSeconds(60)),
@@ -80,6 +89,65 @@ class S3PresignerControllerMockTests {
         assertThat(result).hasSize(2);
         assertThat(result.get(0).method()).isEqualTo("PUT");
         verify(s3PresignerFacade).presignUploadPartBulk(request);
+    }
+
+    @Test
+    void presignMultipartWithPartResources_ValidRequest_ReturnsStartAndPartUrls() {
+        S3PresignerFacade.MultipartUploadAutoPresignRequest request =
+            new S3PresignerFacade.MultipartUploadAutoPresignRequest(
+                "bucket",
+                "key",
+                List.of(
+                    new S3PresignerFacade.MultipartPartResource(1, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                    new S3PresignerFacade.MultipartPartResource(2, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+                ),
+                "video/mp4",
+                120,
+                300,
+                true
+            );
+
+        S3PresignerFacade.MultipartUploadAutoPresignResult expected =
+            new S3PresignerFacade.MultipartUploadAutoPresignResult(
+                "bucket",
+                "key",
+                "upload-id-123",
+                new S3PresignerFacade.PresignResult(
+                    "https://ceph.local/multipart-start",
+                    "POST",
+                    java.util.Map.of(),
+                    Instant.now().plusSeconds(60)
+                ),
+                List.of(
+                    new S3PresignerFacade.MultipartPartPresignResult(
+                        1,
+                        new S3PresignerFacade.PresignResult(
+                            "https://ceph.local/multipart-part-1",
+                            "PUT",
+                            java.util.Map.of(),
+                            Instant.now().plusSeconds(60)
+                        )
+                    ),
+                    new S3PresignerFacade.MultipartPartPresignResult(
+                        2,
+                        new S3PresignerFacade.PresignResult(
+                            "https://ceph.local/multipart-part-2",
+                            "PUT",
+                            java.util.Map.of(),
+                            Instant.now().plusSeconds(60)
+                        )
+                    )
+                )
+            );
+
+        when(s3PresignerFacade.presignMultipartWithPartResources(request)).thenReturn(expected);
+
+        S3PresignerFacade.MultipartUploadAutoPresignResult result = controller.presignMultipartWithPartResources(request);
+
+        assertThat(result.uploadId()).isEqualTo("upload-id-123");
+        assertThat(result.startUrl().method()).isEqualTo("POST");
+        assertThat(result.partUrls()).hasSize(2);
+        verify(s3PresignerFacade).presignMultipartWithPartResources(request);
     }
 
     private void mockPresignedPut(PresignedPutObjectRequest request, String url) {

@@ -18,6 +18,8 @@ import com.example.cephclient.s3.facade.S3PresignerFacade.DeleteObjectUrlRequest
 import com.example.cephclient.s3.facade.S3PresignerFacade.GetObjectUrlRequest;
 import com.example.cephclient.s3.facade.S3PresignerFacade.HeadBucketUrlRequest;
 import com.example.cephclient.s3.facade.S3PresignerFacade.HeadObjectUrlRequest;
+import com.example.cephclient.s3.facade.S3PresignerFacade.MultipartUploadAutoPresignRequest;
+import com.example.cephclient.s3.facade.S3PresignerFacade.MultipartUploadAutoPresignResult;
 import com.example.cephclient.s3.facade.S3PresignerFacade.PresignResult;
 import com.example.cephclient.s3.facade.S3PresignerFacade.PresignUploadPartBulkRequest;
 import com.example.cephclient.s3.facade.S3PresignerFacade.PutObjectUrlRequest;
@@ -177,6 +179,18 @@ public class S3PresignerController {
     ) {
         Objects.requireNonNull(request, "request must not be null");
         return s3PresignerFacade.presignUploadPart(request);
+    }
+
+    @PostMapping("/multipart/auto-presign")
+    @Operation(
+        summary = "Issue Multipart start and part URLs",
+        description = "Creates uploadId on backend and returns presigned start URL plus presigned part URLs from part resources."
+    )
+    public MultipartUploadAutoPresignResult presignMultipartWithPartResources(
+        @RequestBody MultipartUploadAutoPresignRequest request
+    ) {
+        Objects.requireNonNull(request, "request must not be null");
+        return s3PresignerFacade.presignMultipartWithPartResources(request);
     }
 
     @PostMapping("/multipart/complete")

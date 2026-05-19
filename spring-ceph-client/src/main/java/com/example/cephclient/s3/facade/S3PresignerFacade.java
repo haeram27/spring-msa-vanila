@@ -3,15 +3,19 @@ package com.example.cephclient.s3.facade;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
@@ -22,12 +26,14 @@ import com.example.cephclient.s3.exception.BulkPresignException.Reason;
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.AbortMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploadPresignRequest;
@@ -62,9 +68,14 @@ import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignReque
 public class S3PresignerFacade {
 
     private static final int DEFAULT_EXPIRES_IN_SECONDS = 300;
-    private static final int BULK_TIMEOUT_SECONDS = 10;
+    private static final int BASE_TIMEOUT_SECONDS = 10;
+    private static final int MAX_PARALLEL_TIMEOUT_SECONDS = 30;
+    private static final int PARALLEL_PRESIGN_THRESHOLD = 256;
+    private static final int PARALLELISM = Runtime.getRuntime().availableProcessors();
 
+    private final ExecutorService presignExecutor = Executors.newFixedThreadPool(PARALLELISM);
     private final S3Presigner s3Presigner;
+    private final S3Client s3Client;
 
     public PresignResult presignPutObject(PutObjectUrlRequest request) {
         Objects.requireNonNull(request, "request must not be null");
@@ -83,36 +94,20 @@ public class S3PresignerFacade {
             throw new IllegalArgumentException("requests must not contain null");
         }
 
-        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            List<CompletableFuture<PresignedPutObjectRequest>> futures = requests.stream()
-                .map(request -> CompletableFuture.supplyAsync(() -> presignPutObjectRequest(request), executor))
-                .toList();
-
+        if (requests.size() < PARALLEL_PRESIGN_THRESHOLD) {
             try {
-                CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
-                    .orTimeout(BULK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                    .get();
-            } catch (ExecutionException e) {
-                Throwable cause = e.getCause();
-                if (cause instanceof TimeoutException) {
-                    log.warn("bulk presign timed out after {}s: count={}", BULK_TIMEOUT_SECONDS, requests.size());
-                    futures.forEach(f -> f.cancel(true));
-                    throw new BulkPresignException(BulkPresignException.Reason.TIMEOUT,
-                        "Bulk presign timed out after " + BULK_TIMEOUT_SECONDS + "s", cause);
-                }
-                log.error("bulk presign failed: count={} cause={}", requests.size(), cause.getMessage(), cause);
+                return requests.stream().map(this::presignPutObjectRequest).toList();
+            } catch (BulkPresignException e) {
+                throw e;
+            } catch (Exception e) {
+                log.error("bulk presign failed: count={} cause={}", requests.size(), e.getMessage(), e);
                 throw new BulkPresignException(BulkPresignException.Reason.PRESIGN_FAILURE,
-                    "Bulk presign failed: " + cause.getMessage(), cause);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new BulkPresignException(BulkPresignException.Reason.PRESIGN_FAILURE,
-                    "Bulk presign interrupted", e);
+                    "Bulk presign failed: " + e.getMessage(), e);
             }
-
-            return futures.stream()
-                .map(CompletableFuture::join)
-                .toList();
         }
+
+        return executeChunkedParallel(
+            requests, this::presignPutObjectRequest, calculateDynamicTimeout(requests.size()));
     }
 
     private PresignedPutObjectRequest presignPutObjectRequest(PutObjectUrlRequest request) {
@@ -128,6 +123,10 @@ public class S3PresignerFacade {
 
         if (request.contentLength() != null && request.contentLength() > 0) {
             putObjectRequestBuilder.contentLength(request.contentLength());
+        }
+
+        if (request.checksumSha256() != null) {
+            putObjectRequestBuilder.checksumSHA256(request.checksumSha256());
         }
 
         PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(
@@ -217,65 +216,257 @@ public class S3PresignerFacade {
     public PresignResult presignCreateMultipartUpload(CreateMultipartUploadUrlRequest request) {
         Objects.requireNonNull(request, "request must not be null");
 
+        var createMultipartUploadRequestBuilder = CreateMultipartUploadRequest.builder()
+            .bucket(request.bucket())
+            .key(request.key())
+            .contentType(request.contentType());
+
+        if (Boolean.TRUE.equals(request.checksumSha256Enabled())) {
+            createMultipartUploadRequestBuilder.checksumAlgorithm(ChecksumAlgorithm.SHA256);
+        }
+
         PresignedCreateMultipartUploadRequest presigned = s3Presigner.presignCreateMultipartUpload(
             CreateMultipartUploadPresignRequest.builder()
                 .signatureDuration(resolveDuration(request.expiresInSeconds()))
-                .createMultipartUploadRequest(
-                    CreateMultipartUploadRequest.builder()
-                        .bucket(request.bucket())
-                        .key(request.key())
-                        .contentType(request.contentType())
-                        .build()
-                )
+                .createMultipartUploadRequest(createMultipartUploadRequestBuilder.build())
                 .build()
         );
 
         return toResult(presigned);
     }
 
+    public MultipartUploadAutoPresignResult presignMultipartWithPartResources(MultipartUploadAutoPresignRequest request) {
+        Objects.requireNonNull(request, "request must not be null");
+
+        var createMultipartUploadRequestBuilder = CreateMultipartUploadRequest.builder()
+            .bucket(request.bucket())
+            .key(request.key())
+            .contentType(request.contentType());
+
+        if (Boolean.TRUE.equals(request.checksumSha256Enabled())) {
+            createMultipartUploadRequestBuilder.checksumAlgorithm(ChecksumAlgorithm.SHA256);
+        }
+
+        String uploadId;
+        try {
+            uploadId = s3Client.createMultipartUpload(createMultipartUploadRequestBuilder.build()).uploadId();
+        } catch (Exception e) {
+            log.error("multipart auto presign failed to create uploadId: bucket={} key={}",
+                request.bucket(), request.key(), e);
+            throw new BulkPresignException(Reason.PRESIGN_FAILURE,
+                "Failed to create multipart uploadId: " + e.getMessage(), e);
+        }
+
+        PresignResult startUrl;
+        try {
+            startUrl = presignCreateMultipartUpload(
+                new CreateMultipartUploadUrlRequest(
+                    request.bucket(),
+                    request.key(),
+                    request.contentType(),
+                    request.startExpiresInSeconds(),
+                    request.checksumSha256Enabled()
+                )
+            );
+        } catch (Exception e) {
+            log.error("multipart auto presign failed to generate startUrl: bucket={} key={} uploadId={}",
+                request.bucket(), request.key(), uploadId, e);
+            throw new BulkPresignException(Reason.PRESIGN_FAILURE,
+                "Failed to generate multipart startUrl: " + e.getMessage(), e);
+        }
+
+        // presignUploadPart is local SigV4 signing, no network call needed
+        // use batch-based parallel processing for large part counts (>= threshold)
+        List<MultipartPartPresignResult> partUrls;
+        if (request.parts().size() >= PARALLEL_PRESIGN_THRESHOLD) {
+            partUrls = presignMultipartPartsBatched(request, uploadId);
+        } else {
+            partUrls = presignMultipartPartsSequential(request, uploadId);
+        }
+
+        return new MultipartUploadAutoPresignResult(
+            request.bucket(),
+            request.key(),
+            uploadId,
+            startUrl,
+            partUrls
+        );
+    }
+
+    private List<MultipartPartPresignResult> presignMultipartPartsSequential(
+            MultipartUploadAutoPresignRequest request, String uploadId) {
+        return request.parts().stream()
+            .map(part -> {
+                try {
+                    return new MultipartPartPresignResult(
+                        part.partNumber(),
+                        presignUploadPart(
+                            new UploadPartUrlRequest(
+                                request.bucket(),
+                                request.key(),
+                                uploadId,
+                                part.partNumber(),
+                                request.partExpiresInSeconds(),
+                                part.checksumSha256()
+                            )
+                        )
+                    );
+                } catch (Exception e) {
+                    log.error("multipart auto presign part-url failed: partNumber={} bucket={} key={} cause={}",
+                        part.partNumber(), request.bucket(), request.key(), e.getMessage(), e);
+                    throw new BulkPresignException(Reason.PRESIGN_FAILURE,
+                        "Multipart auto presign part URL generation failed: " + e.getMessage(), e);
+                }
+            })
+            .toList();
+    }
+
+    private List<MultipartPartPresignResult> presignMultipartPartsBatched(
+            MultipartUploadAutoPresignRequest request, String uploadId) {
+        return executeChunkedParallel(
+            request.parts(),
+            part -> {
+                try {
+                    return new MultipartPartPresignResult(
+                        part.partNumber(),
+                        presignUploadPart(new UploadPartUrlRequest(
+                            request.bucket(),
+                            request.key(),
+                            uploadId,
+                            part.partNumber(),
+                            request.partExpiresInSeconds(),
+                            part.checksumSha256()
+                        ))
+                    );
+                } catch (Exception e) {
+                    log.error("multipart auto presign part-url failed: partNumber={} bucket={} key={} cause={}",
+                        part.partNumber(), request.bucket(), request.key(), e.getMessage(), e);
+                    throw new BulkPresignException(Reason.PRESIGN_FAILURE,
+                        "Multipart auto presign part URL generation failed: " + e.getMessage(), e);
+                }
+            },
+            calculateDynamicTimeout(request.parts().size())
+        );
+    }
+
+    private int calculateDynamicTimeout(int totalPartCount) {
+        // Base: BASE_TIMEOUT_SECONDS + 1 second per PARALLEL_PRESIGN_THRESHOLD items
+        // Cap at MAX_PARALLEL_TIMEOUT_SECONDS (API response time upper bound)
+        return Math.min(MAX_PARALLEL_TIMEOUT_SECONDS,
+            BASE_TIMEOUT_SECONDS + (totalPartCount / PARALLEL_PRESIGN_THRESHOLD));
+    }
+
+    private <T, R> List<R> executeChunkedParallel(List<T> items, Function<T, R> task, int timeoutSeconds) {
+        List<List<T>> chunks = partitionEvenly(items, PARALLELISM);
+
+        List<CompletableFuture<List<R>>> futures = chunks.stream()
+            .map(chunk -> CompletableFuture.supplyAsync(
+                () -> chunk.stream().map(task).toList(),
+                presignExecutor
+            ))
+            .toList();
+
+        try {
+            CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
+                .orTimeout(timeoutSeconds, TimeUnit.SECONDS)
+                .get();
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            futures.forEach(f -> f.cancel(true));
+            if (cause instanceof TimeoutException) {
+                log.warn("chunked parallel presign timed out after {}s: itemCount={}", timeoutSeconds, items.size());
+                throw new BulkPresignException(BulkPresignException.Reason.TIMEOUT,
+                    "Chunked parallel presign timed out after " + timeoutSeconds + "s", cause);
+            }
+            log.error("chunked parallel presign failed: itemCount={} cause={}", items.size(), cause.getMessage(), cause);
+            throw new BulkPresignException(BulkPresignException.Reason.PRESIGN_FAILURE,
+                "Chunked parallel presign failed: " + cause.getMessage(), cause);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            futures.forEach(f -> f.cancel(true));
+            throw new BulkPresignException(BulkPresignException.Reason.PRESIGN_FAILURE,
+                "Chunked parallel presign interrupted", e);
+        }
+
+        List<R> result = new ArrayList<>(items.size());
+        for (var future : futures) {
+            result.addAll(future.join());
+        }
+        return result;
+    }
+
+    private <T> List<List<T>> partitionEvenly(List<T> list, int partitions) {
+        int size = list.size();
+        // Ceiling division: ensures all items are covered without remainder loss
+        int chunkSize = (size + partitions - 1) / partitions;
+        List<List<T>> chunks = new ArrayList<>(partitions);
+        for (int i = 0; i < size; i += chunkSize) {
+            chunks.add(list.subList(i, Math.min(i + chunkSize, size)));
+        }
+        return chunks;
+    }
+
+    @PreDestroy
+    void shutdownExecutor() {
+        presignExecutor.shutdown();
+    }
+
     public List<PresignResult> presignUploadPartBulk(PresignUploadPartBulkRequest request) {
         Objects.requireNonNull(request, "request must not be null");
 
-        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            List<CompletableFuture<PresignResult>> futures = new ArrayList<>(request.partCount());
+        if (request.parts().size() >= PARALLEL_PRESIGN_THRESHOLD) {
+            return presignUploadPartBulkBatched(request);
+        }
 
-            for (int partNumber = 1; partNumber <= request.partCount(); partNumber++) {
-                final int currentPartNumber = partNumber;
-                futures.add(CompletableFuture.supplyAsync(
-                    () -> presignUploadPart(new UploadPartUrlRequest(
+        return presignUploadPartBulkSequential(request);
+    }
+
+    private List<PresignResult> presignUploadPartBulkSequential(PresignUploadPartBulkRequest request) {
+        List<PresignResult> results = new ArrayList<>(request.parts().size());
+
+        for (MultipartPartResource part : request.parts()) {
+            try {
+                results.add(presignUploadPart(new UploadPartUrlRequest(
+                    request.bucket(),
+                    request.key(),
+                    request.uploadId(),
+                    part.partNumber(),
+                    request.partExpiresInSeconds(),
+                    part.checksumSha256()
+                )));
+            } catch (Exception e) {
+                log.error("multipart upload-part sequential presign failed: partNumber={} partCount={} cause={}",
+                    part.partNumber(), request.parts().size(), e.getMessage(), e);
+                throw new BulkPresignException(BulkPresignException.Reason.PRESIGN_FAILURE,
+                    "Multipart upload-part sequential presign failed: " + e.getMessage(), e);
+            }
+        }
+
+        return results;
+    }
+
+    private List<PresignResult> presignUploadPartBulkBatched(PresignUploadPartBulkRequest request) {
+        return executeChunkedParallel(
+            request.parts(),
+            part -> {
+                try {
+                    return presignUploadPart(new UploadPartUrlRequest(
                         request.bucket(),
                         request.key(),
                         request.uploadId(),
-                        currentPartNumber,
-                        request.expiresInSeconds()
-                    )),
-                    executor
-                ));
-            }
-
-            try {
-                CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
-                    .orTimeout(BULK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                    .get();
-            } catch (ExecutionException e) {
-                Throwable cause = e.getCause();
-                if (cause instanceof TimeoutException) {
-                    log.warn("multipart upload-part presign timed out after {}s: partCount={}", BULK_TIMEOUT_SECONDS, request.partCount());
-                    futures.forEach(f -> f.cancel(true));
-                    throw new BulkPresignException(BulkPresignException.Reason.TIMEOUT,
-                        "Multipart upload-part presign timed out after " + BULK_TIMEOUT_SECONDS + "s", cause);
+                        part.partNumber(),
+                        request.partExpiresInSeconds(),
+                        part.checksumSha256()
+                    ));
+                } catch (Exception e) {
+                    log.error("multipart upload-part presign failed: partNumber={} partCount={} cause={}",
+                        part.partNumber(), request.parts().size(), e.getMessage(), e);
+                    throw new BulkPresignException(BulkPresignException.Reason.PRESIGN_FAILURE,
+                        "Multipart upload-part presign failed: " + e.getMessage(), e);
                 }
-                log.error("multipart upload-part presign failed: partCount={} cause={}", request.partCount(), cause.getMessage(), cause);
-                throw new BulkPresignException(BulkPresignException.Reason.PRESIGN_FAILURE,
-                    "Multipart upload-part presign failed: " + cause.getMessage(), cause);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new BulkPresignException(BulkPresignException.Reason.PRESIGN_FAILURE,
-                    "Multipart upload-part presign interrupted", e);
-            }
-
-            return futures.stream().map(CompletableFuture::join).toList();
-        }
+            },
+            calculateDynamicTimeout(request.parts().size())
+        );
     }
 
     public PresignResult presignUploadPart(UploadPartUrlRequest request) {
@@ -284,12 +475,15 @@ public class S3PresignerFacade {
         PresignedUploadPartRequest presigned = s3Presigner.presignUploadPart(
             UploadPartPresignRequest.builder()
                 .signatureDuration(resolveDuration(request.expiresInSeconds()))
-                .uploadPartRequest(builder -> builder
-                    .bucket(request.bucket())
-                    .key(request.key())
-                    .uploadId(request.uploadId())
-                    .partNumber(request.partNumber())
-                )
+                .uploadPartRequest(builder -> {
+                    builder.bucket(request.bucket())
+                        .key(request.key())
+                        .uploadId(request.uploadId())
+                        .partNumber(request.partNumber());
+                    if (request.checksumSha256() != null) {
+                        builder.checksumSHA256(request.checksumSha256());
+                    }
+                })
                 .build()
         );
 
@@ -402,6 +596,26 @@ public class S3PresignerFacade {
         }
     }
 
+    private static void validateChecksumSha256(String checksumSha256, String fieldName) {
+        if (checksumSha256 == null) {
+            return;
+        }
+        if (checksumSha256.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " must not be blank");
+        }
+
+        byte[] decoded;
+        try {
+            decoded = Base64.getDecoder().decode(checksumSha256);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(fieldName + " must be a valid Base64 string", e);
+        }
+
+        if (decoded.length != 32) {
+            throw new IllegalArgumentException(fieldName + " must decode to 32 bytes (SHA-256)");
+        }
+    }
+
     private PresignResult toResult(PresignedPutObjectRequest request) {
         return new PresignResult(
             request.url().toString(),
@@ -495,8 +709,13 @@ public class S3PresignerFacade {
         String key,
         String contentType,
         Long contentLength,
-        Integer expiresInSeconds
+        Integer expiresInSeconds,
+        String checksumSha256
     ) {
+        public PutObjectUrlRequest(String bucket, String key, String contentType, Long contentLength, Integer expiresInSeconds) {
+            this(bucket, key, contentType, contentLength, expiresInSeconds, null);
+        }
+
         public PutObjectUrlRequest {
             requireNotBlank(bucket, "bucket");
             requireNotBlank(key, "key");
@@ -506,6 +725,7 @@ public class S3PresignerFacade {
             if (contentLength != null) {
                 requirePositive(contentLength, "contentLength");
             }
+            validateChecksumSha256(checksumSha256, "checksumSha256");
             validateExpiresInSeconds(expiresInSeconds);
         }
     }
@@ -564,8 +784,13 @@ public class S3PresignerFacade {
         String bucket,
         String key,
         String contentType,
-        Integer expiresInSeconds
+        Integer expiresInSeconds,
+        Boolean checksumSha256Enabled
     ) {
+        public CreateMultipartUploadUrlRequest(String bucket, String key, String contentType, Integer expiresInSeconds) {
+            this(bucket, key, contentType, expiresInSeconds, null);
+        }
+
         public CreateMultipartUploadUrlRequest {
             requireNotBlank(bucket, "bucket");
             requireNotBlank(key, "key");
@@ -581,13 +806,19 @@ public class S3PresignerFacade {
         String key,
         String uploadId,
         Integer partNumber,
-        Integer expiresInSeconds
+        Integer expiresInSeconds,
+        String checksumSha256
     ) {
+        public UploadPartUrlRequest(String bucket, String key, String uploadId, Integer partNumber, Integer expiresInSeconds) {
+            this(bucket, key, uploadId, partNumber, expiresInSeconds, null);
+        }
+
         public UploadPartUrlRequest {
             requireNotBlank(bucket, "bucket");
             requireNotBlank(key, "key");
             requireNotBlank(uploadId, "uploadId");
             requirePositive(partNumber, "partNumber");
+            validateChecksumSha256(checksumSha256, "checksumSha256");
             validateExpiresInSeconds(expiresInSeconds);
         }
     }
@@ -658,18 +889,96 @@ public class S3PresignerFacade {
     }
 
     public record PresignUploadPartBulkRequest(
+        String uploadId,
+        String bucket,
+        String key,
+        Integer partExpiresInSeconds,
+        List<MultipartPartResource> parts
+    ) {
+        public PresignUploadPartBulkRequest {
+            requireNotBlank(uploadId, "uploadId");
+            requireNotBlank(bucket, "bucket");
+            requireNotBlank(key, "key");
+            Objects.requireNonNull(parts, "parts must not be null");
+            if (parts.isEmpty()) {
+                throw new IllegalArgumentException("parts must not be empty");
+            }
+            if (parts.stream().anyMatch(Objects::isNull)) {
+                throw new IllegalArgumentException("parts must not contain null");
+            }
+            validateExpiresInSeconds(partExpiresInSeconds);
+        }
+    }
+
+    public record MultipartUploadAutoPresignRequest(
+        String bucket,
+        String key,
+        List<MultipartPartResource> parts,
+        String contentType,
+        Integer startExpiresInSeconds,
+        Integer partExpiresInSeconds,
+        Boolean checksumSha256Enabled
+    ) {
+        public MultipartUploadAutoPresignRequest {
+            requireNotBlank(bucket, "bucket");
+            requireNotBlank(key, "key");
+            Objects.requireNonNull(parts, "parts must not be null");
+            if (parts.isEmpty()) {
+                throw new IllegalArgumentException("parts must not be empty");
+            }
+            if (parts.stream().anyMatch(Objects::isNull)) {
+                throw new IllegalArgumentException("parts must not contain null");
+            }
+
+            if (contentType != null && contentType.isBlank()) {
+                throw new IllegalArgumentException("contentType must not be blank");
+            }
+
+            if (Boolean.TRUE.equals(checksumSha256Enabled)) {
+                boolean hasMissingChecksum = parts.stream().anyMatch(part -> part.checksumSha256() == null);
+                if (hasMissingChecksum) {
+                    throw new IllegalArgumentException("checksumSha256 is required for all parts when checksumSha256Enabled is true");
+                }
+            }
+
+            validateExpiresInSeconds(startExpiresInSeconds);
+            validateExpiresInSeconds(partExpiresInSeconds);
+        }
+    }
+
+    public record MultipartPartResource(
+        Integer partNumber,
+        String checksumSha256
+    ) {
+        public MultipartPartResource {
+            requirePositive(partNumber, "partNumber");
+            validateChecksumSha256(checksumSha256, "checksumSha256");
+        }
+    }
+
+    public record MultipartUploadAutoPresignResult(
         String bucket,
         String key,
         String uploadId,
-        Integer partCount,
-        Integer expiresInSeconds
+        PresignResult startUrl,
+        List<MultipartPartPresignResult> partUrls
     ) {
-        public PresignUploadPartBulkRequest {
+        public MultipartUploadAutoPresignResult {
             requireNotBlank(bucket, "bucket");
             requireNotBlank(key, "key");
             requireNotBlank(uploadId, "uploadId");
-            requirePositive(partCount, "partCount");
-            validateExpiresInSeconds(expiresInSeconds);
+            Objects.requireNonNull(startUrl, "startUrl must not be null");
+            Objects.requireNonNull(partUrls, "partUrls must not be null");
+        }
+    }
+
+    public record MultipartPartPresignResult(
+        Integer partNumber,
+        PresignResult partUrl
+    ) {
+        public MultipartPartPresignResult {
+            requirePositive(partNumber, "partNumber");
+            Objects.requireNonNull(partUrl, "partUrl must not be null");
         }
     }
 }

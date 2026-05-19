@@ -164,6 +164,64 @@ AWS SDK의 `S3Presigner`를 감싸는 파사드 클래스:
 }
 ```
 
+### Multipart Part URLs 발급 예시
+```json
+// 요청: POST /s3/presign/multipart/part-urls
+{
+  "uploadId": "VXBsb2FkIElE...",
+  "bucket": "my-bucket",
+  "key": "videos/2026/demo.mp4",
+  "partExpiresInSeconds": 300,
+  "parts": [
+    {
+      "partNumber": 1,
+      "checksumSha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "partNumber": 2,
+      "checksumSha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    }
+  ]
+}
+
+// 응답
+[
+  {
+    "url": "https://...",
+    "method": "PUT",
+    "headers": {
+      "x-amz-checksum-sha256": [
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      ]
+    },
+    "expiresAt": "2026-05-12T04:35:00Z"
+  }
+]
+```
+
+### Multipart Auto Presign 발급 예시
+```json
+// 요청: POST /s3/presign/multipart/auto-presign
+{
+  "bucket": "my-bucket",
+  "key": "videos/2026/demo.mp4",
+  "parts": [
+    {
+      "partNumber": 1,
+      "checksumSha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    },
+    {
+      "partNumber": 2,
+      "checksumSha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    }
+  ],
+  "contentType": "video/mp4",
+  "startExpiresInSeconds": 120,
+  "partExpiresInSeconds": 300,
+  "checksumSha256Enabled": true
+}
+```
+
 ## ⚙️ 설정 및 실행
 
 ### 요구사항

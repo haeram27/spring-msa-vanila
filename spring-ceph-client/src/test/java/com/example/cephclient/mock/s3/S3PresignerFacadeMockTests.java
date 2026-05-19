@@ -23,6 +23,9 @@ import com.example.cephclient.s3.facade.S3PresignerFacade;
 
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.AbortMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploadPresignRequest;
@@ -48,6 +51,9 @@ class S3PresignerFacadeMockTests {
 
     @Mock
     private S3Presigner s3Presigner;
+
+    @Mock
+    private S3Client s3Client;
 
     @InjectMocks
     private S3PresignerFacade facade;
@@ -221,11 +227,14 @@ class S3PresignerFacadeMockTests {
 
         List<S3PresignerFacade.PresignResult> result = facade.presignUploadPartBulk(
             new S3PresignerFacade.PresignUploadPartBulkRequest(
+                "upload-id",
                 "b",
                 "k",
-                "upload-id",
-                2,
-                300
+                300,
+                List.of(
+                    new S3PresignerFacade.MultipartPartResource(1, null),
+                    new S3PresignerFacade.MultipartPartResource(2, null)
+                )
             )
         );
 
@@ -234,6 +243,94 @@ class S3PresignerFacadeMockTests {
         assertThat(result.get(1).url()).isEqualTo("https://ceph.local/multipart-part-2");
 
         verify(s3Presigner, times(2)).presignUploadPart(org.mockito.ArgumentMatchers.any(UploadPartPresignRequest.class));
+    }
+
+    @Test
+    void presignMultipartWithPartResources_ShouldReturnStartAndPartUrls() {
+        PresignedCreateMultipartUploadRequest startPresigned = mock(PresignedCreateMultipartUploadRequest.class);
+        PresignedUploadPartRequest part1Presigned = mock(PresignedUploadPartRequest.class);
+        PresignedUploadPartRequest part2Presigned = mock(PresignedUploadPartRequest.class);
+
+        mockPresignedCommon(startPresigned, "https://ceph.local/multipart-start", SdkHttpMethod.POST);
+        mockPresignedCommon(part1Presigned, "https://ceph.local/multipart-part-1", SdkHttpMethod.PUT);
+        mockPresignedCommon(part2Presigned, "https://ceph.local/multipart-part-2", SdkHttpMethod.PUT);
+
+        when(s3Client.createMultipartUpload(org.mockito.ArgumentMatchers.any(CreateMultipartUploadRequest.class)))
+            .thenReturn(CreateMultipartUploadResponse.builder().uploadId("upload-id-123").build());
+
+        when(s3Presigner.presignCreateMultipartUpload(org.mockito.ArgumentMatchers.any(CreateMultipartUploadPresignRequest.class)))
+            .thenReturn(startPresigned);
+
+        when(s3Presigner.presignUploadPart(org.mockito.ArgumentMatchers.any(UploadPartPresignRequest.class))).thenAnswer(invocation -> {
+            UploadPartPresignRequest argument = invocation.getArgument(0);
+            return argument.uploadPartRequest().partNumber() == 1 ? part1Presigned : part2Presigned;
+        });
+
+        S3PresignerFacade.MultipartUploadAutoPresignResult result = facade.presignMultipartWithPartResources(
+            new S3PresignerFacade.MultipartUploadAutoPresignRequest(
+                "b",
+                "k",
+                List.of(
+                    new S3PresignerFacade.MultipartPartResource(1, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                    new S3PresignerFacade.MultipartPartResource(2, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+                ),
+                "video/mp4",
+                120,
+                300,
+                true
+            )
+        );
+
+        assertThat(result.uploadId()).isEqualTo("upload-id-123");
+        assertThat(result.startUrl().url()).isEqualTo("https://ceph.local/multipart-start");
+        assertThat(result.partUrls()).hasSize(2);
+        assertThat(result.partUrls().get(0).partUrl().url()).isEqualTo("https://ceph.local/multipart-part-1");
+        assertThat(result.partUrls().get(1).partUrl().url()).isEqualTo("https://ceph.local/multipart-part-2");
+    }
+
+    @Test
+    void multipartUploadAutoPresignRequest_ChecksumEnabledWithoutPartChecksum_ThrowsIllegalArgumentException() {
+        assertThatThrownBy(() -> new S3PresignerFacade.MultipartUploadAutoPresignRequest(
+            "b",
+            "k",
+            List.of(new S3PresignerFacade.MultipartPartResource(1, null)),
+            "video/mp4",
+            120,
+            300,
+            true
+        ))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("checksumSha256 is required for all parts when checksumSha256Enabled is true");
+    }
+
+    @Test
+    void presignMultipartWithPartResources_PartPresignFailure_ThrowsBulkPresignException() {
+        PresignedCreateMultipartUploadRequest startPresigned = mock(PresignedCreateMultipartUploadRequest.class);
+        mockPresignedCommon(startPresigned, "https://ceph.local/multipart-start", SdkHttpMethod.POST);
+
+        when(s3Client.createMultipartUpload(org.mockito.ArgumentMatchers.any(CreateMultipartUploadRequest.class)))
+            .thenReturn(CreateMultipartUploadResponse.builder().uploadId("upload-id-123").build());
+
+        when(s3Presigner.presignCreateMultipartUpload(org.mockito.ArgumentMatchers.any(CreateMultipartUploadPresignRequest.class)))
+            .thenReturn(startPresigned);
+
+        when(s3Presigner.presignUploadPart(org.mockito.ArgumentMatchers.any(UploadPartPresignRequest.class)))
+            .thenThrow(new RuntimeException("part presign error"));
+
+        assertThatThrownBy(() -> facade.presignMultipartWithPartResources(
+            new S3PresignerFacade.MultipartUploadAutoPresignRequest(
+                "b",
+                "k",
+                List.of(new S3PresignerFacade.MultipartPartResource(1, null)),
+                "video/mp4",
+                120,
+                300,
+                false
+            )
+        ))
+            .isInstanceOf(BulkPresignException.class)
+            .satisfies(e -> assertThat(((BulkPresignException) e).getReason())
+                .isEqualTo(BulkPresignException.Reason.PRESIGN_FAILURE));
     }
 
     @Test

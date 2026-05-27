@@ -1,5 +1,6 @@
 package com.example.cephclient.s3.facade;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
 
 /**
  * Facade for S3 client operations, providing methods to interact with S3 buckets and objects.
@@ -71,6 +73,29 @@ public class S3ClientFacade {
         }
 
         bucketNames.forEach(name -> log.info("bucket={}", name));
+    }
+
+    public List<MultipartPartInfo> listParts(String bucketName, String key, String uploadId) {
+        requireNotBlank(bucketName, "bucketName");
+        requireNotBlank(key, "key");
+        requireNotBlank(uploadId, "uploadId");
+
+        var response = s3Client.listParts(
+            ListPartsRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .uploadId(uploadId)
+                .build()
+        );
+
+        if (response == null || response.parts() == null) {
+            return List.of();
+        }
+
+        return response.parts()
+            .stream()
+            .map(part -> new MultipartPartInfo(part.partNumber(), part.eTag(), part.size(), part.lastModified()))
+            .toList();
     }
 
     public boolean deleteBucket(String bucketName) {
@@ -134,5 +159,8 @@ public class S3ClientFacade {
         if (value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " must not be blank");
         }
+    }
+
+    public record MultipartPartInfo(Integer partNumber, String eTag, Long size, Instant lastModified) {
     }
 }

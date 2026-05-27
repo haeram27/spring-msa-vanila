@@ -82,4 +82,37 @@ class S3ClientControllerMockTests {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("key must not be blank");
     }
+
+    @Test
+    void listParts_ValidRequest_ReturnsPartListResponse() {
+        when(s3ClientFacade.listParts("unit-test-bucket", "large-file.zip", "upload-id-1"))
+            .thenReturn(
+                List.of(
+                    new S3ClientFacade.MultipartPartInfo(1, "etag-1", 1024L, null),
+                    new S3ClientFacade.MultipartPartInfo(2, "etag-2", 2048L, null)
+                )
+            );
+
+        S3ClientController.ListPartsResponse response = controller.listParts(
+            new S3ClientController.ListPartsRequest("unit-test-bucket", "large-file.zip", "upload-id-1")
+        );
+
+        assertThat(response.bucket()).isEqualTo("unit-test-bucket");
+        assertThat(response.key()).isEqualTo("large-file.zip");
+        assertThat(response.uploadId()).isEqualTo("upload-id-1");
+        assertThat(response.parts())
+            .extracting(S3ClientFacade.MultipartPartInfo::partNumber, S3ClientFacade.MultipartPartInfo::eTag)
+            .containsExactly(
+                org.assertj.core.groups.Tuple.tuple(1, "etag-1"),
+                org.assertj.core.groups.Tuple.tuple(2, "etag-2")
+            );
+        verify(s3ClientFacade).listParts("unit-test-bucket", "large-file.zip", "upload-id-1");
+    }
+
+    @Test
+    void listParts_BlankUploadId_ThrowsIllegalArgumentException() {
+        assertThatThrownBy(() -> new S3ClientController.ListPartsRequest("unit-test-bucket", "large-file.zip", " "))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("uploadId must not be blank");
+    }
 }

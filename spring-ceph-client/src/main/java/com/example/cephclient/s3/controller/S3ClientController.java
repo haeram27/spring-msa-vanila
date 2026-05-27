@@ -6,6 +6,7 @@ import java.util.Objects;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -67,6 +68,20 @@ public class S3ClientController {
         return new DeleteObjectActionResponse(bucket, key, success);
     }
 
+    @PostMapping("/multipart/parts/list")
+    @Operation(summary = "List multipart uploaded parts", description = "Returns uploaded part metadata for the given multipart uploadId.")
+    public ListPartsResponse listParts(
+        @RequestBody ListPartsRequest request
+    ) {
+        Objects.requireNonNull(request, "request must not be null");
+        List<S3ClientFacade.MultipartPartInfo> parts = s3ClientFacade.listParts(
+            request.bucket(),
+            request.key(),
+            request.uploadId()
+        );
+        return new ListPartsResponse(request.bucket(), request.key(), request.uploadId(), parts);
+    }
+
     public record BucketActionResponse(String bucket, boolean success) {
     }
 
@@ -74,6 +89,22 @@ public class S3ClientController {
     }
 
     public record DeleteObjectActionResponse(String bucket, String key, boolean success) {
+    }
+
+    public record ListPartsRequest(String bucket, String key, String uploadId) {
+        public ListPartsRequest {
+            requireNotBlank(bucket, "bucket");
+            requireNotBlank(key, "key");
+            requireNotBlank(uploadId, "uploadId");
+        }
+    }
+
+    public record ListPartsResponse(
+        String bucket,
+        String key,
+        String uploadId,
+        List<S3ClientFacade.MultipartPartInfo> parts
+    ) {
     }
 
     private static void requireNotBlank(String value, String fieldName) {

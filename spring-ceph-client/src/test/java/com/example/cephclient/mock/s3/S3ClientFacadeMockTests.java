@@ -28,6 +28,9 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
+import software.amazon.awssdk.services.s3.model.ListPartsResponse;
+import software.amazon.awssdk.services.s3.model.Part;
 
 @ExtendWith(MockitoExtension.class)
 class S3ClientFacadeMockTests {
@@ -98,6 +101,63 @@ class S3ClientFacadeMockTests {
 
         assertThat(result).containsExactly("bucket-a", "bucket-b");
         verify(s3Client, times(1)).listBuckets(ListBucketsRequest.builder().build());
+    }
+
+    @Test
+    void listParts_ShouldReturnPartMetadataList() {
+        String bucketName = "unit-test-bucket";
+        String key = "large-file.zip";
+        String uploadId = "upload-id-1";
+
+        when(s3Client.listParts(
+            ListPartsRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .uploadId(uploadId)
+                .build()
+        )).thenReturn(
+            ListPartsResponse.builder()
+                .parts(
+                    Part.builder().partNumber(1).eTag("etag-1").size(1024L).build(),
+                    Part.builder().partNumber(2).eTag("etag-2").size(2048L).build()
+                )
+                .build()
+        );
+
+        List<S3ClientFacade.MultipartPartInfo> result = facade.listParts(bucketName, key, uploadId);
+
+        assertThat(result)
+            .extracting(S3ClientFacade.MultipartPartInfo::partNumber, S3ClientFacade.MultipartPartInfo::eTag, S3ClientFacade.MultipartPartInfo::size)
+            .containsExactly(
+                org.assertj.core.groups.Tuple.tuple(1, "etag-1", 1024L),
+                org.assertj.core.groups.Tuple.tuple(2, "etag-2", 2048L)
+            );
+        verify(s3Client, times(1)).listParts(
+            ListPartsRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .uploadId(uploadId)
+                .build()
+        );
+    }
+
+    @Test
+    void listParts_ShouldReturnEmptyList_WhenResponseIsNull() {
+        String bucketName = "unit-test-bucket";
+        String key = "large-file.zip";
+        String uploadId = "upload-id-1";
+
+        when(s3Client.listParts(
+            ListPartsRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .uploadId(uploadId)
+                .build()
+        )).thenReturn(null);
+
+        List<S3ClientFacade.MultipartPartInfo> result = facade.listParts(bucketName, key, uploadId);
+
+        assertThat(result).isEmpty();
     }
 
     @Test

@@ -19,14 +19,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping
+@RequestMapping("/api/deployment/s3/client")
 @RequiredArgsConstructor
 @Tag(name = "S3 Client", description = "API for direct Ceph/S3 bucket and object operations")
 public class S3ClientController {
 
     private final S3ClientFacade s3ClientFacade;
 
-    @PostMapping("/bucket/create")
+    @PostMapping("/bucket/create/v1")
     @Operation(summary = "Create bucket", description = "Creates a bucket using S3Client.")
     public BucketActionResponse createBucket(
         @Parameter(description = "Bucket name", example = "my-bucket")
@@ -37,13 +37,13 @@ public class S3ClientController {
         return new BucketActionResponse(bucket, success);
     }
 
-    @GetMapping("/bucket/names")
+    @GetMapping("/bucket/list/v1")
     @Operation(summary = "List bucket names", description = "Returns all accessible bucket names.")
     public BucketNamesResponse listBucketNames() {
         return new BucketNamesResponse(s3ClientFacade.listBucketNames());
     }
 
-    @DeleteMapping("/bucket")
+    @DeleteMapping("/bucket/delete/v1")
     @Operation(summary = "Delete bucket", description = "Deletes an existing bucket.")
     public BucketActionResponse deleteBucket(
         @Parameter(description = "Bucket name", example = "my-bucket")
@@ -54,7 +54,7 @@ public class S3ClientController {
         return new BucketActionResponse(bucket, success);
     }
 
-    @DeleteMapping("/files/object")
+    @DeleteMapping("/files/delete/v1")
     @Operation(summary = "Delete object", description = "Deletes an object from the specified bucket.")
     public DeleteObjectActionResponse deleteObject(
         @Parameter(description = "Bucket name", example = "my-bucket")
@@ -68,7 +68,7 @@ public class S3ClientController {
         return new DeleteObjectActionResponse(bucket, key, success);
     }
 
-    @PostMapping("/multipart/parts/list")
+    @PostMapping("/multipart/parts/list/v1")
     @Operation(summary = "List multipart uploaded parts", description = "Returns uploaded part metadata for the given multipart uploadId.")
     public ListPartsResponse listParts(
         @RequestBody ListPartsRequest request

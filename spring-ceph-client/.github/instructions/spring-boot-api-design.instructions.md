@@ -267,8 +267,8 @@ package com.example.console.api
 
 import com.example.api.rest.v1.resource.ResourceGetRequestDto
 import com.example.api.rest.v1.resource.ResourceResponseDto
-import com.ahnlab.one.common.api.rest.ApiResponse
-import com.ahnlab.one.common.constants.HttpCustomHeaders
+import com.example.one.common.api.rest.ApiResponse
+import com.example.one.common.constants.HttpCustomHeaders
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn

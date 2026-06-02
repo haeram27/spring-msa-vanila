@@ -10,8 +10,6 @@ Use these rules when the task is to design or implement backend APIs in a Spring
 
 These rules are team conventions, not generic REST advice. When they conflict with common REST style, follow these rules.
 
-Prefer Kotlin-first output for this team. If the surrounding code is Kotlin, generate Kotlin controllers and DTOs instead of Java.
-
 ## Scope
 
 - Apply these rules when creating or changing controller endpoints, request/response DTOs, API paths, HTTP methods, response contracts, and Swagger documentation.
@@ -21,14 +19,9 @@ Prefer Kotlin-first output for this team. If the surrounding code is Kotlin, gen
 
 ## Baseline Style For This Team
 
-- Prefer Kotlin classes and `data class` DTOs.
-- Prefer `ResponseEntity<ApiResponse<T>>` for controller return types in Admin and Console APIs.
-- Prefer `ApiResponse.success(...)` or the project's existing success helper instead of inventing a new wrapper type.
 - Prefer `@RestController` plus class-level `@RequestMapping` for the stable resource prefix.
 - Prefer `@Tag` on the controller and `@Operation` on each endpoint when the project already documents APIs with Swagger annotations.
 - Prefer `@Valid @RequestBody` for JSON request DTO inputs.
-- For Console and Admin APIs, prefer reading tenant or auth context from headers when the surrounding code already does so.
-- Do not switch the project away from Kotlin, `ApiResponse`, Swagger annotations, or Jackson naming rules unless the user explicitly asks.
 
 ## URL Structure
 
@@ -75,8 +68,8 @@ Avoid examples:
 
 ## HTTP Method Rules
 
-- For Admin and Console APIs, only `GET` and `POST` are allowed by team rule.
-- In practice, new Admin and Console business APIs should default to `POST` unless there is a clear reason to use `GET`.
+- Only `GET` and `POST` are allowed by team rule.
+- In practice, new business APIs should default to `POST` unless there is a clear reason to use `GET`.
 - For OpenAPI, follow the external API standard as closely as possible.
 
 ## URL + Method Rules For Admin And Console APIs
@@ -157,8 +150,6 @@ Example:
 - Do not introduce a new `code/message/data` envelope if the target project already standardizes on `ApiResponse` or another common wrapper.
 - Team rule says many business-level failures are expressed in the response body while HTTP status stays `200`.
 - Use non-200 HTTP status mainly when the URL pattern or HTTP method itself is unsupported, or when the resource does not support that URL or method.
-- For empty success responses, prefer `ApiResponse.success()` or the project's equivalent instead of creating ad hoc empty DTOs.
-- For list responses, prefer explicit collection response DTOs such as `PolicyListResponseDto` or `ExecutionListResponseDto` instead of returning raw arrays unless the surrounding API already does so.
 
 ## Spring Boot Implementation Guidance
 

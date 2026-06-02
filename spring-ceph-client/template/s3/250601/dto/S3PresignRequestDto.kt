@@ -363,6 +363,27 @@ data class S3MultipartAutoPresignRequestDto(
 )
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
+data class S3MultipartPartsListRequestDto(
+    @field:Schema(required = true, description = "버킷 이름", example = "my-deployment-bucket")
+    val bucket: String,
+
+    @field:Schema(
+        required = true,
+        description = "멀티파트 업로드 대상 오브젝트 키",
+        example = "deploy/agent/2026/05/agent-installer.pkg"
+    )
+    val key: String,
+
+    @field:Schema(
+        required = true,
+        description = "조회할 멀티파트 업로드 ID",
+        example = "VXBsb2FkSWQxMjM0NTY3OA=="
+    )
+    val uploadId: String,
+)
+
+
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class S3MultipartCompleteRequestDto(
     @field:Schema(required = true, description = "버킷 이름", example = "my-bucket")
     val bucket: String,

@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
@@ -707,10 +709,10 @@ public class S3PresignerFacade {
     public record PutObjectUrlRequest(
         String bucket,
         String key,
-        String contentType,
-        Long contentLength,
-        Integer expiresInSeconds,
-        String checksumSha256
+        @JsonAlias("content_type") String contentType,
+        @JsonAlias("content_length") Long contentLength,
+        @JsonAlias("expires_in_seconds") Integer expiresInSeconds,
+        @JsonAlias("checksum_sha256") String checksumSha256
     ) {
         public PutObjectUrlRequest(String bucket, String key, String contentType, Long contentLength, Integer expiresInSeconds) {
             this(bucket, key, contentType, contentLength, expiresInSeconds, null);
@@ -733,8 +735,8 @@ public class S3PresignerFacade {
     public record GetObjectUrlRequest(
         String bucket,
         String key,
-        String responseContentType,
-        Integer expiresInSeconds
+        @JsonAlias("response_content_type") String responseContentType,
+        @JsonAlias("expires_in_seconds") Integer expiresInSeconds
     ) {
         public GetObjectUrlRequest {
             requireNotBlank(bucket, "bucket");
@@ -749,7 +751,7 @@ public class S3PresignerFacade {
     public record DeleteObjectUrlRequest(
         String bucket,
         String key,
-        Integer expiresInSeconds
+        @JsonAlias("expires_in_seconds") Integer expiresInSeconds
     ) {
         public DeleteObjectUrlRequest {
             requireNotBlank(bucket, "bucket");
@@ -761,7 +763,7 @@ public class S3PresignerFacade {
     public record HeadObjectUrlRequest(
         String bucket,
         String key,
-        Integer expiresInSeconds
+        @JsonAlias("expires_in_seconds") Integer expiresInSeconds
     ) {
         public HeadObjectUrlRequest {
             requireNotBlank(bucket, "bucket");
@@ -772,7 +774,7 @@ public class S3PresignerFacade {
 
     public record HeadBucketUrlRequest(
         String bucket,
-        Integer expiresInSeconds
+        @JsonAlias("expires_in_seconds") Integer expiresInSeconds
     ) {
         public HeadBucketUrlRequest {
             requireNotBlank(bucket, "bucket");
@@ -783,9 +785,9 @@ public class S3PresignerFacade {
     public record CreateMultipartUploadUrlRequest(
         String bucket,
         String key,
-        String contentType,
-        Integer expiresInSeconds,
-        Boolean checksumSha256Enabled
+        @JsonAlias("content_type") String contentType,
+        @JsonAlias("expires_in_seconds") Integer expiresInSeconds,
+        @JsonAlias("checksum_sha256_enabled") Boolean checksumSha256Enabled
     ) {
         public CreateMultipartUploadUrlRequest(String bucket, String key, String contentType, Integer expiresInSeconds) {
             this(bucket, key, contentType, expiresInSeconds, null);
@@ -804,10 +806,10 @@ public class S3PresignerFacade {
     public record UploadPartUrlRequest(
         String bucket,
         String key,
-        String uploadId,
-        Integer partNumber,
-        Integer expiresInSeconds,
-        String checksumSha256
+        @JsonAlias("upload_id") String uploadId,
+        @JsonAlias("part_number") Integer partNumber,
+        @JsonAlias("expires_in_seconds") Integer expiresInSeconds,
+        @JsonAlias("checksum_sha256") String checksumSha256
     ) {
         public UploadPartUrlRequest(String bucket, String key, String uploadId, Integer partNumber, Integer expiresInSeconds) {
             this(bucket, key, uploadId, partNumber, expiresInSeconds, null);
@@ -826,9 +828,9 @@ public class S3PresignerFacade {
     public record CompleteMultipartUploadUrlRequest(
         String bucket,
         String key,
-        String uploadId,
+        @JsonAlias("upload_id") String uploadId,
         List<PartEtag> parts,
-        Integer expiresInSeconds
+        @JsonAlias("expires_in_seconds") Integer expiresInSeconds
     ) {
         public CompleteMultipartUploadUrlRequest {
             requireNotBlank(bucket, "bucket");
@@ -846,8 +848,8 @@ public class S3PresignerFacade {
     }
 
     public record PartEtag(
-        Integer partNumber,
-        String eTag
+        @JsonAlias("part_number") Integer partNumber,
+        @JsonAlias("e_tag") String eTag
     ) {
         public PartEtag {
             requirePositive(partNumber, "partNumber");
@@ -858,8 +860,8 @@ public class S3PresignerFacade {
     public record AbortMultipartUploadUrlRequest(
         String bucket,
         String key,
-        String uploadId,
-        Integer expiresInSeconds
+        @JsonAlias("upload_id") String uploadId,
+        @JsonAlias("expires_in_seconds") Integer expiresInSeconds
     ) {
         public AbortMultipartUploadUrlRequest {
             requireNotBlank(bucket, "bucket");
@@ -872,9 +874,9 @@ public class S3PresignerFacade {
     public record RangeGetObjectUrlRequest(
         String bucket,
         String key,
-        Long rangeStart,
-        Long rangeEnd,
-        Integer expiresInSeconds
+        @JsonAlias("range_start") Long rangeStart,
+        @JsonAlias("range_end") Long rangeEnd,
+        @JsonAlias("expires_in_seconds") Integer expiresInSeconds
     ) {
         public RangeGetObjectUrlRequest {
             requireNotBlank(bucket, "bucket");
@@ -889,10 +891,10 @@ public class S3PresignerFacade {
     }
 
     public record PresignUploadPartBulkRequest(
-        String uploadId,
+        @JsonAlias("upload_id") String uploadId,
         String bucket,
         String key,
-        Integer partExpiresInSeconds,
+        @JsonAlias("part_expires_in_seconds") Integer partExpiresInSeconds,
         List<MultipartPartResource> parts
     ) {
         public PresignUploadPartBulkRequest {
@@ -914,10 +916,10 @@ public class S3PresignerFacade {
         String bucket,
         String key,
         List<MultipartPartResource> parts,
-        String contentType,
-        Integer startExpiresInSeconds,
-        Integer partExpiresInSeconds,
-        Boolean checksumSha256Enabled
+        @JsonAlias("content_type") String contentType,
+        @JsonAlias("start_expires_in_seconds") Integer startExpiresInSeconds,
+        @JsonAlias("part_expires_in_seconds") Integer partExpiresInSeconds,
+        @JsonAlias("checksum_sha256_enabled") Boolean checksumSha256Enabled
     ) {
         public MultipartUploadAutoPresignRequest {
             requireNotBlank(bucket, "bucket");
@@ -947,8 +949,8 @@ public class S3PresignerFacade {
     }
 
     public record MultipartPartResource(
-        Integer partNumber,
-        String checksumSha256
+        @JsonAlias("part_number") Integer partNumber,
+        @JsonAlias("checksum_sha256") String checksumSha256
     ) {
         public MultipartPartResource {
             requirePositive(partNumber, "partNumber");

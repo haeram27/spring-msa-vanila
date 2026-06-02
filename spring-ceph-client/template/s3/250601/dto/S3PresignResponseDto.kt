@@ -1,8 +1,6 @@
 package template.s3.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.annotation.JsonNaming
 import io.swagger.v3.oas.annotations.media.Schema
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -35,16 +33,6 @@ data class S3PresignResultDto(
         example = "2026-05-26T12:05:00Z"
     )
     val expiresAt: String,
-)
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3PresignPutBulkResponseDto(
-    @field:Schema(
-        required = true,
-        description = "요청 items 순서와 동일한 순서로 반환되는 Presigned PUT URL 목록"
-    )
-    val items: List<S3PresignResultDto>,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -92,10 +80,24 @@ data class S3MultipartAutoPresignResponseDto(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3MultipartPartUrlsBulkResponseDto(
+data class S3MultipartPartsListResponseDto(
+    @field:Schema(required = true, description = "버킷 이름", example = "my-deployment-bucket")
+    val bucket: String,
+
     @field:Schema(
         required = true,
-        description = "요청한 parts 순서와 동일한 순서로 반환되는 파트 Presigned URL 목록"
+        description = "멀티파트 업로드 대상 오브젝트 키",
+        example = "deploy/agent/2026/05/agent-installer.pkg"
     )
-    val items: List<S3PresignResultDto>,
+    val key: String,
+
+    @field:Schema(
+        required = true,
+        description = "조회한 멀티파트 업로드 ID",
+        example = "VXBsb2FkSWQxMjM0NTY3OA=="
+    )
+    val uploadId: String,
+
+    @field:Schema(required = true, description = "업로드된 파트 목록")
+    val parts: List<S3MultipartPartInfoResponseDto>,
 )

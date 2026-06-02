@@ -46,7 +46,9 @@ class S3PresignerControllerMockTests {
 
         when(s3PresignerFacade.presignPutObjectBulk(requests)).thenReturn(List.of(presigned1, presigned2));
 
-        List<S3PresignerFacade.PresignResult> results = controller.presignPutObjectBulk(requests);
+        List<S3PresignerFacade.PresignResult> results = controller.presignPutObjectBulk(
+            new S3PresignerController.PutObjectBulkRequest(requests)
+        );
 
         assertThat(results).hasSize(2);
         assertThat(results.get(0).url()).isEqualTo("https://ceph.local/put-1");
@@ -58,7 +60,9 @@ class S3PresignerControllerMockTests {
 
     @Test
     void presignPutObjectBulk_EmptyRequests_ThrowsIllegalArgumentException() {
-        assertThatThrownBy(() -> controller.presignPutObjectBulk(List.of()))
+        assertThatThrownBy(() -> controller.presignPutObjectBulk(
+            new S3PresignerController.PutObjectBulkRequest(List.of())
+        ))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("requests must not be empty");
     }

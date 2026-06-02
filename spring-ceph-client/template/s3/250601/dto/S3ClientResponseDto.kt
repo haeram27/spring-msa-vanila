@@ -1,12 +1,9 @@
 package template.s3.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.annotation.JsonNaming
 import io.swagger.v3.oas.annotations.media.Schema
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class S3BucketActionResponseDto(
     @field:Schema(required = true, description = "대상 버킷 이름", example = "my-deployment-bucket")
     val bucket: String,
@@ -16,14 +13,12 @@ data class S3BucketActionResponseDto(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class S3BucketNamesResponseDto(
     @field:Schema(required = true, description = "접근 가능한 버킷 이름 목록")
     val bucketNames: List<String>,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class S3ObjectDeleteResponseDto(
     @field:Schema(required = true, description = "버킷 이름", example = "my-deployment-bucket")
     val bucket: String,
@@ -40,7 +35,6 @@ data class S3ObjectDeleteResponseDto(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class S3MultipartPartsListResponseDto(
     @field:Schema(required = true, description = "버킷 이름", example = "my-deployment-bucket")
     val bucket: String,
@@ -64,7 +58,6 @@ data class S3MultipartPartsListResponseDto(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class S3MultipartPartInfoResponseDto(
     @field:Schema(required = true, description = "파트 번호", example = "1")
     val partNumber: Int,

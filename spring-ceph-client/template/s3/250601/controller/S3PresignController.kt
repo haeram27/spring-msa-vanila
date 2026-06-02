@@ -151,7 +151,7 @@ class S3PresignController {
     fun presignPutBulk(
         @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
         @Valid @RequestBody request: S3PresignPutBulkRequestDto,
-    ): ResponseEntity<ApiResponse<S3PresignPutBulkResponseDto>> {
+    ): ResponseEntity<ApiResponse<List<S3PresignResultDto>>> {
         val mockItem1 = S3PresignResultDto(
             url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/file1.pkg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=300&X-Amz-Signature=abc111",
             method = "PUT",
@@ -164,7 +164,7 @@ class S3PresignController {
             headers = mapOf("host" to listOf("ceph.example.com")),
             expiresAt = "2026-05-26T12:05:00Z"
         )
-        return ResponseEntity.ok(ApiResponse.success(S3PresignPutBulkResponseDto(items = listOf(mockItem1, mockItem2))))
+        return ResponseEntity.ok(ApiResponse.success(listOf(mockItem1, mockItem2)))
     }
 
     @Operation(
@@ -520,7 +520,7 @@ class S3PresignController {
     fun presignMultipartPartUrls(
         @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
         @Valid @RequestBody request: S3MultipartPartUrlsBulkRequestDto,
-    ): ResponseEntity<ApiResponse<S3MultipartPartUrlsBulkResponseDto>> {
+    ): ResponseEntity<ApiResponse<List<S3PresignResultDto>>> {
         val items = listOf(
             S3PresignResultDto(
                 url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?partNumber=1&uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600&X-Amz-Signature=abc111",
@@ -541,7 +541,7 @@ class S3PresignController {
                 expiresAt = "2026-05-26T13:00:00Z"
             )
         )
-        return ResponseEntity.ok(ApiResponse.success(S3MultipartPartUrlsBulkResponseDto(items = items)))
+        return ResponseEntity.ok(ApiResponse.success(items))
     }
 
     @Operation(
@@ -637,6 +637,52 @@ class S3PresignController {
                         headers = mapOf("host" to listOf("ceph.example.com")),
                         expiresAt = "2026-05-26T13:00:00Z"
                     )
+                )
+            )
+        )
+        return ResponseEntity.ok(ApiResponse.success(response))
+    }
+
+    @Operation(
+        summary = "[CONSOLE] Multipart 업로드 파트 목록 조회",
+        description = "특정 uploadId로 업로드된 multipart 파트 메타데이터 목록을 조회한다.",
+        security = [SecurityRequirement(name = "console-auth")],
+        requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = [Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = Schema(implementation = S3MultipartPartsListRequestDto::class),
+                examples = [ExampleObject(value = """
+                {
+                    "bucket": "my-deployment-bucket",
+                    "key": "deploy/agent/2026/05/agent-installer.pkg",
+                    "upload_id": "VXBsb2FkSWQxMjM0NTY3OA=="
+                }
+                """)]
+            )]
+        )
+    )
+    @PostMapping("/multipart/parts/list/v1")
+    fun listMultipartParts(
+        @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
+        @Valid @RequestBody request: S3MultipartPartsListRequestDto,
+    ): ResponseEntity<ApiResponse<S3MultipartPartsListResponseDto>> {
+        val response = S3MultipartPartsListResponseDto(
+            bucket = request.bucket,
+            key = request.key,
+            uploadId = request.uploadId,
+            parts = listOf(
+                S3MultipartPartInfoResponseDto(
+                    partNumber = 1,
+                    eTag = "\"9b2cf535f27731c974343645a3985328\"",
+                    size = 5242880,
+                    lastModified = "2026-05-27T06:30:45Z"
+                ),
+                S3MultipartPartInfoResponseDto(
+                    partNumber = 2,
+                    eTag = "\"94f6d7e04a4d452035300f18b984988c\"",
+                    size = 5242880,
+                    lastModified = "2026-05-27T06:31:11Z"
                 )
             )
         )

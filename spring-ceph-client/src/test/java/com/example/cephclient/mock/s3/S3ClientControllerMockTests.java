@@ -29,7 +29,9 @@ class S3ClientControllerMockTests {
     void createBucket_ValidBucket_ReturnsSuccessResponse() {
         when(s3ClientFacade.createBucket("unit-test-bucket")).thenReturn(true);
 
-        S3ClientController.BucketActionResponse response = controller.createBucket("unit-test-bucket");
+        S3ClientController.BucketActionResponse response = controller.createBucket(
+            new S3ClientController.BucketActionRequest("unit-test-bucket")
+        );
 
         assertThat(response.bucket()).isEqualTo("unit-test-bucket");
         assertThat(response.success()).isTrue();
@@ -38,7 +40,7 @@ class S3ClientControllerMockTests {
 
     @Test
     void createBucket_BlankBucket_ThrowsIllegalArgumentException() {
-        assertThatThrownBy(() -> controller.createBucket(" "))
+        assertThatThrownBy(() -> controller.createBucket(new S3ClientController.BucketActionRequest(" ")))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("bucket must not be blank");
     }
@@ -57,7 +59,9 @@ class S3ClientControllerMockTests {
     void deleteBucket_ValidBucket_ReturnsSuccessResponse() {
         when(s3ClientFacade.deleteBucket("unit-test-bucket")).thenReturn(true);
 
-        S3ClientController.BucketActionResponse response = controller.deleteBucket("unit-test-bucket");
+        S3ClientController.BucketActionResponse response = controller.deleteBucket(
+            new S3ClientController.BucketActionRequest("unit-test-bucket")
+        );
 
         assertThat(response.bucket()).isEqualTo("unit-test-bucket");
         assertThat(response.success()).isTrue();
@@ -68,7 +72,9 @@ class S3ClientControllerMockTests {
     void deleteObject_ValidRequest_ReturnsSuccessResponse() {
         when(s3ClientFacade.deleteObject("unit-test-bucket", "images/a.png")).thenReturn(true);
 
-        S3ClientController.DeleteObjectActionResponse response = controller.deleteObject("unit-test-bucket", "images/a.png");
+        S3ClientController.DeleteObjectActionResponse response = controller.deleteObject(
+            new S3ClientController.DeleteObjectRequest("unit-test-bucket", "images/a.png")
+        );
 
         assertThat(response.bucket()).isEqualTo("unit-test-bucket");
         assertThat(response.key()).isEqualTo("images/a.png");
@@ -78,7 +84,7 @@ class S3ClientControllerMockTests {
 
     @Test
     void deleteObject_BlankKey_ThrowsIllegalArgumentException() {
-        assertThatThrownBy(() -> controller.deleteObject("unit-test-bucket", " "))
+        assertThatThrownBy(() -> controller.deleteObject(new S3ClientController.DeleteObjectRequest("unit-test-bucket", " ")))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("key must not be blank");
     }

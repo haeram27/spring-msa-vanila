@@ -3,31 +3,16 @@ package com.example.cephclient.s3.controller;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.cephclient.s3.facade.S3PresignerFacade;
-import com.example.cephclient.s3.facade.S3PresignerFacade.AbortMultipartUploadUrlRequest;
-import com.example.cephclient.s3.facade.S3PresignerFacade.CompleteMultipartUploadUrlRequest;
-import com.example.cephclient.s3.facade.S3PresignerFacade.CreateMultipartUploadUrlRequest;
-import com.example.cephclient.s3.facade.S3PresignerFacade.DeleteObjectUrlRequest;
-import com.example.cephclient.s3.facade.S3PresignerFacade.GetObjectUrlRequest;
-import com.example.cephclient.s3.facade.S3PresignerFacade.HeadBucketUrlRequest;
-import com.example.cephclient.s3.facade.S3PresignerFacade.HeadObjectUrlRequest;
 import com.example.cephclient.s3.facade.S3PresignerFacade.MultipartUploadAutoPresignRequest;
 import com.example.cephclient.s3.facade.S3PresignerFacade.MultipartUploadAutoPresignResult;
-import com.example.cephclient.s3.facade.S3PresignerFacade.PresignResult;
-import com.example.cephclient.s3.facade.S3PresignerFacade.PresignUploadPartBulkRequest;
-import com.example.cephclient.s3.facade.S3PresignerFacade.PutObjectUrlRequest;
-import com.example.cephclient.s3.facade.S3PresignerFacade.RangeGetObjectUrlRequest;
-import com.example.cephclient.s3.facade.S3PresignerFacade.UploadPartUrlRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -54,9 +39,11 @@ public class S3PresignerController {
     @PostMapping("/files/put-bulk/v1")
     @Operation(summary = "Issue bulk PUT presigned URLs", description = "Issues presigned PUT URLs for multiple objects in one request.")
     public List<S3PresignerFacade.PresignResult> presignPutObjectBulk(
-        @RequestBody List<S3PresignerFacade.PutObjectUrlRequest> requests
+        @RequestBody PutObjectBulkRequest request
     ) {
-        Objects.requireNonNull(requests, "requests must not be null");
+        Objects.requireNonNull(request, "request must not be null");
+        List<S3PresignerFacade.PutObjectUrlRequest> requests = request.items();
+        Objects.requireNonNull(requests, "items must not be null");
         if (requests.isEmpty()) {
             throw new IllegalArgumentException("requests must not be empty");
         }
@@ -67,82 +54,31 @@ public class S3PresignerController {
         List<PresignedPutObjectRequest> presignedRequests = s3PresignerFacade.presignPutObjectBulk(requests);
 
         return presignedRequests.stream()
-            .map(request -> new S3PresignerFacade.PresignResult(
-                request.url().toString(),
-                request.httpRequest().method().name(),
-                request.httpRequest().headers(),
-                request.expiration()
+            .map(presignedRequest -> new S3PresignerFacade.PresignResult(
+                presignedRequest.url().toString(),
+                presignedRequest.httpRequest().method().name(),
+                presignedRequest.httpRequest().headers(),
+                presignedRequest.expiration()
             ))
             .toList();
     }
 
-    @GetMapping("/files/get/v1")
+    @PostMapping("/files/get/v1")
     @Operation(summary = "Issue GET presigned URL", description = "Issues a presigned GET URL for downloading a single object.")
     public S3PresignerFacade.PresignResult presignGetObject(
-        @Parameter(description = "Bucket name", example = "my-bucket")
-        @RequestParam String bucket,
-        @Parameter(description = "Object key", example = "images/2026/05/a.png")
-        @RequestParam String key,
-        @Parameter(description = "Response Content-Type (optional)", example = "image/png")
-        @RequestParam(required = false) String responseContentType,
-        @Parameter(description = "URL expiration time in seconds (max: 604800)", example = "300")
-        @RequestParam(required = false) Integer expiresInSeconds
+        @RequestBody S3PresignerFacade.GetObjectUrlRequest request
     ) {
-        requireNotBlank(bucket, "bucket");
-        requireNotBlank(key, "key");
-        if (responseContentType != null && responseContentType.isBlank()) {
-            throw new IllegalArgumentException("responseContentType must not be blank");
-        }
-        validateExpiresInSeconds(expiresInSeconds);
-
-        return s3PresignerFacade.presignGetObject(
-            new S3PresignerFacade.GetObjectUrlRequest(
-                bucket,
-                key,
-                responseContentType,
-                expiresInSeconds
-            )
-        );
+        Objects.requireNonNull(request, "request must not be null");
+        return s3PresignerFacade.presignGetObject(request);
     }
 
-    @GetMapping("/files/get-range/v1")
+    @PostMapping("/files/get-range/v1")
     @Operation(summary = "Issue Range GET presigned URL", description = "Issues a presigned GET URL for partial download of large objects.")
     public S3PresignerFacade.PresignResult presignRangeGetObject(
-        @Parameter(description = "Bucket name", example = "my-bucket")
-        @RequestParam String bucket,
-        @Parameter(description = "Object key", example = "videos/2026/demo.mp4")
-        @RequestParam String key,
-        @Parameter(description = "Start byte for download (>= 0)", example = "0")
-        @RequestParam Long start,
-        @Parameter(description = "End byte for download (>= start)", example = "1048575")
-        @RequestParam Long end,
-        @Parameter(description = "URL expiration time in seconds (max: 604800)", example = "300")
-        @RequestParam(required = false) Integer expiresInSeconds
+        @RequestBody S3PresignerFacade.RangeGetObjectUrlRequest request
     ) {
-        requireNotBlank(bucket, "bucket");
-        requireNotBlank(key, "key");
-        Objects.requireNonNull(start, "start must not be null");
-        Objects.requireNonNull(end, "end must not be null");
-        if (start < 0) {
-            throw new IllegalArgumentException("start must be greater than or equal to 0");
-        }
-        if (end < 0) {
-            throw new IllegalArgumentException("end must be greater than or equal to 0");
-        }
-        if (end < start) {
-            throw new IllegalArgumentException("end must be greater than or equal to start");
-        }
-        validateExpiresInSeconds(expiresInSeconds);
-
-        return s3PresignerFacade.presignRangeGetObject(
-            new S3PresignerFacade.RangeGetObjectUrlRequest(
-                bucket,
-                key,
-                start,
-                end,
-                expiresInSeconds
-            )
-        );
+        Objects.requireNonNull(request, "request must not be null");
+        return s3PresignerFacade.presignRangeGetObject(request);
     }
 
     @PostMapping("/files/delete/v1")
@@ -154,48 +90,27 @@ public class S3PresignerController {
         return s3PresignerFacade.presignDeleteObject(request);
     }
 
-    @GetMapping("/files/head/v1")
+    @PostMapping("/files/head/v1")
     @Operation(summary = "Issue HEAD Object presigned URL", description = "Issues a presigned HEAD URL for checking object metadata.")
     public S3PresignerFacade.PresignResult presignHeadObject(
-        @Parameter(description = "Bucket name", example = "my-bucket")
-        @RequestParam String bucket,
-        @Parameter(description = "Object key", example = "images/2026/05/a.png")
-        @RequestParam String key,
-        @Parameter(description = "URL expiration time in seconds (max: 604800)", example = "300")
-        @RequestParam(required = false) Integer expiresInSeconds
+        @RequestBody S3PresignerFacade.HeadObjectUrlRequest request
     ) {
-        requireNotBlank(bucket, "bucket");
-        requireNotBlank(key, "key");
-        validateExpiresInSeconds(expiresInSeconds);
-
-        return s3PresignerFacade.presignHeadObject(
-            new S3PresignerFacade.HeadObjectUrlRequest(
-                bucket,
-                key,
-                expiresInSeconds
-            )
-        );
+        Objects.requireNonNull(request, "request must not be null");
+        return s3PresignerFacade.presignHeadObject(request);
     }
 
-    @GetMapping("/bucket/head/v1")
+    @PostMapping("/bucket/head/v1")
     @Operation(summary = "Issue HEAD Bucket presigned URL", description = "Issues a presigned HEAD URL to check bucket accessibility.")
     public S3PresignerFacade.PresignResult presignHeadBucket(
-        @Parameter(description = "Bucket name", example = "my-bucket")
-        @RequestParam String bucket,
-        @Parameter(description = "URL expiration time in seconds (max: 604800)", example = "300")
-        @RequestParam(required = false) Integer expiresInSeconds
+        @RequestBody S3PresignerFacade.HeadBucketUrlRequest request
     ) {
-        requireNotBlank(bucket, "bucket");
-        validateExpiresInSeconds(expiresInSeconds);
-
-        return s3PresignerFacade.presignHeadBucket(
-            new S3PresignerFacade.HeadBucketUrlRequest(bucket, expiresInSeconds)
-        );
+        Objects.requireNonNull(request, "request must not be null");
+        return s3PresignerFacade.presignHeadBucket(request);
     }
 
     // ─── Multipart Presign ────────────────────────────────────────────────────
 
-    @PostMapping("/multipart/start")
+    @PostMapping("/multipart/start/v1")
     @Operation(summary = "Issue Multipart start URL", description = "Issues a presigned URL for starting multipart upload (CreateMultipartUpload).")
     public S3PresignerFacade.PresignResult presignCreateMultipartUpload(
         @RequestBody S3PresignerFacade.CreateMultipartUploadUrlRequest request
@@ -204,7 +119,7 @@ public class S3PresignerController {
         return s3PresignerFacade.presignCreateMultipartUpload(request);
     }
 
-    @PostMapping("/multipart/part-urls")
+    @PostMapping("/multipart/part-urls/v1")
     @Operation(
         summary = "Issue Multipart part URLs",
         description = "Issues presigned UploadPart URLs in bulk using an existing uploadId."
@@ -216,7 +131,7 @@ public class S3PresignerController {
         return s3PresignerFacade.presignUploadPartBulk(request);
     }
 
-    @PostMapping("/multipart/part-url")
+    @PostMapping("/multipart/part-url/v1")
     @Operation(summary = "Issue Multipart part URL", description = "Issues a presigned URL for uploading a multipart part (UploadPart).")
     public S3PresignerFacade.PresignResult presignUploadPart(
         @RequestBody S3PresignerFacade.UploadPartUrlRequest request
@@ -225,7 +140,7 @@ public class S3PresignerController {
         return s3PresignerFacade.presignUploadPart(request);
     }
 
-    @PostMapping("/multipart/auto-presign")
+    @PostMapping("/multipart/auto-presign/v1")
     @Operation(
         summary = "Issue Multipart start and part URLs",
         description = "Creates uploadId on backend and returns presigned start URL plus presigned part URLs from part resources."
@@ -237,7 +152,7 @@ public class S3PresignerController {
         return s3PresignerFacade.presignMultipartWithPartResources(request);
     }
 
-    @PostMapping("/multipart/complete")
+    @PostMapping("/multipart/complete/v1")
     @Operation(summary = "Issue Multipart complete URL", description = "Issues a presigned URL for completing multipart upload (CompleteMultipartUpload).")
     public S3PresignerFacade.PresignResult presignCompleteMultipartUpload(
         @RequestBody S3PresignerFacade.CompleteMultipartUploadUrlRequest request
@@ -246,7 +161,7 @@ public class S3PresignerController {
         return s3PresignerFacade.presignCompleteMultipartUpload(request);
     }
 
-    @PostMapping("/multipart/abort-url")
+    @PostMapping("/multipart/abort-url/v1")
     @Operation(summary = "Issue Multipart abort URL", description = "Issues a presigned URL for aborting multipart upload (AbortMultipartUpload).")
     public S3PresignerFacade.PresignResult presignAbortMultipartUpload(
         @RequestBody S3PresignerFacade.AbortMultipartUploadUrlRequest request
@@ -255,22 +170,6 @@ public class S3PresignerController {
         return s3PresignerFacade.presignAbortMultipartUpload(request);
     }
 
-    private static void requireNotBlank(String value, String fieldName) {
-        Objects.requireNonNull(value, fieldName + " must not be null");
-        if (value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
-        }
-    }
-
-    private static void validateExpiresInSeconds(Integer expiresInSeconds) {
-        if (expiresInSeconds == null) {
-            return;
-        }
-        if (expiresInSeconds <= 0) {
-            throw new IllegalArgumentException("expiresInSeconds must be greater than 0");
-        }
-        if (expiresInSeconds > 604800) {
-            throw new IllegalArgumentException("expiresInSeconds must be less than or equal to 604800");
-        }
+    public record PutObjectBulkRequest(List<S3PresignerFacade.PutObjectUrlRequest> items) {
     }
 }

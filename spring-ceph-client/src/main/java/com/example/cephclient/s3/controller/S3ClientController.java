@@ -3,18 +3,15 @@ package com.example.cephclient.s3.controller;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.example.cephclient.s3.facade.S3ClientFacade;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -29,43 +26,37 @@ public class S3ClientController {
     @PostMapping("/bucket/create/v1")
     @Operation(summary = "Create bucket", description = "Creates a bucket using S3Client.")
     public BucketActionResponse createBucket(
-        @Parameter(description = "Bucket name", example = "my-bucket")
-        @RequestParam String bucket
+        @RequestBody BucketActionRequest request
     ) {
-        requireNotBlank(bucket, "bucket");
-        boolean success = s3ClientFacade.createBucket(bucket);
-        return new BucketActionResponse(bucket, success);
+        Objects.requireNonNull(request, "request must not be null");
+        boolean success = s3ClientFacade.createBucket(request.bucket());
+        return new BucketActionResponse(request.bucket(), success);
     }
 
-    @GetMapping("/bucket/list/v1")
+    @PostMapping("/bucket/list/v1")
     @Operation(summary = "List bucket names", description = "Returns all accessible bucket names.")
     public BucketNamesResponse listBucketNames() {
         return new BucketNamesResponse(s3ClientFacade.listBucketNames());
     }
 
-    @DeleteMapping("/bucket/delete/v1")
+    @PostMapping("/bucket/delete/v1")
     @Operation(summary = "Delete bucket", description = "Deletes an existing bucket.")
     public BucketActionResponse deleteBucket(
-        @Parameter(description = "Bucket name", example = "my-bucket")
-        @RequestParam String bucket
+        @RequestBody BucketActionRequest request
     ) {
-        requireNotBlank(bucket, "bucket");
-        boolean success = s3ClientFacade.deleteBucket(bucket);
-        return new BucketActionResponse(bucket, success);
+        Objects.requireNonNull(request, "request must not be null");
+        boolean success = s3ClientFacade.deleteBucket(request.bucket());
+        return new BucketActionResponse(request.bucket(), success);
     }
 
-    @DeleteMapping("/files/delete/v1")
+    @PostMapping("/files/delete/v1")
     @Operation(summary = "Delete object", description = "Deletes an object from the specified bucket.")
     public DeleteObjectActionResponse deleteObject(
-        @Parameter(description = "Bucket name", example = "my-bucket")
-        @RequestParam String bucket,
-        @Parameter(description = "Object key", example = "images/2026/05/a.png")
-        @RequestParam String key
+        @RequestBody DeleteObjectRequest request
     ) {
-        requireNotBlank(bucket, "bucket");
-        requireNotBlank(key, "key");
-        boolean success = s3ClientFacade.deleteObject(bucket, key);
-        return new DeleteObjectActionResponse(bucket, key, success);
+        Objects.requireNonNull(request, "request must not be null");
+        boolean success = s3ClientFacade.deleteObject(request.bucket(), request.key());
+        return new DeleteObjectActionResponse(request.bucket(), request.key(), success);
     }
 
     @PostMapping("/multipart/parts/list/v1")
@@ -91,7 +82,20 @@ public class S3ClientController {
     public record DeleteObjectActionResponse(String bucket, String key, boolean success) {
     }
 
-    public record ListPartsRequest(String bucket, String key, String uploadId) {
+    public record BucketActionRequest(String bucket) {
+        public BucketActionRequest {
+            requireNotBlank(bucket, "bucket");
+        }
+    }
+
+    public record DeleteObjectRequest(String bucket, String key) {
+        public DeleteObjectRequest {
+            requireNotBlank(bucket, "bucket");
+            requireNotBlank(key, "key");
+        }
+    }
+
+    public record ListPartsRequest(String bucket, String key, @JsonAlias("upload_id") String uploadId) {
         public ListPartsRequest {
             requireNotBlank(bucket, "bucket");
             requireNotBlank(key, "key");

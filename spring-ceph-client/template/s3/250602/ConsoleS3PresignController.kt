@@ -1,8 +1,5 @@
-package com.ahnlab.one.bff.console.server.api.deployment.s3
+package template.s3.250602
 
-import com.ahnlab.one.bff.console.api.rest.v1.deployment.s3.*
-import com.ahnlab.one.common.api.rest.ApiResponse
-import com.ahnlab.one.common.constants.HttpCustomHeaders
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
@@ -28,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController
 )
 @RestController
 @RequestMapping("/api/deployment/s3/presign")
-class S3PresignController {
+class ConsoleS3PresignController {
 
     // ─── File Presign ─────────────────────────────────────────────────────────
 
@@ -40,7 +37,7 @@ class S3PresignController {
             required = true,
             content = [Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                schema = Schema(implementation = S3PresignPutRequestDto::class),
+                schema = Schema(implementation = ConsoleS3PresignPutRequestDto::class),
                 examples = [
                     ExampleObject(
                         value = """
@@ -58,9 +55,9 @@ class S3PresignController {
     @PostMapping("/files/put/v1")
     fun presignPut(
         @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-        @Valid @RequestBody request: S3PresignPutRequestDto,
-    ): ResponseEntity<ApiResponse<S3PresignResultDto>> {
-        val response = S3PresignResultDto(
+        @Valid @RequestBody request: ConsoleS3PresignPutRequestDto,
+    ): ResponseEntity<ApiResponse<ConsoleS3PresignResultDto>> {
+        val response = ConsoleS3PresignResultDto(
             url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/agent-installer.pkg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20260526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260526T120000Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123signature",
             method = "PUT",
             headers = mapOf("host" to listOf("ceph.example.com")),
@@ -77,7 +74,7 @@ class S3PresignController {
             required = true,
             content = [Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                schema = Schema(implementation = S3PresignPutBulkRequestDto::class),
+                schema = Schema(implementation = ConsoleS3PresignPutBulkRequestDto::class),
                 examples = [
                     ExampleObject(
                         value = """
@@ -104,15 +101,15 @@ class S3PresignController {
     @PostMapping("/files/put-bulk/v1")
     fun presignPutBulk(
         @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-        @Valid @RequestBody request: S3PresignPutBulkRequestDto,
-    ): ResponseEntity<ApiResponse<List<S3PresignResultDto>>> {
-        val mockItem1 = S3PresignResultDto(
+        @Valid @RequestBody request: ConsoleS3PresignPutBulkRequestDto,
+    ): ResponseEntity<ApiResponse<List<ConsoleS3PresignResultDto>>> {
+        val mockItem1 = ConsoleS3PresignResultDto(
             url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/file1.pkg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=300&X-Amz-Signature=abc111",
             method = "PUT",
             headers = mapOf("host" to listOf("ceph.example.com")),
             expiresAt = "2026-05-26T12:05:00Z"
         )
-        val mockItem2 = S3PresignResultDto(
+        val mockItem2 = ConsoleS3PresignResultDto(
             url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/file2.pkg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=300&X-Amz-Signature=abc222",
             method = "PUT",
             headers = mapOf("host" to listOf("ceph.example.com")),
@@ -129,10 +126,10 @@ class S3PresignController {
             required = true,
             content = [Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                schema = Schema(implementation = S3PresignGetRequestDto::class),
+                schema = Schema(implementation = ConsoleS3PresignGetRequestDto::class),
                 examples = [ExampleObject(value = """
                 {
-                    "fileType": "AGENT_INSTALLER",
+                    "fileType": "AGENT_INSTALLER"
                 }
                 """)]
             )]
@@ -141,9 +138,9 @@ class S3PresignController {
     @PostMapping("/files/get/v1")
     fun presignGet(
         @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-        @Valid @RequestBody request: S3PresignGetRequestDto,
-    ): ResponseEntity<ApiResponse<S3PresignResultDto>> {
-        val response = S3PresignResultDto(
+        @Valid @RequestBody request: ConsoleS3PresignGetRequestDto,
+    ): ResponseEntity<ApiResponse<ConsoleS3PresignResultDto>> {
+        val response = ConsoleS3PresignResultDto(
             url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/agent-installer.pkg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20260526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260526T120000Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123signature",
             method = "GET",
             headers = mapOf("host" to listOf("ceph.example.com")),
@@ -163,7 +160,7 @@ class S3PresignController {
     //         required = true,
     //         content = [Content(
     //             mediaType = MediaType.APPLICATION_JSON_VALUE,
-    //             schema = Schema(implementation = S3PresignGetRangeRequestDto::class),
+    //             schema = Schema(implementation = ConsoleS3PresignGetRangeRequestDto::class),
     //             examples = [
     //                 ExampleObject(
     //                     name = "첫 1MiB",
@@ -196,9 +193,9 @@ class S3PresignController {
     // @PostMapping("/files/get-range/v1")
     // fun presignGetRange(
     //     @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-    //     @Valid @RequestBody request: S3PresignGetRangeRequestDto,
-    // ): ResponseEntity<ApiResponse<S3PresignResultDto>> {
-    //     val response = S3PresignResultDto(
+    //     @Valid @RequestBody request: ConsoleS3PresignGetRangeRequestDto,
+    // ): ResponseEntity<ApiResponse<ConsoleS3PresignResultDto>> {
+    //     val response = ConsoleS3PresignResultDto(
     //         url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20260526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260526T120000Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123signature",
     //         method = "GET",
     //         headers = mapOf("host" to listOf("ceph.example.com"), "range" to listOf("bytes=0-1048575")),
@@ -215,7 +212,7 @@ class S3PresignController {
     //         required = true,
     //         content = [Content(
     //             mediaType = MediaType.APPLICATION_JSON_VALUE,
-    //             schema = Schema(implementation = S3PresignDeleteRequestDto::class),
+    //             schema = Schema(implementation = ConsoleS3PresignDeleteRequestDto::class),
     //             examples = [ExampleObject(value = """
     //             {
     //                 "bucket": "my-bucket",
@@ -229,9 +226,9 @@ class S3PresignController {
     // @PostMapping("/files/delete/v1")
     // fun presignDelete(
     //     @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-    //     @Valid @RequestBody request: S3PresignDeleteRequestDto,
-    // ): ResponseEntity<ApiResponse<S3PresignResultDto>> {
-    //     val response = S3PresignResultDto(
+    //     @Valid @RequestBody request: ConsoleS3PresignDeleteRequestDto,
+    // ): ResponseEntity<ApiResponse<ConsoleS3PresignResultDto>> {
+    //     val response = ConsoleS3PresignResultDto(
     //         url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/agent-installer.pkg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20260526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260526T120000Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123signature",
     //         method = "DELETE",
     //         headers = mapOf("host" to listOf("ceph.example.com")),
@@ -248,7 +245,7 @@ class S3PresignController {
     //         required = true,
     //         content = [Content(
     //             mediaType = MediaType.APPLICATION_JSON_VALUE,
-    //             schema = Schema(implementation = S3PresignHeadObjectRequestDto::class),
+    //             schema = Schema(implementation = ConsoleS3PresignHeadObjectRequestDto::class),
     //             examples = [ExampleObject(value = """
     //             {
     //                 "bucket": "my-bucket",
@@ -262,9 +259,9 @@ class S3PresignController {
     // @PostMapping("/files/head/v1")
     // fun presignHeadObject(
     //     @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-    //     @Valid @RequestBody request: S3PresignHeadObjectRequestDto,
-    // ): ResponseEntity<ApiResponse<S3PresignResultDto>> {
-    //     val response = S3PresignResultDto(
+    //     @Valid @RequestBody request: ConsoleS3PresignHeadObjectRequestDto,
+    // ): ResponseEntity<ApiResponse<ConsoleS3PresignResultDto>> {
+    //     val response = ConsoleS3PresignResultDto(
     //         url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/agent-installer.pkg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20260526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260526T120000Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123signature",
     //         method = "HEAD",
     //         headers = mapOf("host" to listOf("ceph.example.com")),
@@ -283,7 +280,7 @@ class S3PresignController {
     //         required = true,
     //         content = [Content(
     //             mediaType = MediaType.APPLICATION_JSON_VALUE,
-    //             schema = Schema(implementation = S3PresignHeadBucketRequestDto::class),
+    //             schema = Schema(implementation = ConsoleS3PresignHeadBucketRequestDto::class),
     //             examples = [ExampleObject(value = """
     //             {
     //                 "bucket": "my-bucket",
@@ -296,9 +293,9 @@ class S3PresignController {
     // @PostMapping("/bucket/head/v1")
     // fun presignHeadBucket(
     //     @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-    //     @Valid @RequestBody request: S3PresignHeadBucketRequestDto,
-    // ): ResponseEntity<ApiResponse<S3PresignResultDto>> {
-    //     val response = S3PresignResultDto(
+    //     @Valid @RequestBody request: ConsoleS3PresignHeadBucketRequestDto,
+    // ): ResponseEntity<ApiResponse<ConsoleS3PresignResultDto>> {
+    //     val response = ConsoleS3PresignResultDto(
     //         url = "https://ceph.example.com/my-bucket?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20260526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260526T120000Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123signature",
     //         method = "HEAD",
     //         headers = mapOf("host" to listOf("ceph.example.com")),
@@ -320,7 +317,7 @@ class S3PresignController {
     //         required = true,
     //         content = [Content(
     //             mediaType = MediaType.APPLICATION_JSON_VALUE,
-    //             schema = Schema(implementation = S3MultipartStartRequestDto::class),
+    //             schema = Schema(implementation = ConsoleS3MultipartStartRequestDto::class),
     //             examples = [
     //                 ExampleObject(
     //                     name = "기본 멀티파트 시작",
@@ -352,9 +349,9 @@ class S3PresignController {
     // @PostMapping("/multipart/start/v1")
     // fun presignMultipartStart(
     //     @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-    //     @Valid @RequestBody request: S3MultipartStartRequestDto,
-    // ): ResponseEntity<ApiResponse<S3PresignResultDto>> {
-    //     val response = S3PresignResultDto(
+    //     @Valid @RequestBody request: ConsoleS3MultipartStartRequestDto,
+    // ): ResponseEntity<ApiResponse<ConsoleS3PresignResultDto>> {
+    //     val response = ConsoleS3PresignResultDto(
     //         url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?uploads&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20260526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260526T120000Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123signature",
     //         method = "POST",
     //         headers = mapOf("host" to listOf("ceph.example.com")),
@@ -374,7 +371,7 @@ class S3PresignController {
     //         required = true,
     //         content = [Content(
     //             mediaType = MediaType.APPLICATION_JSON_VALUE,
-    //             schema = Schema(implementation = S3MultipartPartUrlRequestDto::class),
+    //             schema = Schema(implementation = ConsoleS3MultipartPartUrlRequestDto::class),
     //             examples = [
     //                 ExampleObject(
     //                     name = "기본 파트 URL 발급",
@@ -408,9 +405,9 @@ class S3PresignController {
     // @PostMapping("/multipart/part-url/v1")
     // fun presignMultipartPartUrl(
     //     @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-    //     @Valid @RequestBody request: S3MultipartPartUrlRequestDto,
-    // ): ResponseEntity<ApiResponse<S3PresignResultDto>> {
-    //     val response = S3PresignResultDto(
+    //     @Valid @RequestBody request: ConsoleS3MultipartPartUrlRequestDto,
+    // ): ResponseEntity<ApiResponse<ConsoleS3PresignResultDto>> {
+    //     val response = ConsoleS3PresignResultDto(
     //         url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?partNumber=1&uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20260526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260526T120000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123signature",
     //         method = "PUT",
     //         headers = mapOf("host" to listOf("ceph.example.com")),
@@ -430,7 +427,7 @@ class S3PresignController {
     //         required = true,
     //         content = [Content(
     //             mediaType = MediaType.APPLICATION_JSON_VALUE,
-    //             schema = Schema(implementation = S3MultipartPartUrlsBulkRequestDto::class),
+    //             schema = Schema(implementation = ConsoleS3MultipartPartUrlsBulkRequestDto::class),
     //             examples = [
     //                 ExampleObject(
     //                     name = "기본 파트 URL 일괄 발급",
@@ -471,22 +468,22 @@ class S3PresignController {
     // @PostMapping("/multipart/part-urls/v1")
     // fun presignMultipartPartUrls(
     //     @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-    //     @Valid @RequestBody request: S3MultipartPartUrlsBulkRequestDto,
-    // ): ResponseEntity<ApiResponse<List<S3PresignResultDto>>> {
+    //     @Valid @RequestBody request: ConsoleS3MultipartPartUrlsBulkRequestDto,
+    // ): ResponseEntity<ApiResponse<List<ConsoleS3PresignResultDto>>> {
     //     val items = listOf(
-    //         S3PresignResultDto(
+    //         ConsoleS3PresignResultDto(
     //             url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?partNumber=1&uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600&X-Amz-Signature=abc111",
     //             method = "PUT",
     //             headers = mapOf("host" to listOf("ceph.example.com")),
     //             expiresAt = "2026-05-26T13:00:00Z"
     //         ),
-    //         S3PresignResultDto(
+    //         ConsoleS3PresignResultDto(
     //             url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?partNumber=2&uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600&X-Amz-Signature=abc222",
     //             method = "PUT",
     //             headers = mapOf("host" to listOf("ceph.example.com")),
     //             expiresAt = "2026-05-26T13:00:00Z"
     //         ),
-    //         S3PresignResultDto(
+    //         ConsoleS3PresignResultDto(
     //             url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?partNumber=3&uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600&X-Amz-Signature=abc333",
     //             method = "PUT",
     //             headers = mapOf("host" to listOf("ceph.example.com")),
@@ -497,7 +494,62 @@ class S3PresignController {
     // }
 
     @Operation(
-        summary = "[CONSOLE] Multipart 자동 Presigned URL 일괄 발급",
+        summary = "[CONSOLE] Multipart 파트 PUT(Upload) Presigned URL 일괄 발급/재발급",
+        description = """
+            멀티파트 업로드의 여러 파트(UploadPart) Presigned URL을 한 번에 발급한다.
+            uploadId는 CreateMultipartUpload 응답 XML에서 얻는다. 응답 순서는 요청 parts 순서와 동일하다.
+        """,
+        security = [SecurityRequirement(name = "console-auth")],
+        requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = [Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = Schema(implementation = ConsoleS3MultipartPartUrlsBulkRequestDto::class),
+                examples = [
+                    ExampleObject(
+                        name = "기본 파트 URL 일괄 발급",
+                        value = """
+                        {
+                            "upload_id": "VXBsb2FkSWQxMjM0NTY3OA==",
+                            "object_key": "deploy/agent/2026/05/large-file.bin",
+                            "parts": [2,4,6]
+                        }
+                        """
+                    )
+                ]
+            )]
+        )
+    )
+    @PostMapping("/multipart/part-urls/v1")
+    fun presignMultipartPartUrls(
+        @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
+        @Valid @RequestBody request: ConsoleS3MultipartPartUrlsBulkRequestDto,
+    ): ResponseEntity<ApiResponse<List<ConsoleS3PresignResultDto>>> {
+        val items = listOf(
+            ConsoleS3PresignResultDto(
+                url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?partNumber=1&uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600&X-Amz-Signature=abc111",
+                method = "PUT",
+                headers = mapOf("host" to listOf("ceph.example.com")),
+                expiresAt = "2026-05-26T13:00:00Z"
+            ),
+            ConsoleS3PresignResultDto(
+                url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?partNumber=2&uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600&X-Amz-Signature=abc222",
+                method = "PUT",
+                headers = mapOf("host" to listOf("ceph.example.com")),
+                expiresAt = "2026-05-26T13:00:00Z"
+            ),
+            ConsoleS3PresignResultDto(
+                url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?partNumber=3&uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600&X-Amz-Signature=abc333",
+                method = "PUT",
+                headers = mapOf("host" to listOf("ceph.example.com")),
+                expiresAt = "2026-05-26T13:00:00Z"
+            )
+        )
+        return ResponseEntity.ok(ApiResponse.success(items))
+    }
+
+    @Operation(
+        summary = "[CONSOLE] Multipart Presigned URL 일괄 발급 With Start",
         description = """
             서버에서 uploadId를 직접 생성하고, CreateMultipartUpload Presigned URL과 각 파트 업로드 Presigned URL을 한 번에 발급한다.
             FE는 별도로 CreateMultipartUpload를 호출하지 않아도 되며, 응답의 uploadId를 CompleteMultipartUpload/AbortMultipartUpload 시 사용한다.
@@ -507,7 +559,7 @@ class S3PresignController {
             required = true,
             content = [Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                schema = Schema(implementation = S3MultipartAutoPresignRequestDto::class),
+                schema = Schema(implementation = ConsoleS3MultipartAutoPresignRequestDto::class),
                 examples = [
                     ExampleObject(
                         value = """
@@ -515,7 +567,7 @@ class S3PresignController {
                             "fileName": "agent-installer.pkg",
                             "fileSize": 10485760,
                             "fileType": "AGENT_INSTALLER",
-                            "partNumber": 3
+                            "numberOfParts": 3
                         }
                         """
                     )
@@ -523,43 +575,42 @@ class S3PresignController {
             )]
         )
     )
-    @PostMapping("/multipart/auto/v1")
+    @PostMapping("/multipart/part-urls-with-start/v1")
     fun presignMultipartAuto(
         @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-        @Valid @RequestBody request: S3MultipartAutoPresignRequestDto,
-    ): ResponseEntity<ApiResponse<S3MultipartAutoPresignResponseDto>> {
-        val response = S3MultipartAutoPresignResponseDto(
-            bucket = "my-bucket",
+        @Valid @RequestBody request: ConsoleS3MultipartAutoPresignRequestDto,
+    ): ResponseEntity<ApiResponse<ConsoleS3MultipartAutoPresignResponseDto>> {
+        val response = ConsoleS3MultipartAutoPresignResponseDto(
             key = "deploy/agent/2026/05/large-file.bin",
             uploadId = "VXBsb2FkSWQxMjM0NTY3OA==",
-            startUrl = S3PresignResultDto(
+            startUrl = ConsoleS3PresignResultDto(
                 url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?uploads&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=300&X-Amz-Signature=startabc123",
                 method = "POST",
                 headers = mapOf("host" to listOf("ceph.example.com")),
                 expiresAt = "2026-05-26T12:05:00Z"
             ),
             partUrls = listOf(
-                S3MultipartPartPresignResultDto(
+                ConsoleS3MultipartPartPresignResultDto(
                     partNumber = 1,
-                    partUrl = S3PresignResultDto(
+                    partUrl = ConsoleS3PresignResultDto(
                         url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?partNumber=1&uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600&X-Amz-Signature=partabc111",
                         method = "PUT",
                         headers = mapOf("host" to listOf("ceph.example.com")),
                         expiresAt = "2026-05-26T13:00:00Z"
                     )
                 ),
-                S3MultipartPartPresignResultDto(
+                ConsoleS3MultipartPartPresignResultDto(
                     partNumber = 2,
-                    partUrl = S3PresignResultDto(
+                    partUrl = ConsoleS3PresignResultDto(
                         url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?partNumber=2&uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600&X-Amz-Signature=partabc222",
                         method = "PUT",
                         headers = mapOf("host" to listOf("ceph.example.com")),
                         expiresAt = "2026-05-26T13:00:00Z"
                     )
                 ),
-                S3MultipartPartPresignResultDto(
+                ConsoleS3MultipartPartPresignResultDto(
                     partNumber = 3,
-                    partUrl = S3PresignResultDto(
+                    partUrl = ConsoleS3PresignResultDto(
                         url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?partNumber=3&uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=3600&X-Amz-Signature=partabc333",
                         method = "PUT",
                         headers = mapOf("host" to listOf("ceph.example.com")),
@@ -579,7 +630,7 @@ class S3PresignController {
             required = true,
             content = [Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                schema = Schema(implementation = S3MultipartPartsListRequestDto::class),
+                schema = Schema(implementation = ConsoleS3MultipartPartsListRequestDto::class),
                 examples = [ExampleObject(value = """
                 {
                     "key": "deploy/agent/2026/05/agent-installer.pkg",
@@ -592,20 +643,19 @@ class S3PresignController {
     @PostMapping("/multipart/parts/list/v1")
     fun listMultipartParts(
         @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-        @Valid @RequestBody request: S3MultipartPartsListRequestDto,
-    ): ResponseEntity<ApiResponse<S3MultipartPartsListResponseDto>> {
-        val response = S3MultipartPartsListResponseDto(
-            bucket = request.bucket,
+        @Valid @RequestBody request: ConsoleS3MultipartPartsListRequestDto,
+    ): ResponseEntity<ApiResponse<ConsoleS3MultipartPartsListResponseDto>> {
+        val response = ConsoleS3MultipartPartsListResponseDto(
             key = request.key,
             uploadId = request.uploadId,
             parts = listOf(
-                S3MultipartPartInfoResponseDto(
+                ConsoleS3MultipartPartInfoResponseDto(
                     partNumber = 1,
                     eTag = "\"9b2cf535f27731c974343645a3985328\"",
                     size = 5242880,
                     lastModified = "2026-05-27T06:30:45Z"
                 ),
-                S3MultipartPartInfoResponseDto(
+                ConsoleS3MultipartPartInfoResponseDto(
                     partNumber = 2,
                     eTag = "\"94f6d7e04a4d452035300f18b984988c\"",
                     size = 5242880,
@@ -627,7 +677,7 @@ class S3PresignController {
             required = true,
             content = [Content(
                 mediaType = MediaType.APPLICATION_JSON_VALUE,
-                schema = Schema(implementation = S3MultipartCompleteRequestDto::class),
+                schema = Schema(implementation = ConsoleS3MultipartCompleteRequestDto::class),
                 examples = [ExampleObject(value = """
                 {
                     "key": "deploy/agent/2026/05/large-file.bin",
@@ -636,8 +686,7 @@ class S3PresignController {
                         { "part_number": 1, "e_tag": "\"d8e8fca2dc0f896fd7cb4cb0031ba249\"" },
                         { "part_number": 2, "e_tag": "\"9e107d9d372bb6826bd81d3542a419d6\"" },
                         { "part_number": 3, "e_tag": "\"b94f6f125c79e3a5ffaa826f584c10d6\"" }
-                    ],
-                    "expires_in_seconds": 300
+                    ]
                 }
                 """)]
             )]
@@ -646,9 +695,9 @@ class S3PresignController {
     @PostMapping("/multipart/complete/v1")
     fun presignMultipartComplete(
         @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-        @Valid @RequestBody request: S3MultipartCompleteRequestDto,
-    ): ResponseEntity<ApiResponse<S3PresignResultDto>> {
-        val response = S3PresignResultDto(
+        @Valid @RequestBody request: ConsoleS3MultipartCompleteRequestDto,
+    ): ResponseEntity<ApiResponse<ConsoleS3PresignResultDto>> {
+        val response = ConsoleS3PresignResultDto(
             url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20260526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260526T120000Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123signature",
             method = "POST",
             headers = mapOf("host" to listOf("ceph.example.com")),
@@ -657,40 +706,69 @@ class S3PresignController {
         return ResponseEntity.ok(ApiResponse.success(response))
     }
 
-    // @Operation(
-    //     summary = "[CONSOLE] Multipart 중단 Presigned URL 발급",
-    //     description = """
-    //         멀티파트 업로드를 중단(AbortMultipartUpload)하기 위한 Presigned URL을 발급한다.
-    //         업로드 실패 시 반드시 중단 요청을 보내 S3에 업로드 중인 파트 리소스를 정리해야 한다.
-    //     """,
-    //     security = [SecurityRequirement(name = "console-auth")],
-    //     requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
-    //         required = true,
-    //         content = [Content(
-    //             mediaType = MediaType.APPLICATION_JSON_VALUE,
-    //             schema = Schema(implementation = S3MultipartAbortRequestDto::class),
-    //             examples = [ExampleObject(value = """
-    //             {
-    //                 "bucket": "my-bucket",
-    //                 "key": "deploy/agent/2026/05/large-file.bin",
-    //                 "upload_id": "VXBsb2FkSWQxMjM0NTY3OA==",
-    //                 "expires_in_seconds": 300
-    //             }
-    //             """)]
-    //         )]
-    //     )
-    // )
-    // @PostMapping("/multipart/abort/v1")
-    // fun presignMultipartAbort(
-    //     @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
-    //     @Valid @RequestBody request: S3MultipartAbortRequestDto,
-    // ): ResponseEntity<ApiResponse<S3PresignResultDto>> {
-    //     val response = S3PresignResultDto(
-    //         url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20260526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260526T120000Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123signature",
-    //         method = "DELETE",
-    //         headers = mapOf("host" to listOf("ceph.example.com")),
-    //         expiresAt = "2026-05-26T12:05:00Z"
-    //     )
-    //     return ResponseEntity.ok(ApiResponse.success(response))
-    // }
+    @Operation(
+        summary = "[CONSOLE] Multipart 중단 Presigned URL 발급",
+        description = """
+            멀티파트 업로드를 중단(AbortMultipartUpload)하기 위한 Presigned URL을 발급한다.
+            업로드 실패 시 반드시 중단 요청을 보내 S3에 업로드 중인 파트 리소스를 정리해야 한다.
+        """,
+        security = [SecurityRequirement(name = "console-auth")],
+        requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = [Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = Schema(implementation = ConsoleS3MultipartAbortRequestDto::class),
+                examples = [ExampleObject(value = """
+                {
+                    "key": "deploy/agent/2026/05/large-file.bin",
+                    "upload_id": "VXBsb2FkSWQxMjM0NTY3OA=="
+                }
+                """)]
+            )]
+        )
+    )
+    @PostMapping("/multipart/abort/v1")
+    fun presignMultipartAbort(
+        @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
+        @Valid @RequestBody request: ConsoleS3MultipartAbortRequestDto,
+    ): ResponseEntity<ApiResponse<ConsoleS3PresignResultDto>> {
+        val response = ConsoleS3PresignResultDto(
+            url = "https://ceph.example.com/my-bucket/deploy/agent/2026/05/large-file.bin?uploadId=VXBsb2FkSWQxMjM0NTY3OA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ACCESS_KEY%2F20260526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260526T120000Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123signature",
+            method = "DELETE",
+            headers = mapOf("host" to listOf("ceph.example.com")),
+            expiresAt = "2026-05-26T12:05:00Z"
+        )
+        return ResponseEntity.ok(ApiResponse.success(response))
+    }
+
+    // ─── Upload Complete ───────────────────────────────────────────────────────
+
+    @Operation(
+        summary = "[CONSOLE] Object 업로드 완료",
+        description = """
+            Object 업로드를 완료 후 후처리를 위해 호출하는 API. 모든 Object 업로드 완료 후 호출
+        """,
+        security = [SecurityRequirement(name = "console-auth")],
+        requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = [Content(
+                mediaType = MediaType.APPLICATION_JSON_VALUE,
+                schema = Schema(implementation = ConsoleS3UploadCompleteRequestDto::class),
+                examples = [ExampleObject(value = """
+                {
+                    "fileType": "AGENT_INSTALLER",
+                    "object_key": "deploy/agent/2026/05/large-file.bin"
+                }
+                """)]
+            )]
+        )
+    )
+    @PostMapping("/upload/complete/v1")
+    fun presignMultipartComplete(
+        @RequestHeader(HttpCustomHeaders.TENANT_ID) tenantId: String,
+        @Valid @RequestBody request: ConsoleS3UploadCompleteRequestDto,
+    ): ResponseEntity<ApiResponse<String>> {
+        val response = "{}"
+        return ResponseEntity.ok(ApiResponse.success(response))
+    }
 }

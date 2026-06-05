@@ -1,4 +1,4 @@
-package com.ahnlab.one.bff.console.api.rest.v1.deployment.s3
+package package template.s3.250602
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 // ─── Shared ───────────────────────────────────────────────────────────────────
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3MultipartPartResourceDto(
+data class ConsoleS3MultipartPartResourceDto(
     @field:Schema(required = true, description = "파트 번호 (1-based, 1 ~ 10000)", example = "1")
     val partNumber: Int,
 
@@ -20,7 +20,7 @@ data class S3MultipartPartResourceDto(
 )
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3PartEtagDto(
+data class ConsoleS3PartEtagDto(
     @field:Schema(required = true, description = "파트 번호 (1-based, 1 ~ 10000)", example = "1")
     val partNumber: Int,
 
@@ -35,7 +35,7 @@ data class S3PartEtagDto(
 // ─── File Presign Request DTOs ────────────────────────────────────────────────
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3PresignPutRequestDto(
+data class ConsoleS3PresignPutRequestDto(
     // @field:Schema(required = true, description = "버킷 이름", example = "my-bucket")
     // val bucket: String,
 
@@ -69,13 +69,13 @@ data class S3PresignPutRequestDto(
 )
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3PresignPutBulkRequestDto(
+data class ConsoleS3PresignPutBulkRequestDto(
     @field:Schema(required = true, description = "Presigned PUT URL을 발급할 오브젝트 목록. 비어있으면 안 된다.")
-    val items: List<S3PresignPutRequestDto>,
+    val items: List<ConsoleS3PresignPutRequestDto>,
 )
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3PresignGetRequestDto(
+data class ConsoleS3PresignGetRequestDto(
     // @field:Schema(required = true, description = "버킷 이름", example = "my-bucket")
     // val bucket: String,
 
@@ -111,7 +111,7 @@ data class S3PresignGetRequestDto(
 )
 
 // @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-// data class S3PresignDeleteRequestDto(
+// data class ConsoleS3PresignDeleteRequestDto(
 //     @field:Schema(required = true, description = "버킷 이름", example = "my-bucket")
 //     val bucket: String,
 
@@ -139,7 +139,7 @@ data class S3PresignGetRequestDto(
 // )
 
 // @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-// data class S3PresignHeadObjectRequestDto(
+// data class ConsoleS3PresignHeadObjectRequestDto(
 //     @field:Schema(required = true, description = "버킷 이름", example = "my-bucket")
 //     val bucket: String,
 
@@ -160,7 +160,7 @@ data class S3PresignGetRequestDto(
 // )
 
 // @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-// data class S3PresignHeadBucketRequestDto(
+// data class ConsoleS3PresignHeadBucketRequestDto(
 //     @field:Schema(required = true, description = "접근 가능 여부를 확인할 버킷 이름", example = "my-bucket")
 //     val bucket: String,
 
@@ -174,7 +174,7 @@ data class S3PresignGetRequestDto(
 // )
 
 // @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-// data class S3PresignGetRangeRequestDto(
+// data class ConsoleS3PresignGetRangeRequestDto(
 //     @field:Schema(required = true, description = "버킷 이름", example = "my-bucket")
 //     val bucket: String,
 
@@ -211,7 +211,7 @@ data class S3PresignGetRequestDto(
 // ─── Multipart Request DTOs ───────────────────────────────────────────────────
 
 // @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-// data class S3MultipartStartRequestDto(
+// data class ConsoleS3MultipartStartRequestDto(
 //     @field:Schema(required = true, description = "버킷 이름", example = "my-bucket")
 //     val bucket: String,
 
@@ -247,7 +247,7 @@ data class S3PresignGetRequestDto(
 // )
 
 // @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-// data class S3MultipartPartUrlRequestDto(
+// data class ConsoleS3MultipartPartUrlRequestDto(
 //     @field:Schema(required = true, description = "버킷 이름", example = "my-bucket")
 //     val bucket: String,
 
@@ -288,39 +288,28 @@ data class S3PresignGetRequestDto(
 //     val checksumSha256: String? = null,
 // )
 
-// @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-// data class S3MultipartPartUrlsBulkRequestDto(
-//     @field:Schema(
-//         required = true,
-//         description = "CreateMultipartUpload 응답에서 반환된 uploadId",
-//         example = "VXBsb2FkSWQxMjM0NTY3OA=="
-//     )
-//     val uploadId: String,
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
+data class ConsoleS3MultipartPartUrlsBulkRequestDto(
+    @field:Schema(
+        required = true,
+        description = "CreateMultipartUpload 응답에서 반환된 uploadId",
+        example = "VXBsb2FkSWQxMjM0NTY3OA=="
+    )
+    val uploadId: String,
 
-//     @field:Schema(required = true, description = "버킷 이름", example = "my-bucket")
-//     val bucket: String,
+    @field:Schema(
+        required = true,
+        description = "오브젝트 키",
+        example = "deploy/agent/2026/05/large-file.bin"
+    )
+    val key: String,
 
-//     @field:Schema(
-//         required = true,
-//         description = "오브젝트 키",
-//         example = "deploy/agent/2026/05/large-file.bin"
-//     )
-//     val key: String,
-
-//     @field:Schema(
-//         required = false,
-//         description = "각 파트 URL의 유효 시간 (초). null이면 기본값 300초 적용. 최대 604800초(7일).",
-//         example = "3600",
-//         defaultValue = "300"
-//     )
-//     val partExpiresInSeconds: Int? = null,
-
-//     @field:Schema(required = true, description = "Presigned URL을 발급할 파트 목록. 비어있으면 안 된다.")
-//     val parts: List<S3MultipartPartResourceDto>,
-// )
+    @field:Schema(required = true, description = "Presigned URL을 발급할 파트 목록. 비어있으면 안 된다.")
+    val parts: List<Int>,
+)
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3MultipartAutoPresignRequestDto(
+data class ConsoleS3MultipartAutoPresignRequestDto(
 
     @field:Schema(
         required = true,
@@ -348,7 +337,7 @@ data class S3MultipartAutoPresignRequestDto(
         description = "part 총 개수",
         example = "3"
     )
-    val partNumber: Int,
+    val numberOfParts: Int,
 
 
     // @field:Schema(
@@ -384,7 +373,7 @@ data class S3MultipartAutoPresignRequestDto(
 )
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3MultipartPartsListRequestDto(
+data class ConsoleS3MultipartPartsListRequestDto(
     @field:Schema(
         required = true,
         description = "멀티파트 업로드 대상 오브젝트 키",
@@ -402,7 +391,7 @@ data class S3MultipartPartsListRequestDto(
 
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3MultipartCompleteRequestDto(
+data class ConsoleS3MultipartCompleteRequestDto(
     @field:Schema(
         required = true,
         description = "오브젝트 키",
@@ -421,19 +410,11 @@ data class S3MultipartCompleteRequestDto(
         required = true,
         description = "완료할 파트 목록. UploadPart 응답 헤더에서 반환된 ETag를 파트 번호와 함께 전달해야 한다. 비어있으면 안 된다."
     )
-    val parts: List<S3PartEtagDto>,
-
-    @field:Schema(
-        required = false,
-        description = "URL 유효 시간 (초). null이면 기본값 300초 적용. 최대 604800초(7일).",
-        example = "300",
-        defaultValue = "300"
-    )
-    val expiresInSeconds: Int? = null,
+    val parts: List<ConsoleS3PartEtagDto>,
 )
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3MultipartAbortRequestDto(
+data class ConsoleS3MultipartAbortRequestDto(
     @field:Schema(required = true, description = "버킷 이름", example = "my-bucket")
     val bucket: String,
 
@@ -450,12 +431,20 @@ data class S3MultipartAbortRequestDto(
         example = "VXBsb2FkSWQxMjM0NTY3OA=="
     )
     val uploadId: String,
+)
 
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
+data class ConsoleS3UploadCompleteRequestDto(
     @field:Schema(
-        required = false,
-        description = "URL 유효 시간 (초). null이면 기본값 300초 적용. 최대 604800초(7일).",
-        example = "300",
-        defaultValue = "300"
+        required = true,
+        description = "업로드 Object의 file type. enum 정의 필요. 예: NORMAL_FILE, AGENT_INSTALLER, LOG_ARCHIVE 등",
+        example = "AGENT_INSTALLER"
     )
-    val expiresInSeconds: Int? = null,
+    val fileType: String,
+    @field:Schema(
+        required = true,
+        description = "오브젝트 키",
+        example = "deploy/agent/2026/05/large-file.bin"
+    )
+    val key: String,
 )

@@ -1,4 +1,4 @@
-package com.ahnlab.one.bff.console.api.rest.v1.deployment.s3
+package package template.s3.250602
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3PresignResultDto(
+data class ConsoleS3PresignResultDto(
     @field:Schema(
         required = true,
         description = "Presigned URL. 이 URL로 직접 S3/Ceph에 HTTP 요청을 보낸다.",
@@ -39,20 +39,17 @@ data class S3PresignResultDto(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3MultipartPartPresignResultDto(
+data class ConsoleS3MultipartPartPresignResultDto(
     @field:Schema(required = true, description = "파트 번호 (1-based)", example = "1")
     val partNumber: Int,
 
     @field:Schema(required = true, description = "해당 파트 업로드를 위한 Presigned URL 정보")
-    val partUrl: S3PresignResultDto,
+    val partUrl: ConsoleS3PresignResultDto,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3MultipartAutoPresignResponseDto(
-    @field:Schema(required = true, description = "버킷 이름", example = "my-bucket")
-    val bucket: String,
-
+data class ConsoleS3MultipartAutoPresignResponseDto(
     @field:Schema(
         required = true,
         description = "오브젝트 키",
@@ -71,21 +68,18 @@ data class S3MultipartAutoPresignResponseDto(
         required = true,
         description = "CreateMultipartUpload를 실행하기 위한 Presigned URL. 이 URL로 실제 multipart upload를 시작한다."
     )
-    val startUrl: S3PresignResultDto,
+    val startUrl: ConsoleS3PresignResultDto,
 
     @field:Schema(
         required = true,
         description = "각 파트 업로드를 위한 Presigned URL 목록. 파트 번호 오름차순으로 정렬된다."
     )
-    val partUrls: List<S3MultipartPartPresignResultDto>,
+    val partUrls: List<ConsoleS3MultipartPartPresignResultDto>,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3MultipartPartsListResponseDto(
-    @field:Schema(required = true, description = "버킷 이름", example = "my-deployment-bucket")
-    val bucket: String,
-
+data class ConsoleS3MultipartPartsListResponseDto(
     @field:Schema(
         required = true,
         description = "멀티파트 업로드 대상 오브젝트 키",
@@ -101,12 +95,12 @@ data class S3MultipartPartsListResponseDto(
     val uploadId: String,
 
     @field:Schema(required = true, description = "업로드된 파트 목록")
-    val parts: List<S3MultipartPartInfoResponseDto>,
+    val parts: List<ConsoleS3MultipartPartInfoResponseDto>,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
-data class S3MultipartPartInfoResponseDto(
+data class ConsoleS3MultipartPartInfoResponseDto(
     @field:Schema(required = true, description = "파트 번호", example = "1")
     val partNumber: Int,
 

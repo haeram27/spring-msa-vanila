@@ -1,10 +1,10 @@
-package com.hello.grpc.client.config.deployment
+package com.hello.grpc.client.server
 
+import com.com.hello.grpc.client.HelloGrpcClient
 import com.hello.grpc.client.config.GrpcChannelFactory
 import com.hello.grpc.client.config.PlatformProperties
 import com.hello.grpc.client.config.caller.CallerContextClientInterceptor
 import com.hello.grpc.client.config.caller.TenantContextClientInterceptor
-import com.com.hello.grpc.client.HelloGrpcClient
 import io.grpc.ManagedChannel
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.context.properties.EnableConfigurationProperties

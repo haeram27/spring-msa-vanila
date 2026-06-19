@@ -1,4 +1,4 @@
-rootProject.name = "hello-grpc"
+rootProject.name = "hello-grpc-server"
 
 include("api", "client", "server")
 

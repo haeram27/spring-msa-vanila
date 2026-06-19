@@ -1,11 +1,21 @@
 spring:
-  # db datasource
+  # https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#application-properties.data.spring.datasource.hikari
   datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/dvdrental
-    username: postgres
-    password: postgres
-    # https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#application-properties.data.spring.datasource.hikari
+    url: jdbc:h2:mem:hello-grpc;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  grpc:
+    server:
+      port: 8081
+      reflection:
+        enabled: true
+  jpa:
+    properties:
+      hibernate:
+        default_schema: public
+    hibernate:
+      ddl-auto: none
 
 my:
   datasource:

@@ -1,21 +1,27 @@
 # common appliction properies:
 # https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html
 
-# profile - https://docs.spring.io/spring-boot/reference/features/profiles.html
+server.port: 8181
 
 spring:
+  # profile - https://docs.spring.io/spring-boot/reference/features/profiles.html
   profiles:
+    # The profile to activate for the current run.
+    # This takes precedence over default, so using both together is not recommended.
+    active: dev
+    # The fallback profile used when no active profile is specified.
+    default: dev
+    # A profile group that activates additional profiles together.
+    # The group name can be set in active or default. (e.g. --spring.profiles.active=production)
     group:
       production:
         - prod
+  threads:
+    virtual:
+      enabled: true
 
-# spring.profiles.active: dev,hsqldb
-spring.profiles.default: dev
-spring.profiles.active: dev
-spring.threads.virtual.enabled: true
-server.port: 8181
-
-logging.config: classpath:log4j2-${spring.profiles.active}.xml
+logging:
+  config: classpath:log4j2-${spring.profiles.active}.xml
 
 mybatis:
   configuration:

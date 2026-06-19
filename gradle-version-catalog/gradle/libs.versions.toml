@@ -1,0 +1,24 @@
+[metadata]
+format.version = "1.1"
+
+[versions]
+foojayResolver = "0.0.1"
+jvm = "25"
+kotlin = "2.3.10"
+lombok = "1.18.42"
+mybatisSpringBootStarter = "4.0.1"
+springBoot = "4.0.5"
+springDependencyManagement = "1.1.7"
+
+[libraries]
+kotlin-reflect = {group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
+kotlin-test-junit5 = {group = "org.jetbrains.kotlin", name = "kotlin-test-junit5", version.ref = "kotlin" }
+lombok = {group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
+mybatis-spring-boot-starter = {group = "org.mybatis.spring.boot", name = "mybatis-spring-boot-starter", version.ref = "mybatisSpringBootStarter" }
+
+[plugins]
+foojay-resolver-convention = {id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojayResolver" }
+kotlin-jvm = {id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = {id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+spring-boot = {id = "org.springframework.boot", version.ref = "springBoot" }
+spring-dependency-management = {id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }

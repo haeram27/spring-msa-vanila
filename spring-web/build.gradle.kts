@@ -1,12 +1,23 @@
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.run.BootRun
+
 plugins {
-    id 'java'
+    java
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.spring)
     // https://plugins.gradle.org/plugin/org.springframework.boot
-    id 'org.springframework.boot'
-    id 'io.spring.dependency-management'
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
 }
 
-group = 'com.example'
-version = '0.0.1-SNAPSHOT'
+group = "com.example"
+version = "0.0.1-SNAPSHOT"
+val jvmVersion = libs.versions.jvm.get()
 
 // set java source compatibility for java compile task
 java {
@@ -18,54 +29,67 @@ java {
     // foojay-resolver: Apply a specific Java toolchain to ease working on different environments.
     // foojay downloads specified JDK version if not found in .gradle/toolchains/ so gradlew can automatically setup the JDK toolchain.
     toolchain {
-        languageVersion = JavaLanguageVersion.of(jvmVersion)
+        languageVersion = JavaLanguageVersion.of(jvmVersion.toInt())
     }
+}
+
+kotlin {
+    jvmToolchain(jvmVersion.toInt())
 }
 
 configurations {
     all {
         // exclude logback
-        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
     }
-    compileOnly {
-        extendsFrom annotationProcessor
+    named("compileOnly") {
+        extendsFrom(configurations.annotationProcessor.get())
     }
 }
 
 dependencies {
-    annotationProcessor "org.projectlombok:lombok"
-    compileOnly "org.projectlombok:lombok"
-    runtimeOnly 'org.postgresql:postgresql'
+    annotationProcessor(libs.lombok)
+    compileOnly(libs.lombok)
+    runtimeOnly("org.postgresql:postgresql")
 
     // tools
-    implementation "tools.jackson.dataformat:jackson-dataformat-yaml"
-    implementation 'com.google.code.gson:gson'
-    implementation "org.mybatis.spring.boot:mybatis-spring-boot-starter:${mybatisSpringBootStarterVersion}"
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
+    implementation("com.google.code.gson:gson")
+    implementation(libs.kotlin.reflect)
+    implementation(libs.mybatis.spring.boot.starter)
 
-    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-//    implementation 'org.springframework.boot:spring-boot-starter-security'  // enable auth for spring web apis
+    implementation("org.springframework.boot:spring-boot-starter-log4j2")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+//    implementation("org.springframework.boot:spring-boot-starter-security")  // enable auth for spring web apis
     // aop > aspectj from spring boot 4.0.x
-    implementation 'org.springframework.boot:spring-boot-starter-aspectj'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-quartz'
-    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation("org.springframework.boot:spring-boot-starter-aspectj")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-quartz")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 
-    testAnnotationProcessor "org.projectlombok:lombok"
-    testCompileOnly "org.projectlombok:lombok"
-    testImplementation 'com.google.code.gson:gson'
-    testImplementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    testAnnotationProcessor(libs.lombok)
+    testCompileOnly(libs.lombok)
+    testRuntimeOnly("com.h2database:h2")
+    testImplementation("com.google.code.gson:gson")
+    testImplementation(libs.kotlin.test.junit5)
+    testImplementation("org.springframework.boot:spring-boot-starter-log4j2")
     // aop > aspectj from spring boot 4.0.x
-    testImplementation 'org.springframework.boot:spring-boot-starter-aspectj'
-    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation("org.springframework.boot:spring-boot-starter-aspectj")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     // ensure autoconfigure test annotations (AutoConfigureMockMvc) available
-    testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
-    testRuntimeOnly 'com.h2database:h2'
+    testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.add("-Xjsr305=strict")
+        jvmTarget.set(JvmTarget.fromTarget(jvmVersion))
+    }
 }
 
 // do not archive plain-jar(jar \wo dependency)
-jar {
+tasks.named<Jar>("jar") {
     enabled = false
 }
 
@@ -75,21 +99,27 @@ jar {
  * # clean all tests result cache before run tests
  * gradle test --rerun-tasks --tests 'Hello*.hello'
  */
-test {
+tasks.named<Test>("test") {
     useJUnitPlatform()
-    systemProperty 'spring.profiles.active', 'test'
+    systemProperty("spring.profiles.active", "test")
     testLogging {
         showStandardStreams = true
         showCauses = true
         showExceptions = true
         showStackTraces = true
-        exceptionFormat = 'full'
-        events "passed", "skipped", "failed", "standardOut", "standardError"
+        exceptionFormat = TestExceptionFormat.FULL
+        events(
+            TestLogEvent.PASSED,
+            TestLogEvent.SKIPPED,
+            TestLogEvent.FAILED,
+            TestLogEvent.STANDARD_OUT,
+            TestLogEvent.STANDARD_ERROR,
+        )
     }
 }
 
-bootRun {
-    environment 'spring.output.ansi.console-available', true
+tasks.named<BootRun>("bootRun") {
+    environment("spring.output.ansi.console-available", true)
 }
 
 /*

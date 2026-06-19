@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spring-grpc-server
+  grpc:
+    server:
+      port: 9090
+      reflection:
+        enabled: true
+
+sample:
+  grpc:
+    client:
+      host: localhost
+      port: 9090
+      timeout-seconds: 5

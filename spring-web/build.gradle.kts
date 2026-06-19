@@ -54,7 +54,6 @@ dependencies {
 
     // tools
     implementation("tools.jackson.dataformat:jackson-dataformat-yaml")
-    implementation("com.google.code.gson:gson")
     implementation(libs.kotlin.reflect)
     implementation(libs.mybatis.spring.boot.starter)
 
@@ -70,7 +69,6 @@ dependencies {
     testAnnotationProcessor(libs.lombok)
     testCompileOnly(libs.lombok)
     testRuntimeOnly("com.h2database:h2")
-    testImplementation("com.google.code.gson:gson")
     testImplementation(libs.kotlin.test.junit5)
     testImplementation("org.springframework.boot:spring-boot-starter-log4j2")
     // aop > aspectj from spring boot 4.0.x

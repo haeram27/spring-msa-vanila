@@ -1,0 +1,12 @@
+.kotlin
+**/.kotlin/
+.gradle
+**/.gradle/
+build/
+**/build/
+target/
+**/target/
+*.iml
+.idea/
+.vscode/
+.DS_Store

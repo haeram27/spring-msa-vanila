@@ -3,22 +3,34 @@ format.version = "1.1"
 
 [versions]
 foojayResolver = "0.0.1"
+grpc = "1.77.1"
 jvm = "25"
 kotlin = "2.3.10"
 lombok = "1.18.42"
 mybatisSpringBootStarter = "4.0.1"
+protobuf = "4.33.4"
+protobufPlugin = "0.9.6"
 springBoot = "4.0.5"
 springDependencyManagement = "1.1.7"
+springGrpc = "1.0.2"
 
 [libraries]
+kotlin-stdlib = {group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = {group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 kotlin-test-junit5 = {group = "org.jetbrains.kotlin", name = "kotlin-test-junit5", version.ref = "kotlin" }
 lombok = {group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
 mybatis-spring-boot-starter = {group = "org.mybatis.spring.boot", name = "mybatis-spring-boot-starter", version.ref = "mybatisSpringBootStarter" }
+protobuf-java = {group = "com.google.protobuf", name = "protobuf-java", version.ref = "protobuf" }
+grpc-stub = {group = "io.grpc", name = "grpc-stub", version.ref = "grpc" }
+grpc-protobuf = {group = "io.grpc", name = "grpc-protobuf", version.ref = "grpc" }
+grpc-netty-shaded = {group = "io.grpc", name = "grpc-netty-shaded", version.ref = "grpc" }
+spring-grpc-bom = {group = "org.springframework.grpc", name = "spring-grpc-dependencies", version.ref = "springGrpc" }
+spring-grpc-boot-starter = {group = "org.springframework.grpc", name = "spring-grpc-spring-boot-starter" }
 
 [plugins]
 foojay-resolver-convention = {id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojayResolver" }
 kotlin-jvm = {id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-spring = {id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+protobuf = {id = "com.google.protobuf", version.ref = "protobufPlugin" }
 spring-boot = {id = "org.springframework.boot", version.ref = "springBoot" }
 spring-dependency-management = {id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }

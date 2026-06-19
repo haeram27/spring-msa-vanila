@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+# 각 설정의 대문자는 환경변수, 소문자는 secret이다.
+spring:
+  config:
+    import: optional:configtree:/etc/secrets/share/
+  data:
+    redis:
+      host: ${SHARE_VALKEY_HOST}
+      port: ${SHARE_VALKEY_PORT}
+      username: ${SHARE_VALKEY_USERNAME}
+      password: ${valkey.username}
+  grpc:
+    server:
+      port: 8081
+      reflection:
+        enabled: true
+
+share.infra:
+  postgres:
+    url: jdbc:postgresql://${SHARE_PG_HOST}:${SHARE_PG_PORT}/${SHARE_PG_DATABASE}?prepareThreshold=0
+    username: ${pg.admin.username}
+    password: ${pg.admin.password}
+  hikari:
+    maximum-pool-size: 10
+  redis:
+    key-prefix: 'routing:t2c:'
+    ttl: 1h
+  crypto:
+    secret-key: ${SHARE_CRYPTO_SECRET_KEY}
+  share-kafka:
+    bootstrap-servers: ${SHARE_KAFKA_BOOTSTRAP_SERVER}

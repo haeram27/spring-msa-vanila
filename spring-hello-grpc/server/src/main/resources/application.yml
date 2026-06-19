@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: hello-grpc
+  profiles:
+    active: local
+  jpa:
+    properties:
+      hibernate:
+        default_schema: public
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  threads:
+    virtual:
+      enabled: true
+
+logging:
+  pattern:
+    level: "%5p"
+  level:
+    org.springframework.web: INFO
+    org.springframework.boot: INFO
+    com.hello.grpc: TRACE

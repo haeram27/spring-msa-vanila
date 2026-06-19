@@ -1,0 +1,56 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:hello-grpc;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  grpc:
+    server:
+      port: 8081
+      reflection:
+        enabled: true
+  jpa:
+    properties:
+      hibernate:
+        default_schema: public
+    hibernate:
+      ddl-auto: none
+
+# Database SSH Tunnel Setup (개발 환경)
+# 사용법: ssh -L 5432:192.168.55.223:5432 root@172.21.100.155
+application:
+  provider-db:
+    host: localhost
+    port: 5432
+    database: padmin
+    username: padmin_user
+    password: padmin_user_pass
+    schema: public
+
+# ceph staging
+ceph:
+  aws:
+    s3:
+      endpoint: http://localhost:31349
+      region: us-east-1
+      access-key: ${CEPH_ACCESS_KEY}
+      secret-key: ${CEPH_SECRET_KEY}
+      path-style-access-enabled: true
+
+share.infra:
+  # postgres:
+  #   url: jdbc:postgresql://${SHARE_PG_HOST}:${SHARE_PG_PORT}/${SHARE_PG_DATABASE}?prepareThreshold=0
+  #   username: ${pg.admin.username}
+  #   password: ${pg.admin.password}
+  hikari:
+    maximum-pool-size: 10
+  redis:
+    key-prefix: 'routing:t2c:'  
+    ttl: 1h
+  crypto:
+    secret-key: ${SHARE_CRYPTO_SECRET_KEY}
+  share-kafka:
+    bootstrap-servers: ${SHARE_KAFKA_BOOTSTRAP_SERVER}

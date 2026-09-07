@@ -1,5 +1,9 @@
 package com.example.springgrpc.server.service.dto;
 
+import com.example.springgrpc.server.repository.enums.Category;
+import com.example.springgrpc.server.repository.enums.Frequency;
+import com.example.springgrpc.server.repository.enums.Status;
+
 /**
  * 목록 한 건을 표현하는 Service 계층의 도메인 타입. proto 타입에 의존하지 않는다.
  * <p>
@@ -13,16 +17,4 @@ public record ListViewEntry(
     Status status,
     Category category,
     Frequency frequency
-) {
-    public enum Status {
-        PENDING, CREATING, CREATED, FAILED, DELETED
-    }
-
-    public enum Category {
-        BASIC, UNIFIED, QUERY
-    }
-
-    public enum Frequency {
-        IMMEDIATE, SPECIFIC_TIME, EVERY_DAY, EVERY_WEEK, EVERY_MONTH_DAY, EVERY_YEAR
-    }
-}
+) {}

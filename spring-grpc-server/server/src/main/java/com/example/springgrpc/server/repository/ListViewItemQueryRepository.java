@@ -4,6 +4,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
+import com.example.springgrpc.server.repository.enums.Category;
+import com.example.springgrpc.server.repository.enums.Frequency;
+import com.example.springgrpc.server.repository.enums.Status;
+
 import com.example.springgrpc.server.service.dto.ListViewEntry;
 import com.example.springgrpc.server.service.dto.ListViewFilter;
 import com.example.springgrpc.server.service.dto.ListViewQuery;

@@ -1,5 +1,8 @@
 package com.example.springgrpc.server.repository;
 
+import com.example.springgrpc.server.repository.enums.Category;
+import com.example.springgrpc.server.repository.enums.Frequency;
+import com.example.springgrpc.server.repository.enums.Status;
 import com.example.springgrpc.server.service.dto.ListViewEntry;
 
 import jakarta.persistence.Column;
@@ -19,7 +22,7 @@ import jakarta.persistence.Table;
  * 의미가 조용히 달라진다.
  */
 @Entity
-@Table(name = "list_view_item")
+@Table(name = "tb_list_view")
 public class ListViewItemEntity {
 
     @Id
@@ -31,15 +34,15 @@ public class ListViewItemEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
-    private ListViewEntry.Status status;
+    private Status status;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
-    private ListViewEntry.Category category;
+    private Category category;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
-    private ListViewEntry.Frequency frequency;
+    private Frequency frequency;
 
     /** JPA 전용. 직접 쓰지 않는다. */
     protected ListViewItemEntity() {
@@ -47,9 +50,9 @@ public class ListViewItemEntity {
 
     public ListViewItemEntity(String id,
                               String name,
-                              ListViewEntry.Status status,
-                              ListViewEntry.Category category,
-                              ListViewEntry.Frequency frequency) {
+                              Status status,
+                              Category category,
+                              Frequency frequency) {
         this.id = id;
         this.name = name;
         this.status = status;
@@ -69,15 +72,15 @@ public class ListViewItemEntity {
         return name;
     }
 
-    public ListViewEntry.Status getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public ListViewEntry.Category getCategory() {
+    public Category getCategory() {
         return category;
     }
 
-    public ListViewEntry.Frequency getFrequency() {
+    public Frequency getFrequency() {
         return frequency;
     }
 }

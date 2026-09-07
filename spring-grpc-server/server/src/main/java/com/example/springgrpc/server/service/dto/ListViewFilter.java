@@ -1,5 +1,9 @@
 package com.example.springgrpc.server.service.dto;
 
+import com.example.springgrpc.server.repository.enums.Category;
+import com.example.springgrpc.server.repository.enums.Frequency;
+import com.example.springgrpc.server.repository.enums.Status;
+
 import java.util.List;
 import java.util.Set;
 
@@ -25,19 +29,19 @@ public sealed interface ListViewFilter {
     record SearchString(String value) implements ListViewFilter {
     }
 
-    record StatusIn(Set<ListViewEntry.Status> values) implements ListViewFilter {
+    record StatusIn(Set<Status> values) implements ListViewFilter {
         public StatusIn {
             values = Set.copyOf(values);
         }
     }
 
-    record CategoryIn(Set<ListViewEntry.Category> values) implements ListViewFilter {
+    record CategoryIn(Set<Category> values) implements ListViewFilter {
         public CategoryIn {
             values = Set.copyOf(values);
         }
     }
 
-    record FrequencyIn(Set<ListViewEntry.Frequency> values) implements ListViewFilter {
+    record FrequencyIn(Set<Frequency> values) implements ListViewFilter {
         public FrequencyIn {
             values = Set.copyOf(values);
         }

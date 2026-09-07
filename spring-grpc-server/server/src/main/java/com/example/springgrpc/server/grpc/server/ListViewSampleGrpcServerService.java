@@ -1,7 +1,6 @@
 package com.example.springgrpc.server.grpc.server;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -23,6 +22,7 @@ import com.example.springgrpc.server.service.dto.ListViewEntry;
 import com.example.springgrpc.server.service.dto.ListViewFilter;
 import com.example.springgrpc.server.service.dto.ListViewQuery;
 import com.example.springgrpc.server.service.dto.ListViewResult;
+import com.example.springgrpc.server.util.EnumParser;
 import com.example.springgrpc.server.util.GrpcCallExecutor;
 import com.example.springgrpc.server.util.GrpcRequestLogger;
 
@@ -55,7 +55,7 @@ com.example.grpc.v1.ListViewSample/ListAll
     public void listAll(ListViewRequest request, StreamObserver<ListViewResponse> responseObserver) {
         GrpcRequestLogger.logRequestMembers("ListViewSampleGrpcServerService#listAll", request);
         GrpcCallExecutor.execute("ListViewSampleGrpcServerService#listAll", responseObserver, () -> {
-            ListViewResult result = listViewSampleService.listAll(toQuery(request));
+            ListViewResult result = listViewSampleService.list(toQuery(request));
             return toResponse(result);
         });
     }
@@ -101,21 +101,9 @@ com.example.grpc.v1.ListViewSample/ListAll
      */
     private static ListViewQuery.Sort toSort(Sort sort) {
         return new ListViewQuery.Sort(
-            parseEnum(sort.getSortKey(), "sort_key", ListViewQuery.Sort.Key.class, ListViewQuery.Sort.Key.ID),
-            parseEnum(sort.getSortOrder(), "sort_order", ListViewQuery.Sort.Order.class, ListViewQuery.Sort.Order.ASC)
+            EnumParser.parse(sort.getSortKey(), "sort_key", ListViewQuery.Sort.Key.class, ListViewQuery.Sort.Key.ID),
+            EnumParser.parse(sort.getSortOrder(), "sort_order", ListViewQuery.Sort.Order.class, ListViewQuery.Sort.Order.ASC)
         );
-    }
-
-    private static <E extends Enum<E>> E parseEnum(String value, String fieldName, Class<E> type, E defaultValue) {
-        if (value == null || value.isBlank()) {
-            return defaultValue;
-        }
-        try {
-            return Enum.valueOf(type, value.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(
-                "%s must be one of %s but was '%s'".formatted(fieldName, List.of(type.getEnumConstants()), value), e);
-        }
     }
 
     private static <P, D> Set<D> mapEnums(List<P> values, java.util.function.Function<P, D> mapper) {

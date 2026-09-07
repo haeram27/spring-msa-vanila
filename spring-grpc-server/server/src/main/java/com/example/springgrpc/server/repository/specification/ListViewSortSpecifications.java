@@ -10,7 +10,7 @@ import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Root;
 
 /**
- * {@code tb_list_view} 조회 정렬용 {@link Specification}을 생성한다.
+ * {@code tb_list_view_sample} 조회 정렬용 {@link Specification}을 생성한다.
  *
  * <p>정렬 대상 ({@code id}/{@code name}/{@code status}/
  * {@code category}/{@code frequency}/{@code modified_at}/{@code created_at}) 를 {@link Specification}에서

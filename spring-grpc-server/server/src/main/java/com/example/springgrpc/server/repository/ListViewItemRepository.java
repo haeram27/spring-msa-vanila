@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 /**
- * {@code tb_list_view}의 Spring Data 리포지토리.
+ * {@code tb_list_view_sample}의 Spring Data 리포지토리.
  * <p>
  * {@link JpaSpecificationExecutor}만 있으면 되지만 {@link JpaRepository}도 함께 상속해
  * 테스트에서 {@code saveAll}로 데이터를 넣을 수 있게 한다.

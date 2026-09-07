@@ -22,7 +22,7 @@ import jakarta.persistence.Table;
  * 의미가 조용히 달라진다.
  */
 @Entity
-@Table(name = "tb_list_view")
+@Table(name = "tb_list_view_sample")
 public class ListViewItemEntity {
 
     @Id

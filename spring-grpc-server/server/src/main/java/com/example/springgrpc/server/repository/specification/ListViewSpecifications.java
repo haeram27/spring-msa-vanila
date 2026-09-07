@@ -8,7 +8,7 @@ import com.example.springgrpc.server.repository.ListViewItemEntity;
 import com.example.springgrpc.server.service.dto.ListViewFilter;
 
 /**
- * 도메인 필터 트리({@link ListViewFilter})를 {@code tb_list_view} 조회용 {@link Specification}으로
+ * 도메인 필터 트리({@link ListViewFilter})를 {@code tb_list_view_sample} 조회용 {@link Specification}으로
  * 옮긴다. {@code ListViewItemQueryRepository}가 QueryDSL로 하는 일을 JPA Criteria로 한 것이다.
  *
  * <p>입력은 {@code controller/dto}가 아니라 도메인 타입이다. 저장소 어댑터가 웹 계층 DTO를 알면

@@ -1,0 +1,10 @@
+spring:
+  profiles:
+    active: test
+  autoconfigure:
+    exclude:
+      - org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    # use an in-memory schema if tests need DB setup

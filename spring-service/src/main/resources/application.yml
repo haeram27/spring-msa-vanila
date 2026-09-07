@@ -1,0 +1,4 @@
+# common appliction properies:
+# https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html
+
+logging.config: classpath:log4j2-dev.xml

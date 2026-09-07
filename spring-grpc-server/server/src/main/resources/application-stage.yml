@@ -1,0 +1,28 @@
+# 스테이징. 구성은 운영에 맞추되 진단 수단은 남겨둔다.
+spring:
+  grpc:
+    server:
+      reflection:
+        # 스테이지에서는 grpcurl 로 계약을 검증할 수 있어야 하므로 켜 둔다.
+        enabled: true
+
+  # 외부 DB. 기본값을 두지 않아 미설정이면 기동에 실패한다.
+  datasource:
+    url: ${DB_URL:}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      # 스키마는 마이그레이션 도구가 관리한다. 앱은 맞는지 검증만 한다.
+      ddl-auto: validate
+
+sample:
+  grpc:
+    client:
+      host: ${GRPC_CLIENT_HOST:localhost}
+      port: ${GRPC_CLIENT_PORT:9090}
+      timeout-seconds: 5
+
+logging:
+  level:
+    com.example.springgrpc: INFO

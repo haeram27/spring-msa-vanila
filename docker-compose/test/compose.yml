@@ -1,0 +1,6 @@
+services:
+  web:
+    environment:
+      - DEBUG=1
+    image: "webapp:${TAG}"
+    image2: "webapp:${DEBUG}"

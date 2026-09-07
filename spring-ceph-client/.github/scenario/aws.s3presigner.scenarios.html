@@ -1,0 +1,1033 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS S3Presigner 시나리오 플로우</title>
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --panel: #ffffff;
+            --ink: #1c2430;
+            --muted: #5c6778;
+            --line: #d9e1ec;
+            --primary: #0b6bcb;
+            --accent: #ff7a18;
+            --ok: #107c41;
+            --warn: #b35a00;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Pretendard", "Noto Sans KR", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(1200px 500px at 15% -10%, #dbeafe 0%, transparent 60%),
+                radial-gradient(900px 400px at 100% 0%, #ffe7d1 0%, transparent 55%),
+                var(--bg);
+            line-height: 1.6;
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 20px 80px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #0b6bcb 0%, #0f8f8a 60%, #ff7a18 100%);
+            color: #fff;
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 18px 30px rgba(10, 55, 96, 0.22);
+        }
+
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: clamp(24px, 4vw, 34px);
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 15px;
+        }
+
+        .toc {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .toc a {
+            text-decoration: none;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        section {
+            margin-top: 24px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: 0 8px 20px rgba(14, 24, 38, 0.06);
+        }
+
+        h2 {
+            margin: 0 0 10px;
+            font-size: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        h3 {
+            margin: 18px 0 8px;
+            font-size: 18px;
+        }
+
+        .note {
+            margin: 8px 0 14px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .flow {
+            background: #f8fbff;
+            border: 1px dashed #b8cae2;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .chip {
+            font-size: 12px;
+            color: #0a4d9b;
+            background: #eaf3ff;
+            border: 1px solid #c9dffb;
+            border-radius: 999px;
+            padding: 4px 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            border: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+            padding: 9px 10px;
+        }
+
+        th {
+            background: #f0f6ff;
+            font-weight: 700;
+        }
+
+        code {
+            font-family: "JetBrains Mono", "Consolas", monospace;
+            font-size: 12.5px;
+            background: #f1f4f8;
+            border: 1px solid #d8e1ec;
+            border-radius: 6px;
+            padding: 1px 5px;
+        }
+
+        .json {
+            margin-top: 8px;
+            background: #0f172a;
+            color: #d4e2ff;
+            border-radius: 10px;
+            padding: 12px;
+            overflow-x: auto;
+            font-size: 12.5px;
+            border: 1px solid #24324b;
+        }
+
+        .warn {
+            border-left: 4px solid var(--warn);
+            background: #fff8ef;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .ok {
+            border-left: 4px solid var(--ok);
+            background: #eefaf3;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .mermaid {
+            margin-top: 14px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 8px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <header class="hero">
+            <h1>S3Presigner API 시나리오 가이드</h1>
+            <p>S3Presigner를 이용한 URL 발급 중심 아키텍처에서, 메서드 호출 플로우와 요청/응답 데이터 구조를 시퀀스 다이어그램으로 정리했습니다.</p>
+            <p
+                style="margin-top:10px; font-size:13px; background:rgba(255,255,255,0.18); border-radius:8px; padding:8px 12px; display:inline-block;">
+                📦 기준 AWS SDK 버전: <strong>software.amazon.awssdk BOM 2.44.4</strong>&nbsp;·&nbsp;presignHeadObject /
+                presignHeadBucket 정식 지원 버전
+            </p>
+            <div class="toc">
+                <a href="#terms">용어: Terms</a>
+                <a href="#single">시나리오 1: 단일 PUT/GET</a>
+                <a href="#multipart">시나리오 2: 멀티파트 PUT/GET</a>
+                <a href="#multipart-recovery">시나리오 3: 멀티파트 실패 복구</a>
+                <a href="#delete">시나리오 4: 삭제 위임</a>
+                <a href="#head-object">시나리오 5: 객체 메타 확인</a>
+                <a href="#head-bucket">시나리오 6: 버킷 접근 확인</a>
+                <a href="#range-get">시나리오 7: Range 다운로드</a>
+            </div>
+        </header>
+
+        <section id="terms">
+            <h2>용어 (Terms)</h2>
+            <p class="note">시나리오에서 반복되는 핵심 용어를 먼저 정리합니다.</p>
+
+            <h3>ETag</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>항목</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>무엇인가?</td>
+                        <td>객체(또는 객체 버전)를 식별하기 위한 엔터티 태그(Entity Tag) 값입니다. S3 응답 헤더로 내려오며, 보통 문자열 형태입니다.</td>
+                    </tr>
+                    <tr>
+                        <td>어디에 쓰이나?</td>
+                        <td>업로드 결과 추적, 캐시 검증(If-Match/If-None-Match), 멀티파트 완료 시 파트별 <code>eTag</code> 목록 제출 등에 사용됩니다.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>주의사항</td>
+                        <td>모든 환경에서 ETag를 단순 MD5로 가정하면 안 됩니다. 멀티파트 업로드/암호화 설정에 따라 의미가 달라질 수 있습니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <pre class="json">ETag 값 예시
+{
+  "singleUploadEtag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+  "multipartCompleteEtag": "\"7f1d3f2a6b9c4e1234567890abcdef12-3\"",
+  "partUploadEtag": "\"etag-part-1\""
+}</pre>
+
+            <h3>Presigner</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>항목</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>무엇인가?</td>
+                        <td>요청을 대신 보내는 주체가 아니라, S3 요청에 대한 서명을 미리 만들어 주는 구성요소입니다. 이 서명이 포함된 URL이 있어야 클라이언트가 S3에 직접 접근할 수
+                            있습니다.</td>
+                    </tr>
+                    <tr>
+                        <td>어디에 쓰이나?</td>
+                        <td>업로드(PUT), 다운로드(GET), 삭제(DELETE), HEAD 확인 같은 동작을 서버가 직접 중계하지 않고 클라이언트가 S3에 직접 수행하도록 할 때
+                            사용됩니다.</td>
+                    </tr>
+                    <tr>
+                        <td>예시</td>
+                        <td><code>S3Presigner</code>, <code>presignPutObject</code>, <code>presignGetObject</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Presigned URL</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>항목</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>무엇인가?</td>
+                        <td>서명 정보와 만료 시간이 포함된 임시 접근 URL입니다. 이 URL로 정해진 HTTP 메서드와 헤더를 사용하면 별도 AWS 자격 증명 없이 S3 요청을 수행할 수
+                            있습니다.</td>
+                    </tr>
+                    <tr>
+                        <td>어디에 쓰이나?</td>
+                        <td>대용량 업로드/다운로드, 임시 파일 공유, 브라우저나 외부 클라이언트의 직접 S3 접근에 사용됩니다.</td>
+                    </tr>
+                    <tr>
+                        <td>예시</td>
+                        <td><code>https://bucket.s3.amazonaws.com/object?X-Amz-Signature=...</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Signer</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>항목</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>무엇인가?</td>
+                        <td>HTTP 요청에 서명을 붙이는 역할 또는 그 동작 자체를 의미합니다. Presigner는 이 signer 동작을 이용해 URL에 서명 정보를 붙입니다.</td>
+                    </tr>
+                    <tr>
+                        <td>어디에 쓰이나?</td>
+                        <td>AWS 요청의 인증, 무결성 보장, 만료 시간 제한, 요청 조건 고정 등에 사용됩니다.</td>
+                    </tr>
+                    <tr>
+                        <td>예시</td>
+                        <td><code>Signature V4</code>, <code>X-Amz-Signature</code>, <code>X-Amz-Date</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="single">
+            <h2>1. 단일 Object PUT/GET</h2>
+            <p class="note">사용 메서드: <code>presignPutObject</code>, <code>presignGetObject</code></p>
+
+            <div class="flow">
+                1) 클라이언트가 업로드/다운로드 요청<br />
+                2) 백엔드가 S3Presigner로 presigned URL 발급<br />
+                3) 클라이언트가 URL로 S3 직접 호출(서버 우회 데이터 전송)
+            </div>
+
+            <div class="chips">
+                <span class="chip">서버 부하 감소</span>
+                <span class="chip">짧은 TTL 권장</span>
+                <span class="chip">헤더 정합성 필수</span>
+            </div>
+
+            <div class="mermaid">
+                sequenceDiagram
+                autonumber
+                participant U as User/Client
+                participant A as App Server
+                participant P as S3Presigner
+                participant S as Amazon S3
+
+                U->>A: POST /files/presign-put\n{bucket,key,contentType,size}
+                A->>P: presignPutObject(PutObjectPresignRequest)
+                P-->>A: PresignedPutObjectRequest\n{url,signedHeaders,expiration}
+                A-->>U: 200 OK\n{uploadUrl,method:PUT,headers,expiresAt}
+                U->>S: PUT uploadUrl\n+ signed headers + file bytes
+                S-->>U: 200 OK\n{ETag,VersionId?}
+
+                U->>A: GET /files/presign-get?bucket&key
+                A->>P: presignGetObject(GetObjectPresignRequest)
+                P-->>A: PresignedGetObjectRequest\n{url,signedHeaders,expiration}
+                A-->>U: 200 OK\n{downloadUrl,method:GET,expiresAt}
+                U->>S: GET downloadUrl
+                S-->>U: 200 OK\n{file stream}
+            </div>
+
+            <h3>요청/응답 데이터 (핵심)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>단계</th>
+                        <th>요청 데이터</th>
+                        <th>응답 데이터</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>PUT URL 발급</td>
+                        <td><code>bucket</code>, <code>key</code>, <code>contentType</code>, <code>contentLength</code>,
+                            <code>expiresIn</code>
+                        </td>
+                        <td><code>uploadUrl</code>, <code>httpMethod=PUT</code>, <code>signedHeaders</code>,
+                            <code>expiresAt</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>파일 업로드</td>
+                        <td>HTTP PUT + 파일 바이트 + 서명된 헤더</td>
+                        <td>HTTP 200/204, <code>ETag</code>, <code>VersionId</code>(옵션)</td>
+                    </tr>
+                    <tr>
+                        <td>GET URL 발급</td>
+                        <td><code>bucket</code>, <code>key</code>, <code>response-content-type</code>(옵션),
+                            <code>expiresIn</code>
+                        </td>
+                        <td><code>downloadUrl</code>, <code>httpMethod=GET</code>, <code>expiresAt</code></td>
+                    </tr>
+                    <tr>
+                        <td>파일 다운로드</td>
+                        <td>HTTP GET (presigned URL)</td>
+                        <td>HTTP 200 + 파일 스트림</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <pre class="json">[1] PUT presign API request
+{
+  "bucket": "my-bucket",
+  "key": "images/2026/05/a.png",
+  "contentType": "image/png",
+  "contentLength": 1048576,
+  "expiresInSeconds": 300
+}
+
+[4] PUT presign API response
+{
+  "uploadUrl": "https://...",
+  "method": "PUT",
+  "headers": {
+    "Content-Type": "image/png"
+  },
+  "expiresAt": "2026-05-12T04:30:00Z"
+}
+
+[7] GET presign-get API request
+{
+  "bucket": "my-bucket",
+  "key": "images/2026/05/a.png",
+  "responseContentType": "image/png",
+  "expiresInSeconds": 300
+}
+
+[10] GET presign-get API response
+{
+  "downloadUrl": "https://127.0.0.1:8555/my-bucket/images/2026/05/a.png?...",
+  "method": "GET",
+  "headers": {},
+  "expiresAt": "2026-05-12T04:30:00Z"
+}</pre>
+
+            <div class="warn">주의: presign 시 포함된 헤더(예: <code>Content-Type</code>,
+                <code>x-amz-server-side-encryption</code>)는 실제 업로드 요청과 동일해야 합니다.
+            </div>
+        </section>
+
+        <section id="multipart">
+            <h2>2. Multipart Upload PUT/GET</h2>
+            <p class="note">사용 메서드: <code>presignCreateMultipartUpload</code>, <code>presignUploadPart</code>,
+                <code>presignCompleteMultipartUpload</code>, <code>presignAbortMultipartUpload</code>,
+                <code>presignGetObject</code>
+            </p>
+
+            <div class="flow">
+                1) Multipart 시작 URL 발급 후 <code>uploadId</code> 획득<br />
+                2) 파트별 presigned URL 발급 및 병렬 업로드<br />
+                3) 수집한 <code>ETag</code> 목록으로 완료 요청<br />
+                4) 필요 시 abort 호출, 완료 후 get URL 발급으로 다운로드
+            </div>
+
+            <div class="chips">
+                <span class="chip">대용량 파일</span>
+                <span class="chip">병렬 전송</span>
+                <span class="chip">ETag 정합성</span>
+                <span class="chip">실패 시 Abort</span>
+            </div>
+
+            <div class="mermaid">
+                sequenceDiagram
+                autonumber
+                participant U as User/Client
+                participant A as App Server
+                participant P as S3Presigner
+                participant S as Amazon S3
+
+                U->>A: POST /multipart/start\n{bucket,key,contentType}
+                A->>P: presignCreateMultipartUpload(...)
+                P-->>A: PresignedCreateMultipartUploadRequest\n{url,headers,expiration}
+                A-->>U: {startUrl,expiresAt}
+                U->>S: POST startUrl
+                S-->>U: 200 OK\n{UploadId}
+
+                loop each partNumber
+                U->>A: POST /multipart/part-url\n{bucket,key,uploadId,partNumber}
+                A->>P: presignUploadPart(...)
+                P-->>A: PresignedUploadPartRequest\n{url,headers,expiration}
+                A-->>U: {uploadPartUrl,partNumber}
+                U->>S: PUT uploadPartUrl\n+ part bytes
+                S-->>U: 200 OK\n{ETag}
+                end
+
+                U->>A: POST /multipart/complete\n{bucket,key,uploadId,parts:[{partNumber,eTag}]}
+                A->>P: presignCompleteMultipartUpload(...)
+                P-->>A: PresignedCompleteMultipartUploadRequest\n{url,headers}
+                A-->>U: {completeUrl}
+                U->>S: POST completeUrl\n+ XML(parts)
+                S-->>U: 200 OK\n{Location,Bucket,Key,ETag}
+
+                U->>A: GET /files/presign-get?bucket&key
+                A->>P: presignGetObject(...)
+                P-->>A: PresignedGetObjectRequest
+                A-->>U: {downloadUrl}
+                U->>S: GET downloadUrl
+                S-->>U: 200 OK\n{file stream}
+            </div>
+
+            <h3>요청/응답 데이터 (핵심)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>단계</th>
+                        <th>요청 데이터</th>
+                        <th>응답 데이터</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Multipart 시작 URL 발급</td>
+                        <td><code>bucket</code>, <code>key</code>, <code>contentType</code>, <code>expiresIn</code></td>
+                        <td><code>startUrl</code>, <code>expiresAt</code></td>
+                    </tr>
+                    <tr>
+                        <td>Multipart 시작 호출</td>
+                        <td>HTTP POST (startUrl)</td>
+                        <td><code>UploadId</code></td>
+                    </tr>
+                    <tr>
+                        <td>파트 URL 발급</td>
+                        <td><code>bucket</code>, <code>key</code>, <code>uploadId</code>, <code>partNumber</code>,
+                            <code>expiresIn</code>
+                        </td>
+                        <td><code>uploadPartUrl</code>, <code>partNumber</code></td>
+                    </tr>
+                    <tr>
+                        <td>파트 업로드</td>
+                        <td>HTTP PUT + part bytes</td>
+                        <td><code>ETag</code> (각 파트별 저장 필요)</td>
+                    </tr>
+                    <tr>
+                        <td>완료 URL 발급</td>
+                        <td><code>bucket</code>, <code>key</code>, <code>uploadId</code>, <code>parts[]</code></td>
+                        <td><code>completeUrl</code></td>
+                    </tr>
+                    <tr>
+                        <td>완료 호출</td>
+                        <td>HTTP POST + 파트 목록(XML/구조화 데이터)</td>
+                        <td>완성 객체 메타(<code>Location</code>, <code>ETag</code>)</td>
+                    </tr>
+                    <tr>
+                        <td>실패 시 중단 URL 발급</td>
+                        <td><code>bucket</code>, <code>key</code>, <code>uploadId</code></td>
+                        <td><code>abortUrl</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <pre class="json">[1] POST /multipart/start 요청
+{
+  "bucket": "my-bucket",
+  "key": "videos/2026/demo.mp4",
+  "contentType": "video/mp4",
+  "expiresInSeconds": 3600
+}
+
+[4] POST /multipart/start 응답  ← App Server → Client (startUrl 전달)
+{
+  "startUrl": "https://127.0.0.1:8555/my-bucket/videos/2026/demo.mp4?uploads&...",
+  "expiresAt": "2026-05-12T05:30:00Z"
+}
+
+[6] S3 직접 호출 응답  ← Client가 startUrl로 POST → S3가 UploadId 반환
+  POST {startUrl}  (body 없음)
+{
+  "UploadId": "VXBsb2FkIElE..."
+}
+  ※ 이 UploadId를 클라이언트가 보관하여 이후 part-url, complete, abort 요청에 전달
+
+[7] POST /multipart/part-url 요청
+{
+  "bucket": "my-bucket",
+  "key": "videos/2026/demo.mp4",
+  "uploadId": "VXBsb2FkIElE...",
+  "partNumber": 1,
+  "expiresInSeconds": 600
+}
+
+[10] POST /multipart/part-url 응답
+{
+  "uploadPartUrl": "https://127.0.0.1:8555/my-bucket/videos/2026/demo.mp4?uploadId=...&partNumber=1&...",
+  "partNumber": 1,
+  "expiresAt": "2026-05-12T04:20:00Z"
+}
+
+[13] POST /multipart/complete 요청
+{
+  "bucket": "my-bucket",
+  "key": "videos/2026/demo.mp4",
+  "uploadId": "VXBsb2FkIElE...",
+  "parts": [
+    { "partNumber": 1, "eTag": "\"etag-part-1\"" },
+    { "partNumber": 2, "eTag": "\"etag-part-2\"" }
+  ],
+  "expiresInSeconds": 600
+}
+
+[16] POST /multipart/complete 응답
+{
+  "completeUrl": "https://127.0.0.1:8555/my-bucket/videos/2026/demo.mp4?uploadId=...&...",
+  "expiresAt": "2026-05-12T04:20:00Z"
+}</pre>
+
+            <div class="ok">권장: 파트 업로드는 병렬 처리하고, <code>partNumber</code>와 <code>ETag</code>를 영속 저장한 뒤 완료 단계에서 순서대로
+                제출합니다.</div>
+            <div class="warn">주의: multipart 중단 누락 시 미완료 파트 스토리지 비용이 누적됩니다. 실패 워크플로우에
+                <code>presignAbortMultipartUpload</code>를 포함하세요.
+            </div>
+        </section>
+
+        <section id="multipart-recovery">
+            <h2>3. 멀티파트 실패 복구 (Abort 중심)</h2>
+            <p class="note">사용 메서드: <code>presignAbortMultipartUpload</code></p>
+
+            <div class="flow">
+                1) 파트 업로드 중 일부 실패/타임아웃 감지<br />
+                2) 백엔드가 abort용 presigned URL 발급<br />
+                3) 클라이언트가 abort 호출로 업로드 세션 정리
+            </div>
+
+            <div class="mermaid">
+                sequenceDiagram
+                autonumber
+                participant U as User/Client
+                participant A as App Server
+                participant P as S3Presigner
+                participant S as Amazon S3
+
+                U->>A: POST /multipart/abort-url\n{bucket,key,uploadId}
+                A->>P: presignAbortMultipartUpload(AbortMultipartUploadPresignRequest)
+                P-->>A: PresignedAbortMultipartUploadRequest\n{url,expiration}
+                A-->>U: {abortUrl,method:DELETE,expiresAt}
+                U->>S: DELETE abortUrl
+                S-->>U: 204 No Content
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>요청 데이터</th>
+                        <th>응답 데이터</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>bucket</code>, <code>key</code>, <code>uploadId</code>, <code>expiresIn</code></td>
+                        <td><code>abortUrl</code>, <code>httpMethod=DELETE</code>, <code>expiresAt</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <pre class="json">
+[1] POST /multipart/abort-url 요청
+{
+  "bucket": "my-bucket",
+  "key": "videos/2026/demo.mp4",
+  "uploadId": "VXBsb2FkIElE...",
+  "expiresInSeconds": 300
+}
+
+[4] POST /multipart/abort-url 응답
+{
+  "abortUrl": "https://127.0.0.1:8555/my-bucket/videos/2026/demo.mp4?uploadId=...&...",
+  "method": "DELETE",
+  "headers": {},
+  "expiresAt": "2026-05-12T04:30:00Z"
+}
+
+[6] S3 DELETE 응답 (204 No Content)
+{}
+    </pre>
+
+            <div class="ok">권장: 실패 재시도 횟수 초과 시 자동 abort를 실행해 미완료 파트 비용 누수를 방지합니다.</div>
+            <div class="warn">중요: <code>presignAbortMultipartUpload</code> 호출이 완료되면 기존 <code>uploadId</code> 기반 멀티파트 업로드
+                세션은 무효화됩니다. 이후에는 기존 업로드를 이어서 완료할 수 없고, <code>/multipart/start</code>부터 새 <code>uploadId</code>로 전체 과정을
+                다시 시작해야 합니다.</div>
+        </section>
+
+        <section id="delete">
+            <h2>4. 객체 삭제 위임 (Delete)</h2>
+            <p class="note">사용 메서드: <code>presignDeleteObject</code></p>
+
+            <div class="flow">
+                1) 클라이언트가 삭제 요청<br />
+                2) 백엔드가 삭제용 presigned URL 발급<br />
+                3) 클라이언트가 URL로 S3에 직접 DELETE 요청
+            </div>
+
+            <div class="chips">
+                <span class="chip">짧은 TTL</span>
+                <span class="chip">최소 권한 위임</span>
+            </div>
+
+            <div class="mermaid">
+                sequenceDiagram
+                autonumber
+                participant U as User/Client
+                participant A as App Server
+                participant P as S3Presigner
+                participant S as Amazon S3
+
+                U->>A: POST /files/presign-delete\n{bucket,key}
+                A->>P: presignDeleteObject(DeleteObjectPresignRequest)
+                P-->>A: PresignedDeleteObjectRequest\n{url,expiration}
+                A-->>U: 200 OK\n{deleteUrl,method:DELETE,expiresAt}
+                U->>S: DELETE deleteUrl
+                S-->>U: 204 No Content
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>요청 데이터</th>
+                        <th>응답 데이터</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>bucket</code>, <code>key</code>, <code>expiresIn</code></td>
+                        <td><code>deleteUrl</code>, <code>httpMethod=DELETE</code>, <code>expiresAt</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <pre class="json">[1] POST /files/presign-delete 요청
+{
+  "bucket": "my-bucket",
+  "key": "images/2026/05/a.png",
+  "expiresInSeconds": 300
+}
+
+[4] POST /files/presign-delete 응답
+{
+  "deleteUrl": "https://127.0.0.1:8555/my-bucket/images/2026/05/a.png?...",
+  "method": "DELETE",
+  "headers": {},
+  "expiresAt": "2026-05-12T04:30:00Z"
+}
+
+[6] S3 DELETE 응답 (204 No Content)
+{}
+</pre>
+        </section>
+
+        <section id="head-object">
+            <h2>5. 객체 존재/메타 확인 (HEAD Object)</h2>
+            <p class="note">사용 메서드: <code>presignHeadObject</code> — SDK 2.44.4에서 <code>S3Presigner</code>에 정식 추가됨</p>
+
+            <div class="flow">
+                1) 다운로드 전에 객체 존재/크기/ETag 확인 URL 발급<br />
+                2) 클라이언트가 HEAD 호출로 메타만 수신
+            </div>
+
+            <div class="chips">
+                <span class="chip">SDK 2.44.4+</span>
+                <span class="chip">presigned URL 방식</span>
+                <span class="chip">서버 부하 없음</span>
+            </div>
+
+            <div class="mermaid">
+                sequenceDiagram
+                autonumber
+                participant U as User/Client
+                participant A as App Server
+                participant P as S3Presigner
+                participant S as Amazon S3
+
+                U->>A: GET /files/presign-head-object?bucket&key&expiresInSeconds
+                A->>P: presignHeadObject(HeadObjectPresignRequest)
+                P-->>A: PresignedHeadObjectRequest\n{url,signedHeaders,expiration}
+                A-->>U: {url,method:HEAD,headers,expiresAt}
+                U->>S: HEAD headUrl
+                S-->>U: 200 OK\n{Content-Length,ETag,Last-Modified}
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>단계</th>
+                        <th>요청 데이터</th>
+                        <th>응답 데이터</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>HEAD URL 발급</td>
+                        <td><code>bucket</code>, <code>key</code>, <code>expiresInSeconds</code>(옵션)</td>
+                        <td><code>url</code>, <code>method=HEAD</code>, <code>headers</code>, <code>expiresAt</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>HEAD 호출</td>
+                        <td>HTTP HEAD (presigned URL)</td>
+                        <td><code>Content-Length</code>, <code>ETag</code>, <code>Last-Modified</code> (응답 바디 없음)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <pre class="json">[1] GET /files/presign-head-object 요청
+{
+  "bucket": "my-bucket",
+  "key": "images/2026/05/a.png",
+  "expiresInSeconds": 300
+}
+
+[4] GET /files/presign-head-object 응답
+{
+  "url": "https://127.0.0.1:8555/my-bucket/images/2026/05/a.png?...",
+  "method": "HEAD",
+  "headers": {},
+  "expiresAt": "2026-05-12T04:30:00Z"
+}
+
+[6] S3 HEAD 응답 (200 OK)
+{
+  "Content-Length": "1048576",
+  "Content-Type": "image/png",
+  "ETag": "\"abc123def456\"",
+  "Last-Modified": "Mon, 12 May 2026 03:15:00 GMT"
+}</pre>
+
+            <div class="ok">SDK 2.44.4 이전: <code>S3Presigner</code>에 <code>presignHeadObject</code>가 없어 서버 측
+                <code>S3Client.headObject()</code> fallback으로 처리했습니다. 2.44.4부터 정식 presign URL 발급이 가능합니다.
+            </div>
+        </section>
+
+        <section id="head-bucket">
+            <h2>6. 버킷 접근 가능 여부 확인 (HEAD Bucket)</h2>
+            <p class="note">사용 메서드: <code>presignHeadBucket</code> — SDK 2.44.4에서 <code>S3Presigner</code>에 정식 추가됨</p>
+
+            <div class="flow">
+                1) 업로드 시작 전 백엔드가 head bucket URL 발급<br />
+                2) 클라이언트가 HEAD 호출로 버킷 접근 가능 여부 확인
+            </div>
+
+            <div class="chips">
+                <span class="chip">SDK 2.44.4+</span>
+                <span class="chip">presigned URL 방식</span>
+                <span class="chip">서버 부하 없음</span>
+            </div>
+
+            <div class="mermaid">
+                sequenceDiagram
+                autonumber
+                participant U as User/Client
+                participant A as App Server
+                participant P as S3Presigner
+                participant S as Amazon S3
+
+                U->>A: GET /bucket/presign-head?bucket&expiresInSeconds
+                A->>P: presignHeadBucket(HeadBucketPresignRequest)
+                P-->>A: PresignedHeadBucketRequest\n{url,signedHeaders,expiration}
+                A-->>U: {url,method:HEAD,headers,expiresAt}
+                U->>S: HEAD headBucketUrl
+                S-->>U: 200 OK or 403/404
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>단계</th>
+                        <th>요청 데이터</th>
+                        <th>응답 데이터</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>HEAD Bucket URL 발급</td>
+                        <td><code>bucket</code>, <code>expiresInSeconds</code>(옵션)</td>
+                        <td><code>url</code>, <code>method=HEAD</code>, <code>headers</code>, <code>expiresAt</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>HEAD Bucket 호출</td>
+                        <td>HTTP HEAD (presigned URL)</td>
+                        <td>200 OK (접근 가능), 403 (권한 없음), 404 (버킷 없음)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <pre class="json">[1] GET /bucket/presign-head 요청
+{
+  "bucket": "my-bucket",
+  "expiresInSeconds": 300
+}
+
+[4] GET /bucket/presign-head 응답
+{
+  "url": "https://127.0.0.1:8555/my-bucket?...",
+  "method": "HEAD",
+  "headers": {},
+  "expiresAt": "2026-05-12T04:30:00Z"
+}
+
+[6] S3 HEAD Bucket 응답 (200 OK)
+{
+  "status": 200,
+  "message": "bucket accessible"
+}
+
+[6] S3 HEAD Bucket 응답 (403 Forbidden)
+{
+  "status": 403,
+  "message": "access denied"
+}
+
+[6] S3 HEAD Bucket 응답 (404 Not Found)
+{
+  "status": 404,
+  "message": "bucket not found"
+}</pre>
+
+            <div class="ok">SDK 2.44.4 이전: <code>S3Presigner</code>에 <code>presignHeadBucket</code>가 없어 서버 측
+                <code>S3Client.headBucket()</code> fallback으로 처리했습니다. 2.44.4부터 정식 presign URL 발급이 가능합니다.
+            </div>
+            <div class="warn">주의: 403/404는 정책/존재 여부를 함께 반영할 수 있으므로, 클라이언트 메시지는 보안 관점에서 일반화하는 것이 좋습니다.</div>
+        </section>
+
+        <section id="multipart-recovery">
+            <section id="range-get">
+                <h2>7. 대용량 부분 다운로드 (Range GET)</h2>
+                <p class="note">사용 메서드: <code>presignGetObject</code> (Range 헤더 포함)</p>
+
+                <div class="flow">
+                    1) 백엔드가 range 조건으로 presigned GET URL 발급<br />
+                    2) 클라이언트가 부분 범위만 다운로드해 재생 탐색/이어받기 구현
+                </div>
+
+                <div class="mermaid">
+                    sequenceDiagram
+                    autonumber
+                    participant U as User/Client
+                    participant A as App Server
+                    participant P as S3Presigner
+                    participant S as Amazon S3
+
+                    U->>A: GET /files/presign-get-range?bucket&key&start&end
+                    A->>P: presignGetObject(GetObjectPresignRequest with Range)
+                    P-->>A: PresignedGetObjectRequest\n{url,signedHeaders,expiration}
+                    A-->>U: {downloadUrl,method:GET,headers:{Range},expiresAt}
+                    U->>S: GET downloadUrl + Range bytes=start-end
+                    S-->>U: 206 Partial Content\n{Content-Range,partial bytes}
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>요청 데이터</th>
+                            <th>응답 데이터</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>bucket</code>, <code>key</code>, <code>rangeStart</code>, <code>rangeEnd</code>,
+                                <code>expiresIn</code>
+                            </td>
+                            <td><code>downloadUrl</code>, <code>headers.Range</code>, <code>206 Partial Content</code>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <pre class="json">[1] GET /files/presign-get-range 요청
+{
+  "bucket": "my-bucket",
+  "key": "videos/2026/demo.mp4",
+  "rangeStart": 0,
+  "rangeEnd": 1048575,
+  "expiresInSeconds": 300
+}
+
+[4] GET /files/presign-get-range 응답
+{
+  "downloadUrl": "https://127.0.0.1:8555/my-bucket/videos/2026/demo.mp4?...",
+  "method": "GET",
+  "headers": {
+    "Range": "bytes=0-1048575"
+  },
+  "expiresAt": "2026-05-12T04:30:00Z"
+}
+
+[6] S3 Range GET 응답 (206 Partial Content)
+{
+  "status": 206,
+  "headers": {
+    "Content-Range": "bytes 0-1048575/10485760",
+    "Content-Length": "1048576"
+  },
+  "body": "<binary file chunk>"
+}</pre>
+
+                <div class="warn">주의: Range 헤더를 서명에 포함한 경우 실제 호출 헤더 값이 달라지면 서명 검증에 실패합니다.</div>
+            </section>
+    </div>
+
+    <script type="module">
+        import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: "base",
+            themeVariables: {
+                primaryColor: "#eaf3ff",
+                primaryTextColor: "#1c2430",
+                primaryBorderColor: "#8eb5e3",
+                lineColor: "#4b6382",
+                secondaryColor: "#fff4e9",
+                tertiaryColor: "#eefaf3"
+            },
+            sequence: {
+                useMaxWidth: true,
+                actorMargin: 40,
+                boxMargin: 10,
+                noteMargin: 10,
+                mirrorActors: false
+            }
+        });
+    </script>
+</body>
+
+</html>

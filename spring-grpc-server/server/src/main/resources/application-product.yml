@@ -1,0 +1,33 @@
+# 운영. 노출과 로그량을 줄이는 쪽으로만 기본값과 달라진다.
+spring:
+  grpc:
+    server:
+      reflection:
+        # reflection 이 켜져 있으면 누구나 서비스 목록과 메시지 스키마 전체를 열람할 수 있다.
+        enabled: false
+
+  datasource:
+    url: ${DB_URL:}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+sample:
+  grpc:
+    client:
+      # 기본값을 두지 않는다. 미설정이면 기동을 실패시켜, 운영에서 조용히 localhost 로
+      # 붙는 사고를 막는다.
+      host: ${GRPC_CLIENT_HOST:}
+      port: ${GRPC_CLIENT_PORT:9090}
+      timeout-seconds: 5
+
+logging:
+  level:
+    com.example.springgrpc: INFO
+    # 요청마다 전체 헤더/요청 메시지를 찍는 로거들. 값은 마스킹되지만 운영 로그량이 크고
+    # 민감 필드가 늘어날수록 노출면이 커지므로 낮춘다.
+    com.example.springgrpc.server.grpc.interceptor.HeaderLoggingInterceptor: WARN
+    com.example.springgrpc.server.util.HttpRequestLogger: WARN
+    com.example.springgrpc.server.util.GrpcRequestLogger: WARN

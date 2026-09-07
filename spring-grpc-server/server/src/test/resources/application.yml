@@ -1,0 +1,23 @@
+# 테스트 전용 설정. src/main 의 application.yml 을 가린다.
+# 테스트는 프로파일과 무관하게 항상 인메모리 H2 를 쓴다.
+spring:
+  datasource:
+    # 테스트 클래스마다 DB 를 분리해 서로 간섭하지 않게 한다.
+    url: jdbc:h2:mem:test-${random.uuid};DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+sample:
+  grpc:
+    client:
+      host: localhost
+      port: 9090
+      timeout-seconds: 5
+
+logging:
+  level:
+    com.example.springgrpc: INFO

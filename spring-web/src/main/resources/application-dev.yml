@@ -1,0 +1,31 @@
+spring:
+  # https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html#application-properties.data.spring.datasource.hikari
+  datasource:
+    url: jdbc:h2:mem:hello-grpc;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  grpc:
+    server:
+      port: 8081
+      reflection:
+        enabled: true
+  jpa:
+    properties:
+      hibernate:
+        default_schema: public
+    hibernate:
+      ddl-auto: none
+
+my:
+  datasource:
+    url: dev.db.com
+    username: dev_user
+    password: dev_pw
+    etc:
+      max-connection: 10
+      timeout: 60s
+      options: DEV, CACHE
+
+#logging.level.com.zaxxer.hikari.HikariConfig: DEBUG
+#logging.level.com.zaxxer.hikari: TRACE

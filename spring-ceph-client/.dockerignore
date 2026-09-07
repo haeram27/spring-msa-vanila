@@ -1,0 +1,9 @@
+.git
+.github
+.gradle
+build/reports
+build/test-results
+build/tmp
+out
+*.iml
+*.log

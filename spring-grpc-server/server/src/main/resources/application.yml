@@ -1,0 +1,20 @@
+# 모든 프로파일 공통 설정.
+# 환경별 값은 application-{local,stage,product}.yml 에서 덮어쓴다.
+spring:
+  application:
+    name: spring-grpc-server
+  profiles:
+    # 프로파일을 지정하지 않고 띄우면 local 로 동작한다.
+    # 운영 배포는 SPRING_PROFILES_ACTIVE=product 를 반드시 지정한다.
+    default: local
+  grpc:
+    server:
+      port: ${GRPC_SERVER_PORT:9090}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+sample:
+  grpc:
+    client:
+      timeout-seconds: 5

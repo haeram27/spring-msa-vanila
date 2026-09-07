@@ -1,0 +1,60 @@
+# common appliction properies:
+# https://docs.spring.io/spring-boot/docs/current/reference/html/application-properties.html
+
+########################################
+### profile selector
+########################################
+# please comment when only active profile type is given from run command args method
+spring.profiles.default: dev
+spring.profiles.active: dev
+
+# log4j2 configuration
+logging.config: classpath:log4j2-${spring.profiles.active}.xml
+
+# default web server port (avoid 8080 collision)
+server.port: 31349
+
+# ceph integration defaults
+## ceph local
+# ceph:
+#   aws:
+#     s3:
+#       endpoint: http://127.0.0.1:8555
+#       region: us-east-1
+#       access-key: 4VIKYHR6YA7ZGW3YVM07
+#       secret-key: h97fOlBHgQ1kCzKYvnb47uTU9Pasu5oZQWp9p7Xz
+#       path-style-access-enabled: true
+#   radosgw:
+#     admin:
+#       endpoint: http://127.0.0.1:8555/admin
+#       access-key: 4VIKYHR6YA7ZGW3YVM07
+#       secret-key: h97fOlBHgQ1kCzKYvnb47uTU9Pasu5oZQWp9p7Xz
+#       user-id: rgw-admin-ops-user
+
+## ceph staging
+ceph:
+  aws:
+    s3:
+      endpoint: http://172.21.30.232:31349
+      region: us-east-1
+      access-key: P4GZ6TR7ZG6U3ZUIYOZ1
+      secret-key: SJeIVWpS0dFWX3LCzw8XTG9fmCeVY6RlB9K4NG9B
+      path-style-access-enabled: true
+  radosgw:
+    admin:
+      endpoint: http://172.21.30.232:31349
+      access-key: P4GZ6TR7ZG6U3ZUIYOZ1
+      secret-key: SJeIVWpS0dFWX3LCzw8XTG9fmCeVY6RlB9K4NG9B
+      user-id: rgw-admin-ops-user
+
+---
+########################################
+### dev profile env properties
+########################################
+spring.config.activate.on-profile: dev
+
+---
+########################################
+### prod profile env properties
+########################################
+spring.config.activate.on-profile: prod

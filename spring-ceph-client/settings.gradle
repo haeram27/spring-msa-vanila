@@ -1,0 +1,33 @@
+// plugin repositories
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        google()
+    }
+
+    plugins {
+        // https://github.com/spring-projects/spring-boot/releases
+        id 'org.springframework.boot' version "${springBootVersion}"
+        // https://plugins.gradle.org/plugin/io.spring.dependency-management
+        id 'io.spring.dependency-management' version "${springDependencyManagementVersion}"
+        // jdk toolchain resolver plugin for jdk auto download and setup
+        id 'org.gradle.toolchains.foojay-resolver-convention' version "${fooJayVersion}"
+    }
+}
+
+// dependency repositories
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    } 
+}
+
+startParameter.offline=false
+if (startParameter.offline) {
+        println "======================"
+        println "gradle in offline mode"
+        println "======================"
+}
+
+rootProject.name = 'springcephclient'

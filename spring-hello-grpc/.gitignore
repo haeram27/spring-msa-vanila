@@ -1,0 +1,28 @@
+# .kotlin folder
+.kotlin
+**/.kotlin/
+
+# test folder
+test/
+**/test/
+
+# gradle
+.gradle
+**/.gradle/
+
+# build
+build/
+**/build/
+.build
+**/.build/
+target/
+**/target/
+**/bin/
+
+# IDE
+*.iml
+.idea/
+.vscode/
+
+# OS
+.DS_Store

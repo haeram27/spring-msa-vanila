@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package com.example.grpc.v1;
+
+option java_multiple_files = true;
+option java_package = "com.example.springgrpc.api";
+option java_outer_classname = "ListViewProto";
+
+service ListViewSample {
+  rpc ListAll (ListViewRequest) returns (ListViewResponse);
+}
+
+message ListViewRequest {
+  FilterNode filter = 1;
+  Pagination pagination = 2;
+  Sort sort = 3;               // proto3 message 타입은 기본적으로 nullable(=optional message)
+}
+
+message ListViewResponse {
+  repeated ListViewItem items = 1;
+  int32 total_count = 2;       // 필터 적용 후 전체 건수(현재 페이지 건수 아님)
+}
+
+message ListViewItem {
+  string id = 1;
+  string name = 2;
+  Status status = 3;
+  Category category = 4;
+  Frequency frequency = 5;
+}
+
+message FilterNode {
+  oneof condition {
+    AndFilter and = 1;
+    SearchStringFilter search_string = 2;
+    StatusFilter status = 3;
+    CategoryFilter category = 4;
+    ScheduleFrequencyFilter frequency = 5;
+  }
+}
+
+message AndFilter {
+  repeated FilterNode targets = 1;
+}
+
+message SearchStringFilter {
+  string value = 1;
+}
+
+message StatusFilter {
+  repeated Status values = 1;        // enum 또는 repeated string 가능
+}
+
+message CategoryFilter {
+  repeated Category values = 1;      // enum 또는 repeated string 가능
+}
+
+message ScheduleFrequencyFilter {
+  repeated Frequency values = 1;   // enum 또는 repeated string 가능
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;   // proto3 enum은 0번 값이 필수 (unset 시 기본값)
+  PENDING = 1;
+  CREATING = 2;
+  CREATED = 3;
+  FAILED = 4;
+  DELETED = 5;
+}
+
+enum Category {
+  CATEGORY_UNSPECIFIED = 0;
+  BASIC = 1;
+  UNIFIED = 2;
+  QUERY = 3;
+}
+
+enum Frequency {
+  FREQUENCY_UNSPECIFIED = 0;
+  IMMEDIATE = 1;
+  SPECIFIC_TIME = 2;
+  EVERY_DAY = 3;
+  EVERY_WEEK = 4;
+  EVERY_MONTH_DAY = 5;
+  EVERY_YEAR = 6;
+}
+
+message Pagination {
+  int32 page_size = 1;
+  int32 page_number = 2;
+}
+
+message Sort {
+  string sort_key = 1;
+  string sort_order = 2;
+}

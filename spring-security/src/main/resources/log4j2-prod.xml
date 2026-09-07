@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="error">
+    <!-- Configuration layouts: https://logging.apache.org/log4j/2.x/manual/configuration.html -->
+
+    <Properties>
+        <!-- Pattern Layout: https://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout -->
+        <Property name="consolePatternLayout">%d{DEFAULT} %-5p %pid:%t %c{1}:%M:%L -- %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- Appenders: https://logging.apache.org/log4j/2.x/manual/appenders.html -->
+
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${consolePatternLayout}" />
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <!-- =================================================================== -->
+        <!-- Root(Default) Setting                                               -->
+        <!-- =================================================================== -->
+        <!-- off, fatal, error, warn, info, debug, trace, all -->
+        <Root level="off">
+            <AppenderRef ref="console"/>
+        </Root>
+
+        <!-- =================================================================== -->
+        <!-- specific Logger setting                                             -->
+        <!-- =================================================================== -->
+        <!--
+            Logger params
+            ==============
+            name : Logger name, usually made by package or class name
+            level : min log level
+            additivity : false - prevent log redundency
+        -->
+        <!-- A Logger NOT specified here will inherit from Root -->
+        <!--
+        <Logger name="com.example.demo.DemoApplication" level="error" additivity="false">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="file" />
+        </Logger>
+        -->
+
+        <!-- =================================================================== -->
+        <!-- App                                                                 -->
+        <!-- =================================================================== -->
+        <Logger name="com.example.cephclient" level="all" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+
+        <!-- =================================================================== -->
+        <!-- SPRING                                                              -->
+        <!-- =================================================================== -->
+        <Logger name="org.springframework.boot" level="error" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+        <Logger name="org.springframework.core" level="error" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+        <Logger name="org.springframework.beans" level="error" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+        <Logger name="org.springframework.context" level="error" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+        <Logger name="org.springframework.web" level="error" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+
+        <!-- =================================================================== -->
+        <!-- JDBC                                                                -->
+        <!-- =================================================================== -->
+        <Logger name="org.springframework.jdbc" level="error" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+        <Logger name="jdbc.sqltiming" level="error" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+        <Logger name="jdbc.sqlonly" level="error" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+        <Logger name="jdbc.connection" level="error" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+        <Logger name="jdbc.resultset" level="error" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+        <Logger name="jdbc.audit" level="error" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+        <Logger name="jdbc.resultsettable" level="error" additivity="false">
+            <AppenderRef ref="console" />
+        </Logger>
+    </Loggers>
+</Configuration>

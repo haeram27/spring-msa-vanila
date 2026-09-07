@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:hello-grpc;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  grpc:
+    server:
+      port: 8081
+      reflection:
+        enabled: true
+  jpa:
+    properties:
+      hibernate:
+        default_schema: public
+    hibernate:
+      ddl-auto: none
+  output:
+    ansi:
+      enabled: detect # enable ANSI colors in console output if tty supported
+
+# Database SSH Tunnel Setup (개발 환경)
+# 사용법: ssh -L 5432:192.168.55.223:5432 root@172.21.100.155
+application:
+  provider-db:
+    host: localhost
+    port: 5432
+    database: padmin
+    username: padmin_user
+    password: padmin_user_pass
+    schema: public
+
+# ceph staging
+ceph:
+  aws:
+    s3:
+      endpoint: http://localhost:31349
+      region: us-east-1
+      access-key: ${CEPH_ACCESS_KEY}
+      secret-key: ${CEPH_SECRET_KEY}
+      path-style-access-enabled: true
+
+# logback pattern using ANSI colors for console output
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) --- [%thread]
+      %cyan(%logger{36}).%magenta(%M:%line) : %msg%n"

@@ -1,0 +1,41 @@
+version: '3'
+services:
+  mongo:
+    container_name: test.mongo
+    image: mongo
+    restart: unless-stopped
+    networks:
+      - test_msa
+    ports:
+      - 27017:27017
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - mongodata:/data/db
+      - ../init:/init
+    environment:
+      - MONGO_INITDB_ROOT=mongo
+      - MONGO_INITDB_PASSWORD=mongo
+
+  mongo-express:
+    container_name: test.mongo.express
+    image: mongo-express
+    restart: unless-stopped
+    networks:
+      - test_msa
+    ports:
+      - 8981:8081
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
+      - ME_CONFIG_MONGODB_URL=mongodb://test.mongo:27017/admin?ssl=false
+      - ME_CONFIG_BASICAUTH=true
+      - ME_CONFIG_BASICAUTH_USERNAME=mongo
+      - ME_CONFIG_BASICAUTH_PASSWORD=mongo
+
+volumes:
+  mongodata:
+
+networks:
+  test_msa:

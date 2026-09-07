@@ -1,0 +1,5 @@
+# run script as following:
+1. kafka-up.sh
+2. kafka-create-topic.sh
+3. kafka-create-consumer.sh
+4. kafka-create-producer.sh

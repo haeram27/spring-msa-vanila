@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package hello.grpc.v1;
+
+option java_multiple_files = true;
+option java_package = "com.example.api";
+option java_outer_classname = "HelloGrpcProto";
+
+service HelloGrpcService {
+  rpc Hello(HelloRequest) returns (HelloResponse);
+}
+
+// ============================================================================
+// Common/Shared Response Messages
+// ============================================================================
+
+message StringList {
+  repeated string values = 1;
+}
+
+// ============================================================================
+// REQUEST Messages
+// ============================================================================
+
+// Connection Test
+message HelloRequest {
+  string message = 1;
+}
+
+// ============================================================================
+// RESPONSE Messages
+// ============================================================================
+
+message HelloResponse  {
+  string message = 1;
+  string headers = 2;
+}

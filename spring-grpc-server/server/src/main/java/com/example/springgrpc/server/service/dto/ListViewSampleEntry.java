@@ -11,8 +11,8 @@ import com.example.springgrpc.server.repository.enums.Status;
  * 그건 proto3가 0번 값을 요구해서 생긴 wire 사정이지 도메인 상태가 아니며,
  * 여기서 값이 없다는 것은 {@code null}이나 필터 미적용으로 표현한다.
  */
-public record ListViewEntry(
-    String id,
+public record ListViewSampleEntry(
+    Long id,
     String name,
     Status status,
     Category category,

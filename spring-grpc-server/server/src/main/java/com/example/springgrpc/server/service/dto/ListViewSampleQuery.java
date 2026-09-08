@@ -1,17 +1,17 @@
 package com.example.springgrpc.server.service.dto;
 
 /**
- * 목록 조회 조건. proto {@code ListViewRequest}의 도메인 대응물이다.
+ * 목록 조회 조건. proto {@code ListViewSampleRequest}의 도메인 대응물이다.
  *
  * @param filter     적용할 필터. {@code null}이면 전체 조회
  * @param pagination 페이징. {@code null}이면 기본값 적용
  * @param sort       정렬. {@code null}이면 {@code id} 오름차순
  */
-public record ListViewQuery(ListViewFilter filter, Pagination pagination, Sort sort) {
+public record ListViewSampleQuery(ListViewSampleFilter filter, Pagination pagination, Sort sort) {
 
     /** 조회 조건이 없는 전체 목록 질의. */
-    public static ListViewQuery all() {
-        return new ListViewQuery(null, null, null);
+    public static ListViewSampleQuery all() {
+        return new ListViewSampleQuery(null, null, null);
     }
 
     /**

@@ -1,0 +1,1 @@
+./gradlew :api:publishToMavenLocal :client:publishToMavenLocal :server:bootRun

@@ -12,6 +12,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
  * 이 인터페이스를 추가해도 스키마는 바뀌지 않는다. 테이블을 만드는 것은 {@code @Entity} 매핑을
  * 재료로 삼는 Hibernate의 {@code ddl-auto}다.
  */
-public interface ListViewItemRepository
-    extends JpaRepository<ListViewItemEntity, String>, JpaSpecificationExecutor<ListViewItemEntity> {
+public interface ListViewSampleItemRepository
+    extends JpaRepository<ListViewSampleItemEntity, Long>, JpaSpecificationExecutor<ListViewSampleItemEntity> {
 }

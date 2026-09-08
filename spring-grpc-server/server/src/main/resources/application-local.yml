@@ -8,7 +8,7 @@ spring:
 
   # 인메모리 H2. 프로세스가 죽으면 데이터도 사라진다.
   datasource:
-    url: jdbc:h2:mem:local-test;DB_CLOSE_DELAY=-1
+    url: jdbc:h2:mem:local-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
     driver-class-name: org.h2.Driver
     username: sa
     password:

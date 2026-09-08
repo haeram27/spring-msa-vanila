@@ -13,10 +13,13 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
 import com.example.springgrpc.server.conf.QuerydslConfiguration;
-import com.example.springgrpc.server.service.dto.ListViewEntry;
-import com.example.springgrpc.server.service.dto.ListViewFilter;
-import com.example.springgrpc.server.service.dto.ListViewQuery;
-import com.example.springgrpc.server.service.dto.ListViewResult;
+import com.example.springgrpc.server.repository.enums.Category;
+import com.example.springgrpc.server.repository.enums.Frequency;
+import com.example.springgrpc.server.repository.enums.Status;
+import com.example.springgrpc.server.service.dto.ListViewSampleEntry;
+import com.example.springgrpc.server.service.dto.ListViewSampleFilter;
+import com.example.springgrpc.server.service.dto.ListViewSampleQuery;
+import com.example.springgrpc.server.service.dto.ListViewSampleResult;
 
 import jakarta.persistence.EntityManager;
 
@@ -27,76 +30,86 @@ import jakarta.persistence.EntityManager;
  * 직접 import 한다. gRPC 서버나 웹 계층은 뜨지 않아 테스트가 빠르고 포트도 잡지 않는다.
  */
 @DataJpaTest
-@Import({ QuerydslConfiguration.class, ListViewItemQueryRepository.class })
+@Import({ QuerydslConfiguration.class, ListViewSampleItemQueryRepository.class })
 class ListViewItemQueryRepositoryTest {
 
     @Autowired
     private EntityManager entityManager;
 
     @Autowired
-    private ListViewItemQueryRepository repository;
+    private ListViewSampleItemQueryRepository repository;
+
+    private Long dailyId;
+    private Long weeklyId;
+    private Long adhocId;
+    private Long legacyId;
 
     @BeforeEach
     void seed() {
-        List.of(
-            new ListViewItemEntity("rpt-001", "Daily Traffic Report",
-                ListViewEntry.Status.CREATED, ListViewEntry.Category.BASIC, ListViewEntry.Frequency.EVERY_DAY),
-            new ListViewItemEntity("rpt-002", "Weekly Threat Summary",
-                ListViewEntry.Status.CREATED, ListViewEntry.Category.UNIFIED, ListViewEntry.Frequency.EVERY_WEEK),
-            new ListViewItemEntity("rpt-004", "Ad-hoc Traffic Query",
-                ListViewEntry.Status.CREATING, ListViewEntry.Category.QUERY, ListViewEntry.Frequency.IMMEDIATE),
-            new ListViewItemEntity("rpt-007", "Legacy Traffic Archive",
-                ListViewEntry.Status.DELETED, ListViewEntry.Category.QUERY, ListViewEntry.Frequency.EVERY_DAY)
-        ).forEach(entityManager::persist);
+        ListViewSampleItemEntity daily = new ListViewSampleItemEntity("Daily Traffic Report",
+            Status.CREATED, Category.BASIC, Frequency.EVERY_DAY);
+        ListViewSampleItemEntity weekly = new ListViewSampleItemEntity("Weekly Threat Summary",
+            Status.CREATED, Category.UNIFIED, Frequency.EVERY_WEEK);
+        ListViewSampleItemEntity adhoc = new ListViewSampleItemEntity("Ad-hoc Traffic Query",
+            Status.CREATING, Category.QUERY, Frequency.IMMEDIATE);
+        ListViewSampleItemEntity legacy = new ListViewSampleItemEntity("Legacy Traffic Archive",
+            Status.DELETED, Category.QUERY, Frequency.EVERY_DAY);
+
+        List.of(daily, weekly, adhoc, legacy).forEach(entityManager::persist);
         entityManager.flush();
+
+        dailyId = daily.getId();
+        weeklyId = weekly.getId();
+        adhocId = adhoc.getId();
+        legacyId = legacy.getId();
     }
 
-    private static ListViewQuery query(ListViewFilter filter, ListViewQuery.Sort sort) {
-        return new ListViewQuery(filter, null, sort);
+    private static ListViewSampleQuery query(ListViewSampleFilter filter, ListViewSampleQuery.Sort sort) {
+        return new ListViewSampleQuery(filter, null, sort);
     }
 
     @Test
     @DisplayName("필터가 없으면 전체를 id 오름차순으로 돌려준다")
     void listsAllWhenNoFilter() {
-        ListViewResult result = repository.search(query(null, null), 0, 20);
+        ListViewSampleResult result = repository.search(query(null, null), 0, 20);
 
         assertThat(result.totalCount()).isEqualTo(4);
-        assertThat(result.items()).extracting(ListViewEntry::id)
-            .containsExactly("rpt-001", "rpt-002", "rpt-004", "rpt-007");
+        assertThat(result.items()).extracting(ListViewSampleEntry::id)
+            .containsExactly(dailyId, weeklyId, adhocId, legacyId);
     }
 
     @Test
     @DisplayName("이름 부분 일치는 대소문자를 구분하지 않는다")
     void searchStringIgnoresCase() {
-        ListViewResult result = repository.search(
-            query(new ListViewFilter.SearchString("TRAFFIC"), null), 0, 20);
+        ListViewSampleResult result = repository.search(
+            query(new ListViewSampleFilter.SearchString("TRAFFIC"), null), 0, 20);
 
-        assertThat(result.items()).extracting(ListViewEntry::id)
-            .containsExactly("rpt-001", "rpt-004", "rpt-007");
+        assertThat(result.items()).extracting(ListViewSampleEntry::id)
+            .containsExactly(dailyId, adhocId, legacyId);
     }
 
     @Test
     @DisplayName("중첩 AND 트리의 모든 조건이 함께 적용된다")
     void appliesNestedAndTree() {
-        ListViewFilter filter = new ListViewFilter.And(List.of(
-            new ListViewFilter.SearchString("traffic"),
-            new ListViewFilter.And(List.of(
-                new ListViewFilter.StatusIn(Set.of(ListViewEntry.Status.CREATED, ListViewEntry.Status.DELETED)),
-                new ListViewFilter.CategoryIn(Set.of(ListViewEntry.Category.BASIC, ListViewEntry.Category.QUERY))
+        ListViewSampleFilter filter = new ListViewSampleFilter.And(List.of(
+            new ListViewSampleFilter.SearchString("traffic"),
+            new ListViewSampleFilter.And(List.of(
+                new ListViewSampleFilter.StatusIn(Set.of(Status.CREATED, Status.DELETED)),
+                new ListViewSampleFilter.CategoryIn(Set.of(Category.BASIC, Category.QUERY))
             ))
         ));
 
-        ListViewResult result = repository.search(query(filter, null), 0, 20);
+        ListViewSampleResult result = repository.search(query(filter, null), 0, 20);
 
-        assertThat(result.items()).extracting(ListViewEntry::id)
-            .containsExactly("rpt-001", "rpt-007");
+        assertThat(result.items()).extracting(ListViewSampleEntry::id)
+            .containsExactly(dailyId, legacyId);
     }
 
     @Test
     @DisplayName("비어 있는 AND 는 아무것도 거르지 않는다")
     void emptyAndMatchesEverything() {
-        ListViewResult result = repository.search(
-            query(new ListViewFilter.And(List.of()), null), 0, 20);
+        ListViewSampleResult result = repository.search(
+            query(new ListViewSampleFilter.And(List.of()), null), 0, 20);
 
         assertThat(result.totalCount()).isEqualTo(4);
     }
@@ -104,11 +117,11 @@ class ListViewItemQueryRepositoryTest {
     @Test
     @DisplayName("이름 내림차순으로 정렬한다")
     void sortsByNameDescending() {
-        ListViewResult result = repository.search(
-            query(null, new ListViewQuery.Sort(ListViewQuery.Sort.Key.NAME, ListViewQuery.Sort.Order.DESC)),
+        ListViewSampleResult result = repository.search(
+            query(null, new ListViewSampleQuery.Sort(ListViewSampleQuery.Sort.Key.NAME, ListViewSampleQuery.Sort.Order.DESC)),
             0, 20);
 
-        assertThat(result.items()).extracting(ListViewEntry::name)
+        assertThat(result.items()).extracting(ListViewSampleEntry::name)
             .containsExactly("Weekly Threat Summary", "Legacy Traffic Archive",
                 "Daily Traffic Report", "Ad-hoc Traffic Query");
     }
@@ -116,16 +129,16 @@ class ListViewItemQueryRepositoryTest {
     @Test
     @DisplayName("totalCount 는 페이징 이전 건수다")
     void totalCountIgnoresPaging() {
-        ListViewResult result = repository.search(query(null, null), 2, 2);
+        ListViewSampleResult result = repository.search(query(null, null), 2, 2);
 
         assertThat(result.totalCount()).isEqualTo(4);
-        assertThat(result.items()).extracting(ListViewEntry::id).containsExactly("rpt-004", "rpt-007");
+        assertThat(result.items()).extracting(ListViewSampleEntry::id).containsExactly(adhocId, legacyId);
     }
 
     @Test
     @DisplayName("범위를 벗어난 페이지는 빈 목록을 돌려준다")
     void returnsEmptyPageBeyondRange() {
-        ListViewResult result = repository.search(query(null, null), 100, 20);
+        ListViewSampleResult result = repository.search(query(null, null), 100, 20);
 
         assertThat(result.items()).isEmpty();
         assertThat(result.totalCount()).isEqualTo(4);

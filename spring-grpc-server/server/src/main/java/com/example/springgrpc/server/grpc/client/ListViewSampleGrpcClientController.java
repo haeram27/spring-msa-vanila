@@ -17,7 +17,7 @@ import com.example.springgrpc.api.CategoryFilter;
 import com.example.springgrpc.api.FilterNode;
 import com.example.springgrpc.api.Frequency;
 import com.example.springgrpc.api.ListViewItem;
-import com.example.springgrpc.api.ListViewRequest;
+import com.example.springgrpc.api.ListViewSampleRequest;
 import com.example.springgrpc.api.ListViewResponse;
 import com.example.springgrpc.api.Pagination;
 import com.example.springgrpc.api.ScheduleFrequencyFilter;
@@ -90,7 +90,7 @@ public class ListViewSampleGrpcClientController {
 
         Payload payload = body == null ? Payload.empty() : body;
 
-        ListViewRequest.Builder builder = ListViewRequest.newBuilder()
+        ListViewSampleRequest.Builder builder = ListViewSampleRequest.newBuilder()
             .setPagination(Pagination.newBuilder()
                 .setPageSize(payload.pageSize())
                 .setPageNumber(payload.pageNumber()))
@@ -144,9 +144,9 @@ public class ListViewSampleGrpcClientController {
      * 도메인 enum과 proto enum의 상수 이름이 같으므로 {@code name()}만으로 두 경로의 값이 일치한다.
      */
     private static Map<String, Object> toJson(ListViewResponse response) {
-        List<Map<String, String>> items = new ArrayList<>();
+        List<Map<String, Object>> items = new ArrayList<>();
         for (ListViewItem item : response.getItemsList()) {
-            Map<String, String> mapped = new LinkedHashMap<>();
+            Map<String, Object> mapped = new LinkedHashMap<>();
             mapped.put("id", item.getId());
             mapped.put("name", item.getName());
             mapped.put("status", item.getStatus().name());

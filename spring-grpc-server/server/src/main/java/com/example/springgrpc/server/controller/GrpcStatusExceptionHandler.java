@@ -123,7 +123,7 @@ public class GrpcStatusExceptionHandler {
      * <p>
      * Spring은 직접 매칭되는 핸들러가 없으면 예외의 cause로 내려가며 다시 찾는데, enum 변환 실패의
      * cause는 {@code Enum.valueOf}가 던진 {@code IllegalArgumentException}이라 아래 핸들러로 흘러가
-     * "No enum constant com.example...ListViewEntry.Status.BOGUS" 같은 내부 클래스명이 그대로
+     * "No enum constant com.example...ListViewSampleEntry.Status.BOGUS" 같은 내부 클래스명이 그대로
      * 응답에 실린다. 여기서 파라미터 이름과 허용값만 담은 메시지로 대체한다.
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

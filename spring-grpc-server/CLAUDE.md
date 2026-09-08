@@ -66,11 +66,11 @@ GRPC_CLIENT_HOST=localhost ./gradlew :server:bootRun --args='--spring.profiles.a
 
 ## 영속성 (JPA + QueryDSL + H2)
 
-`server/repository/`가 영속성 어댑터다. **JPA 엔티티와 QueryDSL 타입은 이 패키지 밖으로 나가지 않는다.** 서비스는 도메인 `ListViewQuery`를 주고 `ListViewResult`를 받는다.
+`server/repository/`가 영속성 어댑터다. **JPA 엔티티와 QueryDSL 타입은 이 패키지 밖으로 나가지 않는다.** 서비스는 도메인 `ListViewSampleQuery`를 주고 `ListViewSampleResult`를 받는다.
 
-- `ListViewItemEntity`는 도메인 `ListViewEntry`와 필드가 같지만 분리한다. 도메인 레코드는 불변이라 JPA의 기본 생성자/가변 필드 요구와 맞지 않고, 컬럼·인덱스 같은 저장소 사정이 도메인에 스미는 것도 막는다. 변환은 `toDomain()` 한곳.
+- `ListViewSampleItemEntity`는 도메인 `ListViewSampleEntry`와 필드가 같지만 분리한다. 도메인 레코드는 불변이라 JPA의 기본 생성자/가변 필드 요구와 맞지 않고, 컬럼·인덱스 같은 저장소 사정이 도메인에 스미는 것도 막는다. 변환은 `toDomain()` 한곳.
 - enum 컬럼은 **`EnumType.STRING`**. ORDINAL은 상수 순서가 바뀌는 순간 기존 데이터의 의미가 조용히 달라진다.
-- 재귀 필터 트리(`ListViewFilter`)는 `BooleanBuilder`로 조립한다. `toPredicate`의 반환 타입은 **`Predicate`**여야 한다 — `BooleanBuilder.getValue()`는 조건이 둘 이상이면 `PredicateOperation`을 돌려주므로 `BooleanExpression`으로 캐스팅하면 `ClassCastException`이 난다.
+- 재귀 필터 트리(`ListViewSampleFilter`)는 `BooleanBuilder`로 조립한다. `toPredicate`의 반환 타입은 **`Predicate`**여야 한다 — `BooleanBuilder.getValue()`는 조건이 둘 이상이면 `PredicateOperation`을 돌려주므로 `BooleanExpression`으로 캐스팅하면 `ClassCastException`이 난다.
 - 정렬에는 항상 `id` 타이브레이커를 덧붙여 페이지 경계에서 순서가 흔들리지 않게 한다.
 
 ### Boot 4에서 달라진 것
@@ -84,7 +84,7 @@ GRPC_CLIENT_HOST=localhost ./gradlew :server:bootRun --args='--spring.profiles.a
 **리포지토리는 테이블을 만들지 않는다.** 리포지토리를 추가해도, Spring Data JPA의 `JpaRepository`를 쓰더라도 스키마에는 아무 영향이 없다. 테이블을 만드는 것은 `@Entity` 매핑을 재료로 삼는 **Hibernate의 `ddl-auto`**다.
 
 ```
-@Entity ListViewItemEntity ──(매핑 메타데이터)──► Hibernate
+@Entity ListViewSampleItemEntity ──(매핑 메타데이터)──► Hibernate
                                                     │ ddl-auto 를 보고
                                                     ▼
                                   create-drop → 기동 시 CREATE TABLE, 종료 시 DROP
@@ -143,7 +143,7 @@ GRPC_CLIENT_HOST=localhost ./gradlew :server:bootRun --args='--spring.profiles.a
 
 - **Lombok을 쓰지 않는다.** 버전 카탈로그에 `libs.lombok`이 있고 루트 빌드에 `compileOnly extendsFrom annotationProcessor` 배선도 있지만, 어느 모듈도 선언하지 않은 상태다. 로거는 `LoggerFactory.getLogger(...)`를 손으로 쓴다. 형제 프로젝트에 `spring-grpc-server-kotlin`이 있고 Lombok은 Kotlin에서 동작하지 않으므로(`@Slf4j`를 붙여도 `log`가 생성되지 않는다) 두 언어가 같은 방식을 쓰도록 유지한다.
 - **유틸 클래스는 `final` + `private` 생성자 + static 메서드.** 전부 `server/util/`에 모은다(`GrpcRequestLogger`, `GrpcRequestValidator`, `GrpcCallExecutor`, `HttpRequestLogger`, `SensitiveHeaders`). 이름 앞의 `Grpc`/`Http` 접두사가 어느 스택용인지 구분하고, 접두사가 없는 것은 두 스택 공용이다.
-- **enum 변환은 `valueOf(name())` 대신 명시적 switch.** proto에 상수가 추가되면 런타임에 조용히 누락되는 대신 컴파일 에러로 드러나게 한다. `sealed interface`(예: `ListViewFilter`)도 같은 목적 — 이를 소비하는 switch가 exhaustive 검사를 받는다.
+- **enum 변환은 `valueOf(name())` 대신 명시적 switch.** proto에 상수가 추가되면 런타임에 조용히 누락되는 대신 컴파일 에러로 드러나게 한다. `sealed interface`(예: `ListViewSampleFilter`)도 같은 목적 — 이를 소비하는 switch가 exhaustive 검사를 받는다.
 - 주석과 javadoc은 한국어로 쓴다. **무엇을 하는지가 아니라 왜 그렇게 했는지**를 적는다.
 - import는 알파벳순. 정적 유틸 호출은 static import 하지 않고 `GrpcRequestValidator.validateNotBlank(...)`처럼 클래스명을 붙인다.
 

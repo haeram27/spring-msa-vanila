@@ -11,17 +11,17 @@ import com.example.springgrpc.api.Category;
 import com.example.springgrpc.api.FilterNode;
 import com.example.springgrpc.api.Frequency;
 import com.example.springgrpc.api.ListViewItem;
-import com.example.springgrpc.api.ListViewRequest;
+import com.example.springgrpc.api.ListViewSampleRequest;
 import com.example.springgrpc.api.ListViewResponse;
 import com.example.springgrpc.api.ListViewSampleGrpc;
 import com.example.springgrpc.api.Pagination;
 import com.example.springgrpc.api.Sort;
 import com.example.springgrpc.api.Status;
 import com.example.springgrpc.server.service.ListViewSampleService;
-import com.example.springgrpc.server.service.dto.ListViewEntry;
-import com.example.springgrpc.server.service.dto.ListViewFilter;
-import com.example.springgrpc.server.service.dto.ListViewQuery;
-import com.example.springgrpc.server.service.dto.ListViewResult;
+import com.example.springgrpc.server.service.dto.ListViewSampleEntry;
+import com.example.springgrpc.server.service.dto.ListViewSampleFilter;
+import com.example.springgrpc.server.service.dto.ListViewSampleQuery;
+import com.example.springgrpc.server.service.dto.ListViewSampleResult;
 import com.example.springgrpc.server.util.EnumParser;
 import com.example.springgrpc.server.util.GrpcCallExecutor;
 import com.example.springgrpc.server.util.GrpcRequestLogger;
@@ -52,10 +52,10 @@ localhost:9090 \
 com.example.grpc.v1.ListViewSample/ListAll
 */
     @Override
-    public void listAll(ListViewRequest request, StreamObserver<ListViewResponse> responseObserver) {
+    public void listAll(ListViewSampleRequest request, StreamObserver<ListViewResponse> responseObserver) {
         GrpcRequestLogger.logRequestMembers("ListViewSampleGrpcServerService#listAll", request);
         GrpcCallExecutor.execute("ListViewSampleGrpcServerService#listAll", responseObserver, () -> {
-            ListViewResult result = listViewSampleService.list(toQuery(request));
+            ListViewSampleResult result = listViewSampleService.list(toQuery(request));
             return toResponse(result);
         });
     }
@@ -64,8 +64,8 @@ com.example.grpc.v1.ListViewSample/ListAll
     // proto → domain
     // ------------------------------------------------------------------
 
-    private static ListViewQuery toQuery(ListViewRequest request) {
-        return new ListViewQuery(
+    private static ListViewSampleQuery toQuery(ListViewSampleRequest request) {
+        return new ListViewSampleQuery(
             request.hasFilter() ? toFilter(request.getFilter()) : null,
             request.hasPagination() ? toPagination(request.getPagination()) : null,
             request.hasSort() ? toSort(request.getSort()) : null
@@ -73,36 +73,36 @@ com.example.grpc.v1.ListViewSample/ListAll
     }
 
     /** oneof가 설정되지 않은 노드는 조건 없음으로 보고 {@code null}을 돌려준다. */
-    private static ListViewFilter toFilter(FilterNode node) {
+    private static ListViewSampleFilter toFilter(FilterNode node) {
         return switch (node.getConditionCase()) {
-            case AND -> new ListViewFilter.And(
+            case AND -> new ListViewSampleFilter.And(
                 node.getAnd().getTargetsList().stream()
                     .map(ListViewSampleGrpcServerService::toFilter)
                     .filter(Objects::nonNull)
                     .toList());
-            case SEARCH_STRING -> new ListViewFilter.SearchString(node.getSearchString().getValue());
-            case STATUS -> new ListViewFilter.StatusIn(
+            case SEARCH_STRING -> new ListViewSampleFilter.SearchString(node.getSearchString().getValue());
+            case STATUS -> new ListViewSampleFilter.StatusIn(
                 mapEnums(node.getStatus().getValuesList(), ListViewSampleGrpcServerService::toDomain));
-            case CATEGORY -> new ListViewFilter.CategoryIn(
+            case CATEGORY -> new ListViewSampleFilter.CategoryIn(
                 mapEnums(node.getCategory().getValuesList(), ListViewSampleGrpcServerService::toDomain));
-            case FREQUENCY -> new ListViewFilter.FrequencyIn(
+            case FREQUENCY -> new ListViewSampleFilter.FrequencyIn(
                 mapEnums(node.getFrequency().getValuesList(), ListViewSampleGrpcServerService::toDomain));
             case CONDITION_NOT_SET -> null;
         };
     }
 
-    private static ListViewQuery.Pagination toPagination(Pagination pagination) {
-        return new ListViewQuery.Pagination(pagination.getPageSize(), pagination.getPageNumber());
+    private static ListViewSampleQuery.Pagination toPagination(Pagination pagination) {
+        return new ListViewSampleQuery.Pagination(pagination.getPageSize(), pagination.getPageNumber());
     }
 
     /**
      * proto의 정렬 키/순서는 자유 문자열이라 여기서 도메인 enum으로 좁힌다.
      * 값이 비면 기본값(id 오름차순), 알 수 없는 값이면 {@code INVALID_ARGUMENT}로 매핑될 예외를 던진다.
      */
-    private static ListViewQuery.Sort toSort(Sort sort) {
-        return new ListViewQuery.Sort(
-            EnumParser.parse(sort.getSortKey(), "sort_key", ListViewQuery.Sort.Key.class, ListViewQuery.Sort.Key.ID),
-            EnumParser.parse(sort.getSortOrder(), "sort_order", ListViewQuery.Sort.Order.class, ListViewQuery.Sort.Order.ASC)
+    private static ListViewSampleQuery.Sort toSort(Sort sort) {
+        return new ListViewSampleQuery.Sort(
+            EnumParser.parse(sort.getSortKey(), "sort_key", ListViewSampleQuery.Sort.Key.class, ListViewSampleQuery.Sort.Key.ID),
+            EnumParser.parse(sort.getSortOrder(), "sort_order", ListViewSampleQuery.Sort.Order.class, ListViewSampleQuery.Sort.Order.ASC)
         );
     }
 
@@ -113,34 +113,34 @@ com.example.grpc.v1.ListViewSample/ListAll
             .collect(Collectors.toUnmodifiableSet());
     }
 
-    private static ListViewEntry.Status toDomain(Status status) {
+    private static com.example.springgrpc.server.repository.enums.Status toDomain(Status status) {
         return switch (status) {
-            case PENDING -> ListViewEntry.Status.PENDING;
-            case CREATING -> ListViewEntry.Status.CREATING;
-            case CREATED -> ListViewEntry.Status.CREATED;
-            case FAILED -> ListViewEntry.Status.FAILED;
-            case DELETED -> ListViewEntry.Status.DELETED;
+            case PENDING -> com.example.springgrpc.server.repository.enums.Status.PENDING;
+            case CREATING -> com.example.springgrpc.server.repository.enums.Status.CREATING;
+            case CREATED -> com.example.springgrpc.server.repository.enums.Status.CREATED;
+            case FAILED -> com.example.springgrpc.server.repository.enums.Status.FAILED;
+            case DELETED -> com.example.springgrpc.server.repository.enums.Status.DELETED;
             case STATUS_UNSPECIFIED, UNRECOGNIZED -> null;
         };
     }
 
-    private static ListViewEntry.Category toDomain(Category category) {
+    private static com.example.springgrpc.server.repository.enums.Category toDomain(Category category) {
         return switch (category) {
-            case BASIC -> ListViewEntry.Category.BASIC;
-            case UNIFIED -> ListViewEntry.Category.UNIFIED;
-            case QUERY -> ListViewEntry.Category.QUERY;
+            case BASIC -> com.example.springgrpc.server.repository.enums.Category.BASIC;
+            case UNIFIED -> com.example.springgrpc.server.repository.enums.Category.UNIFIED;
+            case QUERY -> com.example.springgrpc.server.repository.enums.Category.QUERY;
             case CATEGORY_UNSPECIFIED, UNRECOGNIZED -> null;
         };
     }
 
-    private static ListViewEntry.Frequency toDomain(Frequency frequency) {
+    private static com.example.springgrpc.server.repository.enums.Frequency toDomain(Frequency frequency) {
         return switch (frequency) {
-            case IMMEDIATE -> ListViewEntry.Frequency.IMMEDIATE;
-            case SPECIFIC_TIME -> ListViewEntry.Frequency.SPECIFIC_TIME;
-            case EVERY_DAY -> ListViewEntry.Frequency.EVERY_DAY;
-            case EVERY_WEEK -> ListViewEntry.Frequency.EVERY_WEEK;
-            case EVERY_MONTH_DAY -> ListViewEntry.Frequency.EVERY_MONTH_DAY;
-            case EVERY_YEAR -> ListViewEntry.Frequency.EVERY_YEAR;
+            case IMMEDIATE -> com.example.springgrpc.server.repository.enums.Frequency.IMMEDIATE;
+            case SPECIFIC_TIME -> com.example.springgrpc.server.repository.enums.Frequency.SPECIFIC_TIME;
+            case EVERY_DAY -> com.example.springgrpc.server.repository.enums.Frequency.EVERY_DAY;
+            case EVERY_WEEK -> com.example.springgrpc.server.repository.enums.Frequency.EVERY_WEEK;
+            case EVERY_MONTH_DAY -> com.example.springgrpc.server.repository.enums.Frequency.EVERY_MONTH_DAY;
+            case EVERY_YEAR -> com.example.springgrpc.server.repository.enums.Frequency.EVERY_YEAR;
             case FREQUENCY_UNSPECIFIED, UNRECOGNIZED -> null;
         };
     }
@@ -149,14 +149,14 @@ com.example.grpc.v1.ListViewSample/ListAll
     // domain → proto
     // ------------------------------------------------------------------
 
-    private static ListViewResponse toResponse(ListViewResult result) {
+    private static ListViewResponse toResponse(ListViewSampleResult result) {
         return ListViewResponse.newBuilder()
             .addAllItems(result.items().stream().map(ListViewSampleGrpcServerService::toProto).toList())
             .setTotalCount(result.totalCount())
             .build();
     }
 
-    private static ListViewItem toProto(ListViewEntry entry) {
+    private static ListViewItem toProto(ListViewSampleEntry entry) {
         return ListViewItem.newBuilder()
             .setId(entry.id())
             .setName(entry.name())
@@ -166,7 +166,7 @@ com.example.grpc.v1.ListViewSample/ListAll
             .build();
     }
 
-    private static Status toProto(ListViewEntry.Status status) {
+    private static Status toProto(com.example.springgrpc.server.repository.enums.Status status) {
         return switch (status) {
             case PENDING -> Status.PENDING;
             case CREATING -> Status.CREATING;
@@ -176,7 +176,7 @@ com.example.grpc.v1.ListViewSample/ListAll
         };
     }
 
-    private static Category toProto(ListViewEntry.Category category) {
+    private static Category toProto(com.example.springgrpc.server.repository.enums.Category category) {
         return switch (category) {
             case BASIC -> Category.BASIC;
             case UNIFIED -> Category.UNIFIED;
@@ -184,7 +184,7 @@ com.example.grpc.v1.ListViewSample/ListAll
         };
     }
 
-    private static Frequency toProto(ListViewEntry.Frequency frequency) {
+    private static Frequency toProto(com.example.springgrpc.server.repository.enums.Frequency frequency) {
         return switch (frequency) {
             case IMMEDIATE -> Frequency.IMMEDIATE;
             case SPECIFIC_TIME -> Frequency.SPECIFIC_TIME;

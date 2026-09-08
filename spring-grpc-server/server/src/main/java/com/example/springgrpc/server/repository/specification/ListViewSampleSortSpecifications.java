@@ -2,7 +2,7 @@ package com.example.springgrpc.server.repository.specification;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import com.example.springgrpc.server.repository.ListViewItemEntity;
+import com.example.springgrpc.server.repository.ListViewSampleItemEntity;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
@@ -21,9 +21,9 @@ import jakarta.persistence.criteria.Root;
  * {@link Specification}의 {@code toPredicate}(DB 접근 시점)까지 미루지 않아, 잘못된 요청을 쿼리 실행 전에
  * {@link IllegalArgumentException}으로 빠르게 실패시킨다.
  */
-public final class ListViewSortSpecifications {
+public final class ListViewSampleSortSpecifications {
 
-    private ListViewSortSpecifications() {
+    private ListViewSampleSortSpecifications() {
     }
 
     /** 허용된 {@code sort_key} 화이트리스트. 그 외 값은 {@link #orderBy}에서 즉시 거부된다. */
@@ -52,9 +52,9 @@ public final class ListViewSortSpecifications {
         }
     }
 
-    public static Specification<ListViewItemEntity> orderBy(String sortKey, String sortOrder) {
+    public static Specification<ListViewSampleItemEntity> orderBy(String sortKey, String sortOrder) {
         boolean ascending = toAscending(sortOrder);
-        // sort_key 가 없으면 id 오름차순이 도메인 기본값이다(ListViewQuery 의 계약).
+        // sort_key 가 없으면 id 오름차순이 도메인 기본값이다(ListViewSampleQuery 의 계약).
         SortKey key = sortKey == null || sortKey.isBlank() ? SortKey.ID : SortKey.fromWireValue(sortKey);
         return (root, query, cb) -> {
             // 같은 값이 여러 건일 때 페이지 경계에서 순서가 흔들리지 않도록 항상 id 를 뒤에 덧붙인다.
@@ -70,7 +70,7 @@ public final class ListViewSortSpecifications {
         };
     }
 
-    private static Expression<?> toSortExpression(SortKey key, Root<ListViewItemEntity> root, CriteriaBuilder cb) {
+    private static Expression<?> toSortExpression(SortKey key, Root<ListViewSampleItemEntity> root, CriteriaBuilder cb) {
         return switch (key) {
             case ID -> root.get("id");
             case NAME -> root.get("name");

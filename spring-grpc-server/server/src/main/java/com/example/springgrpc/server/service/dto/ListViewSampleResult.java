@@ -8,8 +8,8 @@ import java.util.List;
  * @param items      현재 페이지에 해당하는 항목
  * @param totalCount 필터 적용 후 전체 건수. 페이징 전 값이라 {@code items.size()}와 다를 수 있다
  */
-public record ListViewResult(List<ListViewEntry> items, int totalCount) {
-    public ListViewResult {
+public record ListViewSampleResult(List<ListViewSampleEntry> items, int totalCount) {
+    public ListViewSampleResult {
         items = List.copyOf(items);
     }
 }

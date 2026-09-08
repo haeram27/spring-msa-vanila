@@ -16,32 +16,32 @@ import java.util.Set;
  * <p>
  * 판정 로직은 담지 않는다. 순수 데이터로 두고 {@code ListViewSampleService}가 해석한다.
  */
-public sealed interface ListViewFilter {
+public sealed interface ListViewSampleFilter {
 
     /** 하위 필터를 모두 만족해야 한다. targets가 비면 아무것도 거르지 않는다. */
-    record And(List<ListViewFilter> targets) implements ListViewFilter {
+    record And(List<ListViewSampleFilter> targets) implements ListViewSampleFilter {
         public And {
             targets = List.copyOf(targets);
         }
     }
 
     /** 이름에 대한 부분 일치(대소문자 무시). */
-    record SearchString(String value) implements ListViewFilter {
+    record SearchString(String value) implements ListViewSampleFilter {
     }
 
-    record StatusIn(Set<Status> values) implements ListViewFilter {
+    record StatusIn(Set<Status> values) implements ListViewSampleFilter {
         public StatusIn {
             values = Set.copyOf(values);
         }
     }
 
-    record CategoryIn(Set<Category> values) implements ListViewFilter {
+    record CategoryIn(Set<Category> values) implements ListViewSampleFilter {
         public CategoryIn {
             values = Set.copyOf(values);
         }
     }
 
-    record FrequencyIn(Set<Frequency> values) implements ListViewFilter {
+    record FrequencyIn(Set<Frequency> values) implements ListViewSampleFilter {
         public FrequencyIn {
             values = Set.copyOf(values);
         }
